@@ -29,8 +29,10 @@ jobs:
           cache: 'gradle'
 
       - name: Install npm dependencies
-        working-directory: ./mobile
-        run: npm install
+        run: |
+          npm install
+          cd mobile
+          ln -s ../node_modules ./node_modules
 
       - name: Build Android Debug APK
         working-directory: ./mobile/android
