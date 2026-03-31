@@ -31,6 +31,9 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
+      - name: Link node_modules for Gradle
+        run: ln -s ../node_modules ./mobile/node_modules
+
       - name: Build Android Release APK
         working-directory: ./mobile/android
         run: |
