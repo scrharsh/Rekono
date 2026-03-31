@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: 'mobile/package-lock.json' # Adjust if you use Yarn
+          cache-dependency-path: 'package-lock.json'
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
