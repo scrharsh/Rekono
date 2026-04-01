@@ -36,7 +36,7 @@ export class ExportsService {
       CGST: match.saleId.cgst.toFixed(2),
       SGST: match.saleId.sgst.toFixed(2),
       IGST: (match.saleId.igst || 0).toFixed(2),
-      PaymentMethod: match.paymentId.method,
+      PaymentMethod: match.paymentId.paymentMethod || '',
       TransactionID: match.paymentId.transactionId || '',
     }));
 
@@ -83,8 +83,9 @@ export class ExportsService {
           };
         }
 
-        const itemTaxable = item.amount / (1 + rate / 100);
-        const itemGST = item.amount - itemTaxable;
+        const itemTotal = (Number(item.price) || 0) * (Number(item.quantity) || 0);
+        const itemTaxable = itemTotal / (1 + rate / 100);
+        const itemGST = itemTotal - itemTaxable;
 
         summaryByRate[rate].taxable += itemTaxable;
 
@@ -95,7 +96,7 @@ export class ExportsService {
           summaryByRate[rate].sgst += itemGST / 2;
         }
 
-        summaryByRate[rate].total += item.amount;
+        summaryByRate[rate].total += itemTotal;
       });
     });
 

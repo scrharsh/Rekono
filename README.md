@@ -12,6 +12,7 @@ Rekono is a sale-first transaction reconciliation system for GST-registered show
 
 ```
 rekono/
+├── desktop/         # Electron shells for Business OS and CA OS
 ├── mobile/          # React Native mobile app (Android)
 ├── backend/         # NestJS API server (migrated from Express)
 ├── web/             # React web app (Vite)
@@ -52,6 +53,12 @@ Run mobile app:
 ```bash
 cd mobile
 npm start
+```
+
+Run desktop surfaces:
+```bash
+npm run desktop:business:start
+npm run desktop:ca:start
 ```
 
 ### Build
@@ -114,6 +121,11 @@ npm run format
 - Complete business logic ported
 
 🚧 **Next Phase**: Next.js frontend migration (React/Vite → Next.js 14+)
+
+## Desktop Surfaces
+
+- `desktop/business-app` provides a Business OS workspace for reconciliation and reporting.
+- `desktop/ca-app` provides a CA OS workspace for client operations and compliance work.
 
 ## License
 

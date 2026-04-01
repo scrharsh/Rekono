@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rekono Business Desktop</title>
+    <style>
+      :root {
+        --bg: #07111f;
+        --bg-2: #0b1730;
+        --panel: rgba(17, 26, 47, 0.9);
+        --panel-2: rgba(22, 33, 59, 0.92);
+        --panel-border: rgba(148, 163, 184, 0.16);
+        --text: #f1f5ff;
+        --muted: #b7c1dd;
+        --accent: #5b8cff;
+        --accent-2: #33d6a6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(91, 140, 255, 0.24), transparent 34%),
+          radial-gradient(circle at bottom right, rgba(51, 214, 166, 0.16), transparent 30%),
+          linear-gradient(180deg, var(--bg), var(--bg-2));
+        color: var(--text);
+      }
+      .root {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        min-height: 100vh;
+      }
+      .sidebar {
+        background: var(--panel);
+        padding: 22px;
+        border-right: 1px solid var(--panel-border);
+        backdrop-filter: blur(18px);
+      }
+      .brand {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        margin-bottom: 18px;
+      }
+      .brand-subtle {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 22px;
+      }
+      .nav-item {
+        padding: 11px 12px;
+        border-radius: 12px;
+        color: var(--muted);
+        margin-bottom: 8px;
+        background: transparent;
+        border: 1px solid transparent;
+      }
+      .nav-item.active {
+        background: var(--panel-2);
+        color: var(--text);
+        border-color: var(--panel-border);
+      }
+      .content {
+        padding: 28px;
+      }
+      .hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.75rem;
+        color: var(--accent-2);
+        margin-bottom: 10px;
+      }
+      .title {
+        margin: 0;
+        font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+      }
+      .subtitle {
+        margin: 10px 0 0;
+        color: var(--muted);
+        max-width: 56ch;
+      }
+      .status-chip {
+        border: 1px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 10px 14px;
+        white-space: nowrap;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: var(--panel-2);
+        border: 1px solid var(--panel-border);
+        border-radius: 18px;
+        padding: 16px;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      }
+      .card-label {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+      .card-value {
+        font-size: 1.9rem;
+        font-weight: 700;
+      }
+      .cta-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--accent);
+        color: white;
+        padding: 11px 16px;
+        border-radius: 12px;
+        text-decoration: none;
+        border: 0;
+      }
+      .cta.secondary {
+        background: transparent;
+        border: 1px solid var(--panel-border);
+        color: var(--text);
+      }
+      .section {
+        margin-top: 24px;
+      }
+      .section h3 {
+        margin: 0 0 12px;
+      }
+      .list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+      .list li {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--panel-border);
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: var(--muted);
+      }
+      @media (max-width: 900px) {
+        .root {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--panel-border);
+        }
+        .cards {
+          grid-template-columns: 1fr;
+        }
+        .hero {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="root">
+      <aside class="sidebar">
+        <div class="brand">Rekono Business OS</div>
+        <div class="brand-subtle">Desktop workspace for high-volume reconciliation</div>
+        <div class="nav-item active">Command Center</div>
+        <div class="nav-item">Sales Capture</div>
+        <div class="nav-item">Payments</div>
+        <div class="nav-item">Unmatched Queue</div>
+        <div class="nav-item">Catalog</div>
+        <div class="nav-item">Reports & Exports</div>
+      </aside>
+      <main class="content">
+        <div class="hero">
+          <div>
+            <div class="eyebrow">Business surface</div>
+            <h2 class="title">Business Desktop Surface</h2>
+            <p class="subtitle">High-productivity workspace for bulk reconciliation, queue review, and reporting.</p>
+          </div>
+          <div class="status-chip">Sync status: ready</div>
+        </div>
+        <section class="cards">
+          <div class="card"><div class="card-label">Today Received</div><div class="card-value">₹0.00</div></div>
+          <div class="card"><div class="card-label">Auto Processed</div><div class="card-value">0</div></div>
+          <div class="card"><div class="card-label">Needs Review</div><div class="card-value">0</div></div>
+        </section>
+        <div class="cta-row">
+          <a class="cta" href="#">Open Resolution Workspace</a>
+          <a class="cta secondary" href="#">View Report Snapshot</a>
+        </div>
+        <section class="section">
+          <h3>Operational Focus</h3>
+          <ul class="list">
+            <li>Review unmatched payments and resolve them against sale entries.</li>
+            <li>Monitor export readiness for accounting handoff.</li>
+            <li>Keep the queue moving without leaving the desktop workspace.</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

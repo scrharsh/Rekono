@@ -22,7 +22,7 @@ interface SMSMessage {
 
 class SMSReceiverService {
   private eventEmitter: NativeEventEmitter | null = null;
-  private listener: any = null;
+  private listener: { remove: () => void } | null = null;
 
   async requestSMSPermission(): Promise<boolean> {
     if (Platform.OS !== 'android') {

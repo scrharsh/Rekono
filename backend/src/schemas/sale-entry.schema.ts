@@ -55,7 +55,7 @@ export class SaleEntry {
   @Prop()
   customerAddress?: string;
 
-  @Prop({ sparse: true, unique: true })
+  @Prop()
   invoiceNumber?: string;
 
   @Prop({ required: true })

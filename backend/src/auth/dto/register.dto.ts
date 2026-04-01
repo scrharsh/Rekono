@@ -22,6 +22,15 @@ export class SelfRegisterDto {
   @IsString()
   @IsNotEmpty()
   email: string;
+
+  @ApiProperty({ example: '+91 98765 43210', required: false })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({ enum: ['ca', 'staff'] })
+  @IsEnum(['ca', 'staff'])
+  role: string;
 }
 
 /** Used by admin to create any role */

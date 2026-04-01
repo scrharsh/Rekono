@@ -4,40 +4,47 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50:  '#f4f6fa',
-          100: '#e5eaf3',
-          200: '#c5d0e2',
-          300: '#a5b5d1',
-          400: '#6582af',
-          500: '#264f8d', // Trustworthy, premium corporate blue
-          600: '#22477f',
-          700: '#1c3b6a',
-          800: '#172f54',
-          900: '#132644',
-        },
-        accent: {
-          50:  '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6', // Vibrant teal for CTAs and highlights
-          600: '#0d9488',
-          700: '#0f766e',
-        },
+        // Obsidian Architect — Surface System
         surface: {
-          DEFAULT: '#ffffff',
-          50:  '#f8fafb', // Cooler, modern off-white
-          100: '#f1f4f7', // Elegant blue-gray
-          200: '#e2e7ec',
+          DEFAULT: '#0b1326',
+          low:    '#131b2e',
+          container: '#171f33',
+          high:   '#222a3d',
+          highest: '#2d3449',
         },
-        sidebar: '#0b1627', // Crisp, dark midnight slate
-        'sidebar-hover': '#132644',
-        success: { DEFAULT: '#10b981', light: '#d1fae5', dark: '#065f46' },
-        warning: { DEFAULT: '#f59e0b', light: '#fef3c7', dark: '#92400e' },
-        danger:  { DEFAULT: '#ef4444', light: '#fee2e2', dark: '#991b1b' },
-        info:    { DEFAULT: '#3b82f6', light: '#dbeafe', dark: '#1e40af' },
+        // Primary (Indigo Intelligence)
+        primary: {
+          DEFAULT: '#c3c0ff',
+          container: '#4f46e5',
+          50:  '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
+        },
+        // Secondary
+        secondary: {
+          container: '#3131c0',
+        },
+        // Tertiary
+        tertiary: '#bdc2ff',
+        // On-surface text
+        'on-surface': {
+          DEFAULT: '#dae2fd',
+          variant: '#c7c4d8',
+        },
+        // Outline
+        'outline-variant': '#464555',
+        // Semantic
+        success: { DEFAULT: '#4ade80', dim: '#166534' },
+        warning: { DEFAULT: '#fbbf24', dim: '#92400e' },
+        danger:  { DEFAULT: '#ffb4ab', dim: '#93000a' },
+        info:    { DEFAULT: '#60a5fa', dim: '#1e40af' },
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
@@ -46,22 +53,26 @@ module.exports = {
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
       },
-      boxShadow: {
-        card:  '0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07)',
-        'card-md': '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07)',
-        'card-lg': '0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07)',
-        'inner-sm': 'inset 0 1px 2px 0 rgb(0 0 0 / 0.05)',
-      },
       borderRadius: {
         '4xl': '2rem',
       },
+      boxShadow: {
+        'glow-sm': '0 0 10px rgba(79, 70, 229, 0.15)',
+        'glow-md': '0 0 20px rgba(79, 70, 229, 0.2)',
+        'glow-lg': '0 0 40px rgba(79, 70, 229, 0.25)',
+        'card':    '0 2px 8px rgba(0, 0, 0, 0.25)',
+        'card-md': '0 4px 16px rgba(0, 0, 0, 0.3)',
+        'card-lg': '0 8px 30px rgba(0, 0, 0, 0.35)',
+      },
       animation: {
-        'fade-in': 'fadeIn 0.15s ease-out',
-        'slide-up': 'slideUp 0.2s ease-out',
+        'fade-in': 'fadeIn 0.2s ease-out',
+        'slide-up': 'slideUp 0.25s ease-out',
+        'slide-right': 'slideRight 0.25s ease-out',
       },
       keyframes: {
         fadeIn:  { from: { opacity: '0' }, to: { opacity: '1' } },
-        slideUp: { from: { opacity: '0', transform: 'translateY(4px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        slideUp: { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        slideRight: { from: { opacity: '0', transform: 'translateX(-8px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
       },
     },
   },

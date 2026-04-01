@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,8 +24,8 @@ async function bootstrap() {
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Global logging interceptor
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  // Global logging + audit interceptors
+  app.useGlobalInterceptors(app.get(LoggingInterceptor), app.get(AuditInterceptor));
 
   // Global validation pipe
   app.useGlobalPipes(

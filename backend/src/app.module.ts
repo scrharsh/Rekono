@@ -15,6 +15,18 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { HelpRequestsModule } from './help-requests/help-requests.module';
 import { ConnectionsModule } from './connections/connections.module';
+// New modules — Rekono OS
+import { CaClientsModule } from './ca-clients/ca-clients.module';
+import { CaServicesModule } from './ca-services/ca-services.module';
+import { CaPaymentsModule } from './ca-payments/ca-payments.module';
+import { CaDocumentsModule } from './ca-documents/ca-documents.module';
+import { CaTasksModule } from './ca-tasks/ca-tasks.module';
+import { KnowledgeModule } from './knowledge/knowledge.module';
+import { AuditModule } from './audit/audit.module';
+import { CatalogModule } from './catalog/catalog.module';
+import { BusinessProfilesModule } from './business-profiles/business-profiles.module';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 @Module({
   imports: [
@@ -41,12 +53,24 @@ import { ConnectionsModule } from './connections/connections.module';
     AnalyticsModule,
     HelpRequestsModule,
     ConnectionsModule,
+    // New modules — Rekono OS
+    CaClientsModule,
+    CaServicesModule,
+    CaPaymentsModule,
+    CaDocumentsModule,
+    CaTasksModule,
+    KnowledgeModule,
+    AuditModule,
+    CatalogModule,
+    BusinessProfilesModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    LoggingInterceptor,
+    AuditInterceptor,
   ],
 })
 export class AppModule {}

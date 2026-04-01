@@ -24,7 +24,7 @@ export const requestSMSPermission = async (): Promise<boolean> => {
   }
 };
 
-export const parseSMS = (message: string): any | null => {
+export const parseSMS = (message: string): Record<string, unknown> | null => {
   // PhonePe pattern
   const phonePePattern = /Rs\.?\s*(\d+(?:,\d+)*(?:\.\d+)?).+?from\s+(.+?)\s+.+?UPI Ref no\s+(\d+)/i;
   const phonePeMatch = message.match(phonePePattern);
@@ -80,7 +80,7 @@ export const parseSMS = (message: string): any | null => {
   return null;
 };
 
-export const setupSMSListener = (_onPaymentReceived: (payment: any) => void) => {
+export const setupSMSListener = (_onPaymentReceived: (payment: Record<string, unknown>) => void) => {
   void _onPaymentReceived;
   // TODO: Implement SMS broadcast receiver
   // This would listen for incoming SMS and parse them

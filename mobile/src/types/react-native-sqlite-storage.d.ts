@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module 'react-native-sqlite-storage' {
   export interface SQLiteDatabase {
     executeSql(sql: string, params?: any[]): Promise<[ResultSet]>;

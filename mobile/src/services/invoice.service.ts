@@ -44,7 +44,7 @@ export const getInvoice = async (showroomId: string, invoiceNumber: string): Pro
   return data.invoice;
 };
 
-export const listInvoices = async (showroomId: string, page = 1): Promise<any> => {
+export const listInvoices = async (showroomId: string, page = 1): Promise<unknown> => {
   const token = await AsyncStorage.getItem('token');
   const res = await fetch(`${API_URL}/showrooms/${showroomId}/invoices?page=${page}`, {
     headers: { Authorization: `Bearer ${token}` },

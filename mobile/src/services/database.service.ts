@@ -305,7 +305,7 @@ export const getSalesByShowroom = async (
   opts: { status?: string; limit?: number; offset?: number } = {}
 ): Promise<LocalSaleEntry[]> => {
   let sql = `SELECT * FROM sales WHERE showroomId = ?`;
-  const params: any[] = [showroomId];
+  const params: (string|number|null)[] = [showroomId];
   if (opts.status) {
     sql += ` AND status = ?`;
     params.push(opts.status);
@@ -328,7 +328,7 @@ export const updateSale = async (
   updates: Partial<Omit<LocalSaleEntry, 'id' | 'showroomId' | 'createdAt'>>
 ): Promise<void> => {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string|number|null)[] = [];
 
   if (updates.totalAmount !== undefined) { fields.push('totalAmount = ?'); values.push(updates.totalAmount); }
   if (updates.taxableAmount !== undefined) { fields.push('taxableAmount = ?'); values.push(updates.taxableAmount); }
@@ -354,8 +354,8 @@ export const deleteSale = async (id: string): Promise<void> => {
   await db.executeSql(`DELETE FROM sales WHERE id = ?`, [id]);
 };
 
-const deserializeSale = (row: any): LocalSaleEntry => ({
-  ...row,
+const deserializeSale = (row: Record<string, unknown>): LocalSaleEntry => ({
+  ...(row as unknown as LocalSaleEntry),
   items: typeof row.items === 'string' ? JSON.parse(row.items) : (row.items ?? []),
 });
 
@@ -398,7 +398,7 @@ export const getPaymentsByShowroom = async (
   opts: { status?: string; limit?: number; offset?: number } = {}
 ): Promise<LocalPaymentRecord[]> => {
   let sql = `SELECT * FROM payments WHERE showroomId = ?`;
-  const params: any[] = [showroomId];
+  const params: (string|number|null)[] = [showroomId];
   if (opts.status) {
     sql += ` AND status = ?`;
     params.push(opts.status);
@@ -415,7 +415,7 @@ export const updatePayment = async (
   updates: Partial<Omit<LocalPaymentRecord, 'id' | 'showroomId' | 'createdAt'>>
 ): Promise<void> => {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string|number|null)[] = [];
 
   if (updates.amount !== undefined) { fields.push('amount = ?'); values.push(updates.amount); }
   if (updates.status !== undefined) { fields.push('status = ?'); values.push(updates.status); }
@@ -492,7 +492,7 @@ export const updateMatch = async (
   updates: Partial<Omit<LocalMatch, 'id' | 'showroomId' | 'createdAt'>>
 ): Promise<void> => {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: (string|number|null)[] = [];
 
   if (updates.confidence !== undefined) { fields.push('confidence = ?'); values.push(updates.confidence); }
   if (updates.matchType !== undefined) { fields.push('matchType = ?'); values.push(updates.matchType); }

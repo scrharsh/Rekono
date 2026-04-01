@@ -44,7 +44,8 @@
     "preset": "react-native",
     "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"],
     "transform": {
-      "^.+\\.(ts|tsx)$": ["ts-jest", { "tsconfig": "tsconfig.json" }]
+      "^.+\\.(ts|tsx)$": ["ts-jest", { "tsconfig": "tsconfig.json" }],
+      "^.+\\.(js|jsx)$": "babel-jest"
     },
     "testRegex": ".*\\.spec\\.(ts|tsx)$",
     "collectCoverageFrom": ["src/**/*.(ts|tsx)"],

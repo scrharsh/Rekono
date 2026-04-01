@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rekono CA Desktop</title>
+    <style>
+      :root {
+        --bg: #0a1020;
+        --bg-2: #101a31;
+        --panel: rgba(17, 26, 47, 0.9);
+        --panel-2: rgba(22, 33, 59, 0.92);
+        --panel-border: rgba(148, 163, 184, 0.16);
+        --text: #f1f5ff;
+        --muted: #b7c1dd;
+        --accent: #8b6cff;
+        --accent-2: #33d6a6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background:
+          radial-gradient(circle at top right, rgba(139, 108, 255, 0.22), transparent 33%),
+          radial-gradient(circle at bottom left, rgba(51, 214, 166, 0.14), transparent 30%),
+          linear-gradient(180deg, var(--bg), var(--bg-2));
+        color: var(--text);
+      }
+      .root {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        min-height: 100vh;
+      }
+      .sidebar {
+        background: var(--panel);
+        padding: 22px;
+        border-right: 1px solid var(--panel-border);
+        backdrop-filter: blur(18px);
+      }
+      .brand {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        margin-bottom: 18px;
+      }
+      .brand-subtle {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 22px;
+      }
+      .nav-item {
+        padding: 11px 12px;
+        border-radius: 12px;
+        color: var(--muted);
+        margin-bottom: 8px;
+        background: transparent;
+        border: 1px solid transparent;
+      }
+      .nav-item.active {
+        background: var(--panel-2);
+        color: var(--text);
+        border-color: var(--panel-border);
+      }
+      .content {
+        padding: 28px;
+      }
+      .hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.75rem;
+        color: var(--accent-2);
+        margin-bottom: 10px;
+      }
+      .title {
+        margin: 0;
+        font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+      }
+      .subtitle {
+        margin: 10px 0 0;
+        color: var(--muted);
+        max-width: 58ch;
+      }
+      .status-chip {
+        border: 1px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 10px 14px;
+        white-space: nowrap;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(160px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: var(--panel-2);
+        border: 1px solid var(--panel-border);
+        border-radius: 18px;
+        padding: 16px;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      }
+      .card-label {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+      .card-value {
+        font-size: 1.9rem;
+        font-weight: 700;
+      }
+      .cta-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--accent);
+        color: white;
+        padding: 11px 16px;
+        border-radius: 12px;
+        text-decoration: none;
+        border: 0;
+      }
+      .cta.secondary {
+        background: transparent;
+        border: 1px solid var(--panel-border);
+        color: var(--text);
+      }
+      .section {
+        margin-top: 24px;
+      }
+      .section h3 {
+        margin: 0 0 12px;
+      }
+      .list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+      .list li {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--panel-border);
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: var(--muted);
+      }
+      @media (max-width: 900px) {
+        .root {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--panel-border);
+        }
+        .grid {
+          grid-template-columns: repeat(2, minmax(140px, 1fr));
+        }
+        .hero {
+          flex-direction: column;
+        }
+      }
+      @media (max-width: 560px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="root">
+      <aside class="sidebar">
+        <div class="brand">Rekono CA OS</div>
+        <div class="brand-subtle">Desktop workspace for client operations and compliance</div>
+        <div class="nav-item active">Command Center</div>
+        <div class="nav-item">Clients</div>
+        <div class="nav-item">Services</div>
+        <div class="nav-item">Payments</div>
+        <div class="nav-item">Documents</div>
+        <div class="nav-item">Tasks</div>
+        <div class="nav-item">Knowledge</div>
+      </aside>
+      <main class="content">
+        <div class="hero">
+          <div>
+            <div class="eyebrow">CA surface</div>
+            <h2 class="title">CA Desktop Surface</h2>
+            <p class="subtitle">Desktop workspace for bulk client operations, document-heavy compliance, and review cycles.</p>
+          </div>
+          <div class="status-chip">Compliance queue: stable</div>
+        </div>
+        <section class="grid">
+          <div class="card"><div class="card-label">Clients</div><div class="card-value">0</div></div>
+          <div class="card"><div class="card-label">High Priority Tasks</div><div class="card-value">0</div></div>
+          <div class="card"><div class="card-label">Pending Collections</div><div class="card-value">₹0.00</div></div>
+          <div class="card"><div class="card-label">At Risk Clients</div><div class="card-value">0</div></div>
+        </section>
+        <div class="cta-row">
+          <a class="cta" href="#">Open Command Center</a>
+          <a class="cta secondary" href="#">Review Client List</a>
+        </div>
+        <section class="section">
+          <h3>Operational Focus</h3>
+          <ul class="list">
+            <li>Track compliance work without switching away from the command center.</li>
+            <li>Move between client documents, services, and payment activity quickly.</li>
+            <li>Keep high-risk items visible for review and follow-up.</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

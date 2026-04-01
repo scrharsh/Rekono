@@ -43,6 +43,7 @@ export default function PaymentListScreen() {
             <Text style={s.methodIcon}>{icon}</Text>
             <Text style={s.methodText}>{item.paymentMethod}</Text>
           </View>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <Text style={[s.statusBadge, statusStyle as any]}>{item.status}</Text>
         </View>
         <Text style={s.amount}>₹{item.amount.toLocaleString('en-IN')}</Text>

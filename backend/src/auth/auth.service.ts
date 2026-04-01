@@ -27,7 +27,10 @@ export class AuthService {
     const user = new this.userModel({
       username: dto.username,
       password: hashedPassword,
-      role: 'ca',
+      fullName: dto.fullName,
+      email: dto.email,
+      phone: dto.phone,
+      role: dto.role,
       showroomIds: [],
     });
     await user.save();

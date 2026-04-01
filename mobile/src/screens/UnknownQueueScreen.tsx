@@ -1,10 +1,20 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  RefreshControl, Alert,
+  RefreshControl, Alert, StatusBar
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getPaymentsByShowroom, LocalPaymentRecord } from '../services/database.service';
+import {
+  getPaymentsByShowroom,
+  getSalesByShowroom,
+  saveSale,
+  saveMatch,
+  updatePayment,
+  updateSale,
+  LocalPaymentRecord,
+  LocalSaleEntry,
+} from '../services/database.service';
+import uuid from 'react-native-uuid';
 
 function ageLabel(ts: string) {
   const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
@@ -21,6 +31,7 @@ const METHOD_ICON: Record<string, string> = {
 export default function UnknownQueueScreen() {
   const [payments, setPayments] = useState<LocalPaymentRecord[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [workingId, setWorkingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const showroomId = await AsyncStorage.getItem('showroomId');
@@ -32,6 +43,114 @@ export default function UnknownQueueScreen() {
   useEffect(() => { load(); }, [load]);
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+
+  const getBestSaleCandidate = (payment: LocalPaymentRecord, sales: LocalSaleEntry[]) => {
+    const scored = sales.map((sale) => {
+      const amountDiff = Math.abs(payment.amount - sale.totalAmount);
+      const timeDiffMins = Math.abs(
+        new Date(payment.timestamp).getTime() - new Date(sale.timestamp).getTime(),
+      ) / 60000;
+      const score = Math.max(0, 100 - amountDiff * 40 - timeDiffMins * 1.2);
+      return { sale, score, amountDiff };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0];
+  };
+
+  const createSaleAndLink = async (payment: LocalPaymentRecord) => {
+    setWorkingId(payment.id);
+    try {
+      const showroomId = await AsyncStorage.getItem('showroomId');
+      if (!showroomId) return;
+
+      const saleId = String(uuid.v4());
+      await saveSale({
+        id: saleId,
+        showroomId,
+        totalAmount: payment.amount,
+        taxableAmount: payment.amount,
+        cgst: 0,
+        sgst: 0,
+        igst: 0,
+        items: [
+          {
+            name: payment.sender ? `Payment from ${payment.sender}` : 'Captured from unknown payment',
+            quantity: 1,
+            price: payment.amount,
+            gstRate: 0,
+          },
+        ],
+        customerName: payment.sender || undefined,
+        timestamp: payment.timestamp,
+        status: 'verified',
+        syncStatus: 'pending',
+      });
+
+      await saveMatch({
+        id: String(uuid.v4()),
+        showroomId,
+        saleId,
+        paymentId: payment.id,
+        confidence: 95,
+        matchType: 'manual',
+        verifiedBy: 'owner',
+        verifiedAt: new Date().toISOString(),
+        notes: 'Created sale directly from unknown payment',
+        syncStatus: 'pending',
+      });
+
+      await updatePayment(payment.id, { status: 'verified', syncStatus: 'pending' });
+      await load();
+      Alert.alert('Resolved', 'Sale created and linked successfully.');
+    } catch {
+      Alert.alert('Action failed', 'Unable to create and link sale for this payment.');
+    } finally {
+      setWorkingId(null);
+    }
+  };
+
+  const matchExistingSale = async (payment: LocalPaymentRecord) => {
+    setWorkingId(payment.id);
+    try {
+      const showroomId = await AsyncStorage.getItem('showroomId');
+      if (!showroomId) return;
+
+      const unmatchedSales = await getSalesByShowroom(showroomId, { status: 'unmatched' });
+      if (unmatchedSales.length === 0) {
+        Alert.alert('No sale found', 'There are no unmatched sales available for linking.');
+        return;
+      }
+
+      const best = getBestSaleCandidate(payment, unmatchedSales);
+      if (!best || best.score < 50) {
+        Alert.alert('Low confidence', 'No confident sale candidate found for this payment.');
+        return;
+      }
+
+      await saveMatch({
+        id: String(uuid.v4()),
+        showroomId,
+        saleId: best.sale.id,
+        paymentId: payment.id,
+        confidence: Math.round(best.score),
+        matchType: 'manual',
+        verifiedBy: 'owner',
+        verifiedAt: new Date().toISOString(),
+        notes: `Matched from unknown queue (amount diff ${best.amountDiff.toFixed(2)})`,
+        syncStatus: 'pending',
+      });
+
+      await updateSale(best.sale.id, { status: 'verified', syncStatus: 'pending' });
+      await updatePayment(payment.id, { status: 'verified', syncStatus: 'pending' });
+      await load();
+      Alert.alert('Matched', `Linked with sale ₹${best.sale.totalAmount.toLocaleString('en-IN')}`);
+    } catch {
+      Alert.alert('Match failed', 'Unable to match this payment right now.');
+    } finally {
+      setWorkingId(null);
+    }
+  };
 
   const renderItem = ({ item }: { item: LocalPaymentRecord }) => {
     const age = ageLabel(item.timestamp);
@@ -51,11 +170,11 @@ export default function UnknownQueueScreen() {
         {item.transactionId && <Text style={s.txn}>TXN: {item.transactionId}</Text>}
         {item.sender && <Text style={s.meta}>From: {item.sender}</Text>}
         <View style={s.actions}>
-          <TouchableOpacity style={s.btnPrimary} onPress={() => Alert.alert('Create Sale', 'Sale creation from payment coming soon')}>
-            <Text style={s.btnPrimaryText}>Create Sale</Text>
+          <TouchableOpacity style={[s.btnPrimary, workingId === item.id && s.btnDisabled]} onPress={() => createSaleAndLink(item)} disabled={workingId === item.id}>
+            <Text style={s.btnPrimaryText}>{workingId === item.id ? 'Working...' : 'Create Sale'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.btnOutline} onPress={() => Alert.alert('Match', 'Manual matching coming soon')}>
-            <Text style={s.btnOutlineText}>Match Sale</Text>
+          <TouchableOpacity style={[s.btnOutline, workingId === item.id && s.btnDisabled]} onPress={() => matchExistingSale(item)} disabled={workingId === item.id}>
+            <Text style={s.btnOutlineText}>Match</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -64,6 +183,7 @@ export default function UnknownQueueScreen() {
 
   return (
     <View style={s.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#131b2e" />
       <View style={s.header}>
         <Text style={s.title}>Unknown Payments</Text>
         <Text style={s.subtitle}>{payments.length} without matching sales</Text>
@@ -73,7 +193,7 @@ export default function UnknownQueueScreen() {
         renderItem={renderItem}
         keyExtractor={i => i.id}
         contentContainerStyle={s.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4f46e5" />}
         ListEmptyComponent={
           <View style={s.empty}>
             <Text style={s.emptyIcon}>✅</Text>
@@ -87,29 +207,30 @@ export default function UnknownQueueScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { backgroundColor: '#fff', padding: 16, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' },
-  title: { fontSize: 20, fontWeight: '700', color: '#1e293b' },
-  subtitle: { fontSize: 13, color: '#64748b', marginTop: 2 },
+  container: { flex: 1, backgroundColor: '#0b1326' },
+  header: { backgroundColor: '#131b2e', padding: 20, paddingTop: 48, borderBottomWidth: 1, borderBottomColor: '#171f33' },
+  title: { fontSize: 20, fontWeight: '700', color: '#dae2fd' },
+  subtitle: { fontSize: 13, color: '#c7c4d8', marginTop: 4 },
   list: { padding: 16 },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0', elevation: 1 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  methodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  methodIcon: { fontSize: 14 },
-  methodText: { fontSize: 13, fontWeight: '600', color: '#475569' },
-  age: { fontSize: 12, color: '#f59e0b', fontWeight: '600', backgroundColor: '#fef3c7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
-  ageOld: { color: '#ef4444', backgroundColor: '#fee2e2' },
-  amount: { fontSize: 24, fontWeight: '700', color: '#1e293b', marginBottom: 4 },
+  card: { backgroundColor: '#171f33', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#222a3d', elevation: 1 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  methodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#222a3d', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  methodIcon: { fontSize: 13 },
+  methodText: { fontSize: 13, fontWeight: '600', color: '#dae2fd' },
+  age: { fontSize: 12, color: '#f59e0b', fontWeight: '600', backgroundColor: 'rgba(245, 158, 11, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
+  ageOld: { color: '#ffb4ab', backgroundColor: 'rgba(255, 180, 171, 0.1)' },
+  amount: { fontSize: 28, fontWeight: '800', color: '#dae2fd', marginBottom: 4, letterSpacing: -0.5 },
   time: { fontSize: 12, color: '#94a3b8', marginBottom: 4 },
-  txn: { fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', marginBottom: 4 },
-  meta: { fontSize: 13, color: '#64748b', marginBottom: 12 },
-  actions: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  btnPrimary: { flex: 1, backgroundColor: '#4f46e5', padding: 12, borderRadius: 8, alignItems: 'center' },
-  btnPrimaryText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  btnOutline: { flex: 1, borderWidth: 1.5, borderColor: '#4f46e5', padding: 12, borderRadius: 8, alignItems: 'center' },
-  btnOutlineText: { color: '#4f46e5', fontSize: 14, fontWeight: '600' },
-  empty: { padding: 48, alignItems: 'center' },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1e293b', marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#94a3b8' },
+  txn: { fontSize: 12, color: '#94a3b8', fontFamily: 'monospace', marginBottom: 6 },
+  meta: { fontSize: 14, color: '#c7c4d8', marginBottom: 16, fontWeight: '500' },
+  actions: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  btnPrimary: { flex: 2, backgroundColor: '#4f46e5', padding: 14, borderRadius: 10, alignItems: 'center' },
+  btnDisabled: { opacity: 0.65 },
+  btnPrimaryText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
+  btnOutline: { flex: 1, borderWidth: 1, borderColor: '#464555', backgroundColor: '#0b1326', padding: 14, borderRadius: 10, alignItems: 'center' },
+  btnOutlineText: { color: '#c7c4d8', fontSize: 14, fontWeight: '600' },
+  empty: { padding: 48, paddingTop: 64, alignItems: 'center' },
+  emptyIcon: { fontSize: 48, marginBottom: 16 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#dae2fd', marginBottom: 4 },
+  emptyText: { fontSize: 14, color: '#c7c4d8' },
 });
