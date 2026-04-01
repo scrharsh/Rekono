@@ -14,6 +14,7 @@ import CatalogScreen from './src/screens/CatalogScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import SplashScreen from './src/screens/SplashScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import { smsReceiverService } from './src/services/smsReceiver.native';
 import { hydrateBusinessContextFromServer } from './src/services/businessProfile.service';
 
@@ -131,6 +132,7 @@ export default function App() {
         <Stack.Screen name="Signup" component={SignupScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

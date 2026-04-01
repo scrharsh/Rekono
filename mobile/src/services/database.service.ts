@@ -558,7 +558,7 @@ export const getTodaySummary = async (showroomId: string) => {
   const [matchedResult] = await db.executeSql(
     `SELECT COUNT(*) as count
      FROM sales
-     WHERE showroomId = ? AND DATE(timestamp) = ? AND status = 'matched'`,
+     WHERE showroomId = ? AND DATE(timestamp) = ? AND status IN ('matched', 'verified')`,
     [showroomId, today]
   );
 

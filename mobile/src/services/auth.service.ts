@@ -25,6 +25,21 @@ async function storeAuthSession(data: any) {
   return data;
 }
 
+export async function logoutMobile() {
+  await AsyncStorage.multiRemove(['token', 'user', 'showroomId', 'showroomName', 'businessMode', 'businessProfileId']);
+}
+
+export async function getStoredUser(): Promise<Record<string, unknown> | null> {
+  const raw = await AsyncStorage.getItem('user');
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export async function loginMobile(username: string, password: string) {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',

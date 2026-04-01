@@ -58,7 +58,7 @@ export default function HomeScreen() {
                <Text style={s.offlineText}>Offline</Text>
              </View>
            )}
-           <TouchableOpacity style={s.avatarBtn}>
+           <TouchableOpacity style={s.avatarBtn} onPress={() => navigation.navigate('Settings')}>
              <Text style={s.avatarText}>{showroomName ? showroomName.charAt(0) : 'R'}</Text>
            </TouchableOpacity>
         </View>

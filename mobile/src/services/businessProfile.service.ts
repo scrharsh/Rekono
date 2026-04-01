@@ -124,3 +124,66 @@ export async function fetchCatalogItems(businessId: string): Promise<CatalogItem
 
   return res.json();
 }
+
+export async function createCatalogItem(
+  businessId: string,
+  payload: { name: string; category: string; type?: string; sellingPrice: number; gstRate?: number },
+): Promise<CatalogItem> {
+  const token = await AsyncStorage.getItem('token');
+  if (!token || !businessId) {
+    throw new Error('Missing session or business profile');
+  }
+
+  const res = await fetch(`${API_URL}/catalog/${businessId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to create catalog item');
+  }
+
+  return res.json();
+}
+
+export async function toggleCatalogFavorite(businessId: string, itemId: string): Promise<CatalogItem> {
+  const token = await AsyncStorage.getItem('token');
+  if (!token || !businessId || !itemId) {
+    throw new Error('Missing session or item details');
+  }
+
+  const res = await fetch(`${API_URL}/catalog/${businessId}/${itemId}/favorite`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to update favorite status');
+  }
+
+  return res.json();
+}
+
+export async function deleteCatalogItem(businessId: string, itemId: string): Promise<void> {
+  const token = await AsyncStorage.getItem('token');
+  if (!token || !businessId || !itemId) {
+    throw new Error('Missing session or item details');
+  }
+
+  const res = await fetch(`${API_URL}/catalog/${businessId}/${itemId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to delete catalog item');
+  }
+}
