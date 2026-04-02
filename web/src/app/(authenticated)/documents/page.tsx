@@ -2,6 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import LottieLoader from '@/components/LottieLoader';
+import Icon from '@/components/Icon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
@@ -18,14 +21,6 @@ const DOC_TYPES = [
   { value: 'agreement', label: 'Agreement' },
   { value: 'other', label: 'Other' },
 ];
-
-function Icon({ d, className = 'w-4 h-4' }: { d: string; className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
-}
 
 export default function DocumentsPage() {
   const qc = useQueryClient();
@@ -129,9 +124,9 @@ export default function DocumentsPage() {
       {/* Upload Modal */}
       {showUpload && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          style={{ background: 'rgba(12, 26, 43, 0.34)', backdropFilter: 'blur(7px)' }}>
           <div className="w-full max-w-md animate-scale-in rounded-2xl p-6"
-            style={{ background: 'var(--surface-container)', border: '1px solid rgba(70,69,85,0.2)' }}>
+            style={{ background: 'var(--surface)', border: '1px solid var(--outline-variant)', boxShadow: '0 20px 64px rgba(15, 32, 56, 0.16)' }}>
             <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--on-surface)' }}>Upload Document</h2>
             <form onSubmit={e => { e.preventDefault(); uploadMutation.mutate(); }} className="space-y-4">
               <div>
@@ -186,12 +181,14 @@ export default function DocumentsPage() {
 
       {/* Document completeness per client */}
       {isLoading ? (
-        <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-24 skeleton" />)}</div>
-      ) : filteredDocs.length === 0 ? (
-        <div className="empty-state">
-          <p className="empty-state-title">No clients found</p>
-          <p className="empty-state-desc">Add clients first to track their documents</p>
+        <div className="h-64 flex items-center justify-center">
+          <LottieLoader label="Loading document readiness..." size={46} />
         </div>
+      ) : filteredDocs.length === 0 ? (
+        <MotionEmptyState
+          title="No clients found"
+          description="Add clients first to start document completeness tracking."
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-children">
           {filteredDocs.map((item: any) => (

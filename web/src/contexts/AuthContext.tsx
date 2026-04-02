@@ -7,12 +7,20 @@ interface User {
   username: string;
   role: 'staff' | 'accountant' | 'ca' | 'admin';
   showroomIds: string[];
+  subscription?: {
+    plan: 'free_ca' | 'business_monthly' | 'business_yearly';
+    status: 'active' | 'inactive' | 'cancelled';
+    required: boolean;
+    activatedAt?: string;
+    expiresAt?: string;
+  };
 }
 
 export interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  hasActiveSubscription: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -25,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const hasActiveSubscription =
+    !user?.subscription?.required || user.subscription?.status === 'active';
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -72,7 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, isAuthenticated, hasActiveSubscription, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

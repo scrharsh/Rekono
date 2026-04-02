@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import MotionEmptyState from '@/components/MotionEmptyState';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -175,10 +176,10 @@ export default function ConnectCAPage() {
             {!showroomId ? (
               <p className="text-sm text-slate-400 text-center py-8">Enter your showroom ID to see connections</p>
             ) : connections.length === 0 ? (
-              <div className="empty-state py-8">
-                <p className="empty-state-title">No connections yet</p>
-                <p className="empty-state-desc">Search for your CA and send a request</p>
-              </div>
+              <MotionEmptyState
+                title="No connections yet"
+                description="Search for your CA and send a request to initiate the bridge."
+              />
             ) : (
               <div className="space-y-3">
                 {connections.map((c: any) => (

@@ -4,6 +4,9 @@ import { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import Icon from '@/components/Icon';
+import BrandMark from '@/components/BrandMark';
+import BrandLogoLink from '@/components/BrandLogoLink';
 
 interface NavItem {
   label: string;
@@ -15,14 +18,6 @@ interface NavItem {
 interface NavSection {
   title: string;
   items: NavItem[];
-}
-
-function Icon({ d, className = 'w-[18px] h-[18px]' }: { d: string; className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
 }
 
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -140,23 +135,21 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside
         className={`flex flex-col shrink-0 transition-all duration-300 ${collapsed ? 'w-[68px]' : 'w-[240px]'}`}
-        style={{ background: 'var(--surface-low)', borderRight: '1px solid rgba(70,69,85,0.12)' }}
+        style={{ background: 'var(--surface-container)', borderRight: '1px solid rgba(214,228,255,0.95)' }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-4 h-16 shrink-0"
-          style={{ borderBottom: '1px solid rgba(70,69,85,0.12)' }}>
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'var(--primary-container)', boxShadow: '0 2px 8px rgba(79,70,229,0.3)' }}>
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          {!collapsed && (
-            <span className="text-base font-bold text-white tracking-tight">Rekono</span>
+        <div className="flex items-center gap-1.5 px-4 h-16 shrink-0"
+          style={{ borderBottom: '1px solid rgba(214,228,255,0.95)' }}>
+          {collapsed ? (
+            <Link href="/" aria-label="Go to home" className="inline-flex items-center">
+              <BrandMark className="w-10 h-10 shrink-0" />
+            </Link>
+          ) : (
+            <BrandLogoLink logoClassName="h-10 w-auto" />
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="ml-auto p-1 rounded-lg transition-colors hover:bg-white/5"
+            className="ml-auto p-1 rounded-lg transition-colors hover:bg-[#eef4ff]"
             style={{ color: 'var(--on-surface-variant)' }}
           >
             <Icon d={collapsed ? 'M13 5l7 7-7 7' : 'M11 19l-7-7 7-7'} className="w-3.5 h-3.5" />
@@ -194,7 +187,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </nav>
 
         {/* User panel */}
-        <div className="px-2.5 py-3 shrink-0" style={{ borderTop: '1px solid rgba(70,69,85,0.12)' }}>
+        <div className="px-2.5 py-3 shrink-0" style={{ borderTop: '1px solid rgba(214,228,255,0.95)' }}>
           <div className={`flex items-center gap-2.5 px-2 py-2 rounded-xl ${collapsed ? 'justify-center' : ''}`}>
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
               style={{ background: 'var(--primary-container)' }}>
@@ -213,7 +206,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             {!collapsed && (
               <button
                 onClick={() => { logout(); router.push('/login'); }}
-                className="p-1.5 rounded-lg transition-colors hover:bg-white/5"
+                className="p-1.5 rounded-lg transition-colors hover:bg-[#eef4ff]"
                 style={{ color: 'var(--on-surface-variant)' }}
                 title="Logout"
               >
@@ -228,7 +221,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
         <header className="h-14 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10"
-          style={{ background: 'rgba(11,19,38,0.85)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(70,69,85,0.1)' }}>
+          style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(214,228,255,0.95)' }}>
           <div className="flex-1">
             <div className="relative max-w-xs">
               <Icon d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -237,20 +230,20 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 placeholder="Search clients, tasks..."
                 className="w-full pl-9 pr-4 py-1.5 text-sm rounded-lg"
                 style={{
-                  background: 'var(--surface-high)',
-                  border: '1px solid rgba(70,69,85,0.15)',
+                  background: '#fff',
+                  border: '1px solid rgba(214,228,255,0.95)',
                   color: 'var(--on-surface)',
                 }}
               />
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="relative p-2 rounded-lg transition-colors hover:bg-white/5"
+            <button className="relative p-2 rounded-lg transition-colors hover:bg-[#eef4ff]"
               style={{ color: 'var(--on-surface-variant)' }}>
               <Icon d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" className="w-[18px] h-[18px]" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: 'var(--error)' }} />
             </button>
-            <div className="h-6 w-px" style={{ background: 'rgba(70,69,85,0.15)' }} />
+            <div className="h-6 w-px" style={{ background: 'rgba(214,228,255,0.95)' }} />
             <div className="flex items-center gap-2 px-2 py-1 rounded-lg">
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
                 style={{ background: 'var(--primary-container)' }}>

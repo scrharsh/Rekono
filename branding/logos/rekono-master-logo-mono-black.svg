@@ -1,0 +1,33 @@
+<svg width="1024" height="256" viewBox="0 0 1024 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rekono master logo">
+  <defs>
+    <linearGradient id="layer1" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#063580"/>
+      <stop offset="100%" stop-color="#0E7EF0"/>
+    </linearGradient>
+    <linearGradient id="layer2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0B57D0"/>
+      <stop offset="100%" stop-color="#2D8DFB"/>
+    </linearGradient>
+    <linearGradient id="layer3" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0E7EF0"/>
+      <stop offset="100%" stop-color="#60AFFF"/>
+    </linearGradient>
+    <!-- Soft shadow for layer separation -->
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="-3" dy="5" stdDeviation="5" flood-color="#063580" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  
+  <!-- Scaled Icon -->
+  <g transform="translate(18, 16) scale(0.9)">
+      <!-- Back Shard -->
+      <path d="M 125 35 L 185 35 C 190 35 195 38 192 45 L 85 210 C 82 215 75 215 72 210 Z" fill="#111111" />
+      <!-- Middle Shard -->
+      <path d="M 95 35 L 155 35 C 160 35 165 38 162 45 L 55 210 C 52 215 45 215 42 210 Z" fill="#111111"  stroke="#ffffff" stroke-width="6"/>
+      <!-- Front Shard -->
+      <path d="M 65 35 L 125 35 C 130 35 135 38 132 45 L 25 210 C 22 215 15 215 12 210 Z" fill="#111111"  stroke="#ffffff" stroke-width="6"/>
+  </g>
+  
+  <text x="250" y="160" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="124" font-weight="800" letter-spacing="-3" fill="#111111">REKONO</text>
+  <text x="256" y="208" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="14" fill="#111111">BUSINESS OS</text>
+</svg>

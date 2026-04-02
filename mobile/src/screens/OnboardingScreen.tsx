@@ -67,19 +67,28 @@ export default function OnboardingScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0b1326" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <View style={s.topGlow} />
+      <View style={s.progressWrap}>
+        <View style={s.progressTrack}>
+          <View style={[s.progressFill, { width: step === 1 ? '50%' : '100%' }]} />
+        </View>
+        <Text style={s.progressText}>Step {step} of 2</Text>
+      </View>
       
       {step === 1 && (
         <View style={s.content}>
-          <Text style={s.title}>Welcome to Rekono</Text>
-          <Text style={s.subtitle}>Let&apos;s set up your business intelligence workspace.</Text>
+          <View style={s.heroCard}>
+            <Text style={s.title}>Welcome to Rekono</Text>
+            <Text style={s.subtitle}>Set up your business intelligence workspace in less than a minute.</Text>
+          </View>
           
           <View style={s.inputContainer}>
             <Text style={s.label}>What is the name of your business?</Text>
             <TextInput
               style={s.input}
               placeholder="e.g. Sharma Electronics"
-              placeholderTextColor="#464555"
+              placeholderTextColor="#d7e1ee"
               value={businessName}
               onChangeText={setBusinessName}
             />
@@ -97,8 +106,10 @@ export default function OnboardingScreen() {
 
       {step === 2 && (
         <View style={s.content}>
-          <Text style={s.title}>Business Mode</Text>
-          <Text style={s.subtitle}>How does {businessName} operate? This adapts Rekono to your workflow.</Text>
+          <View style={s.heroCard}>
+            <Text style={s.title}>Business Mode</Text>
+            <Text style={s.subtitle}>How does {businessName} operate? We tailor queues and workflows automatically.</Text>
+          </View>
           
           <ScrollView style={s.modesList} showsVerticalScrollIndicator={false}>
             {MODES.map((m) => (
@@ -135,57 +146,87 @@ export default function OnboardingScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1326' },
-  content: { flex: 1, padding: 24, paddingTop: 60 },
-  title: { fontSize: 28, fontWeight: '700', color: '#dae2fd', marginBottom: 8 },
-  subtitle: { fontSize: 16, color: '#c7c4d8', marginBottom: 32, lineHeight: 24 },
-  inputContainer: { marginBottom: 32 },
-  label: { fontSize: 14, fontWeight: '600', color: '#dae2fd', marginBottom: 12 },
+  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  topGlow: {
+    position: 'absolute',
+    top: 20,
+    right: -80,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: 'rgba(31, 94, 255, 0.08)',
+  },
+  progressWrap: { paddingHorizontal: 24, paddingTop: 48, paddingBottom: 8 },
+  progressTrack: {
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: '#d7e1ee',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: '#1f5eff',
+  },
+  progressText: { color: '#5f6b7d', fontSize: 12, fontWeight: '700', marginTop: 8 },
+  content: { flex: 1, padding: 24, paddingTop: 14 },
+  heroCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#d7e1ee',
+    padding: 16,
+    marginBottom: 18,
+  },
+  title: { fontSize: 28, fontWeight: '700', color: '#102135', marginBottom: 8 },
+  subtitle: { fontSize: 15, color: '#5f6b7d', lineHeight: 22 },
+  inputContainer: { marginBottom: 24, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#d7e1ee', borderRadius: 16, padding: 16 },
+  label: { fontSize: 14, fontWeight: '600', color: '#102135', marginBottom: 12 },
   input: {
-    backgroundColor: '#171f33',
+    backgroundColor: '#f7f9fc',
     borderRadius: 12,
     padding: 16,
-    color: '#dae2fd',
+    color: '#102135',
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#464555',
+    borderColor: '#d7e1ee',
   },
   modesList: { flex: 1 },
   modeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#171f33',
+    backgroundColor: '#ffffff',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#171f33', // or 'transparent'
+    borderColor: '#d7e1ee',
   },
   modeCardSelected: {
-    backgroundColor: '#222a3d',
-    borderColor: '#4f46e5',
+    backgroundColor: '#eef4ff',
+    borderColor: '#1f5eff',
   },
   modeInfo: { flex: 1 },
-  modeLabel: { fontSize: 16, fontWeight: '600', color: '#dae2fd', marginBottom: 4 },
-  modeDesc: { fontSize: 13, color: '#c7c4d8' },
+  modeLabel: { fontSize: 16, fontWeight: '600', color: '#102135', marginBottom: 4 },
+  modeDesc: { fontSize: 13, color: '#5f6b7d' },
   radio: {
     width: 24, height: 24, borderRadius: 12,
-    borderWidth: 2, borderColor: '#464555',
+    borderWidth: 2, borderColor: '#c8d3e0',
     alignItems: 'center', justifyContent: 'center'
   },
-  radioSelected: { borderColor: '#4f46e5' },
-  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#4f46e5' },
+  radioSelected: { borderColor: '#1f5eff' },
+  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#1f5eff' },
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#0b1326', padding: 24,
-    borderTopWidth: 1, borderTopColor: '#171f33'
+    backgroundColor: '#f5f8fc', padding: 24,
+    borderTopWidth: 1, borderTopColor: '#d7e1ee'
   },
   primaryBtn: {
-    backgroundColor: '#4f46e5',
+    backgroundColor: '#1f5eff',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
-  disabledBtn: { backgroundColor: '#222a3d', opacity: 0.7 },
+  disabledBtn: { backgroundColor: '#d7e1ee', opacity: 0.7 },
   primaryBtnText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
 });

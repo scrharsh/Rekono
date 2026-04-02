@@ -125,7 +125,7 @@ export default function UnmatchedQueueScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#131b2e" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
       <View style={s.header}>
         <Text style={s.title}>Unmatched Sales</Text>
         <Text style={s.subtitle}>{sales.length} waiting for payment</Text>
@@ -135,10 +135,10 @@ export default function UnmatchedQueueScreen() {
         renderItem={renderItem}
         keyExtractor={i => i.id}
         contentContainerStyle={s.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4f46e5" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1f5eff" />}
         ListEmptyComponent={
           <View style={s.empty}>
-            <Text style={s.emptyIcon}>✅</Text>
+            <View style={s.emptyGlyph}><Text style={s.emptyGlyphText}>OK</Text></View>
             <Text style={s.emptyTitle}>All caught up!</Text>
             <Text style={s.emptyText}>No unmatched sales</Text>
           </View>
@@ -149,25 +149,34 @@ export default function UnmatchedQueueScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1326' },
-  header: { backgroundColor: '#131b2e', padding: 20, paddingTop: 48, borderBottomWidth: 1, borderBottomColor: '#171f33' },
-  title: { fontSize: 20, fontWeight: '700', color: '#dae2fd' },
-  subtitle: { fontSize: 13, color: '#c7c4d8', marginTop: 4 },
+  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  header: { backgroundColor: '#ffffff', padding: 20, paddingTop: 48, borderBottomWidth: 1, borderBottomColor: '#d7e1ee' },
+  title: { fontSize: 20, fontWeight: '700', color: '#102135' },
+  subtitle: { fontSize: 13, color: '#5f6b7d', marginTop: 4 },
   list: { padding: 16 },
-  card: { backgroundColor: '#171f33', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#222a3d', elevation: 1 },
+  card: { backgroundColor: '#ffffff', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#d7e1ee', elevation: 1 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  amount: { fontSize: 24, fontWeight: '800', color: '#dae2fd' },
+  amount: { fontSize: 24, fontWeight: '800', color: '#102135' },
   age: { fontSize: 12, color: '#f59e0b', fontWeight: '600', backgroundColor: 'rgba(245, 158, 11, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
   ageOld: { color: '#ffb4ab', backgroundColor: 'rgba(255, 180, 171, 0.1)' },
   time: { fontSize: 12, color: '#94a3b8', marginBottom: 4 },
-  meta: { fontSize: 14, color: '#c7c4d8', marginBottom: 4, fontWeight: '500' },
-  gstRow: { flexDirection: 'row', gap: 16, marginTop: 4, marginBottom: 16, backgroundColor: '#0b1326', padding: 8, borderRadius: 8 },
+  meta: { fontSize: 14, color: '#5f6b7d', marginBottom: 4, fontWeight: '500' },
+  gstRow: { flexDirection: 'row', gap: 16, marginTop: 4, marginBottom: 16, backgroundColor: '#f5f8fc', padding: 8, borderRadius: 8 },
   gstText: { fontSize: 12, color: '#94a3b8' },
-  btn: { backgroundColor: '#4f46e5', padding: 14, borderRadius: 10, alignItems: 'center' },
+  btn: { backgroundColor: '#1f5eff', padding: 14, borderRadius: 10, alignItems: 'center' },
   btnDisabled: { opacity: 0.65 },
   btnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   empty: { padding: 48, paddingTop: 64, alignItems: 'center' },
-  emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#dae2fd', marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#c7c4d8' },
+  emptyGlyph: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    marginBottom: 16,
+    backgroundColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyGlyphText: { fontSize: 16, fontWeight: '800', color: '#334155', letterSpacing: 0.7 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#102135', marginBottom: 4 },
+  emptyText: { fontSize: 14, color: '#5f6b7d' },
 });

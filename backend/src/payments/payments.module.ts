@@ -4,6 +4,7 @@ import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { PaymentRecord, PaymentRecordSchema } from '../schemas/payment-record.schema';
 import { MatchingModule } from '../matching/matching.module';
+import { SmsParserService } from '../common/services/sms-parser.service';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { MatchingModule } from '../matching/matching.module';
     MatchingModule,
   ],
   controllers: [PaymentsController],
-  providers: [PaymentsService],
+  providers: [PaymentsService, SmsParserService],
   exports: [PaymentsService],
 })
 export class PaymentsModule {}

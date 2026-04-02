@@ -4,6 +4,15 @@ import { Model } from 'mongoose';
 import { PaymentRecord, PaymentRecordDocument } from '../schemas/payment-record.schema';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 
+const PAYMENT_METHOD_LABELS: Record<CreatePaymentDto['method'], string> = {
+  phonepe: 'PhonePe',
+  googlepay: 'Google Pay',
+  paytm: 'Paytm',
+  bhim: 'BHIM',
+  bank: 'bank_transfer',
+  cash: 'cash',
+};
+
 @Injectable()
 export class PaymentsService {
   constructor(
@@ -16,8 +25,17 @@ export class PaymentsService {
     createPaymentDto: CreatePaymentDto,
     userId: string,
   ): Promise<PaymentRecordDocument> {
+    const paymentMethod = PAYMENT_METHOD_LABELS[createPaymentDto.method];
+    const source = createPaymentDto.rawSMS ? 'sms' : paymentMethod === 'cash' ? 'cash' : 'manual';
+
     const payment = new this.paymentRecordModel({
-      ...createPaymentDto,
+      amount: createPaymentDto.amount,
+      timestamp: createPaymentDto.timestamp,
+      source,
+      paymentMethod,
+      transactionId: createPaymentDto.transactionId,
+      sender: createPaymentDto.senderName,
+      rawSMS: createPaymentDto.rawSMS,
       showroomId,
       createdBy: userId,
       status: 'unmatched',
@@ -45,7 +63,7 @@ export class PaymentsService {
       if (endDate) query.timestamp.$lte = new Date(endDate);
     }
     if (status) query.status = status;
-    if (method) query.method = method;
+    if (method) query.paymentMethod = method;
 
     const [payments, total] = await Promise.all([
       this.paymentRecordModel.find(query).limit(limit).skip(offset).sort({ timestamp: -1 }).exec(),

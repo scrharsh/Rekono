@@ -2,19 +2,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import LottieLoader from '@/components/LottieLoader';
+import Icon from '@/components/Icon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   return { Authorization: `Bearer ${token}` };
-}
-
-function Icon({ d, className = 'w-5 h-5' }: { d: string; className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
 }
 
 export default function CommandCenterPage() {
@@ -90,15 +85,8 @@ export default function CommandCenterPage() {
 
   if (isLoading) {
     return (
-      <div className="animate-fade-in space-y-6">
-        <div className="h-8 w-64 skeleton" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-28 skeleton" />)}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-64 skeleton" />
-          <div className="h-64 skeleton" />
-        </div>
+      <div className="animate-fade-in h-64 flex items-center justify-center">
+        <LottieLoader label="Loading command center intelligence..." size={48} />
       </div>
     );
   }
@@ -154,16 +142,10 @@ export default function CommandCenterPage() {
           </div>
           <div className="card-body space-y-2">
             {urgentTasks.length === 0 ? (
-              <div className="empty-state py-10">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
-                  style={{ background: 'rgba(74,222,128,0.1)' }}>
-                  <svg className="w-6 h-6" style={{ color: 'var(--success)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="empty-state-title">All clear</p>
-                <p className="empty-state-desc">No urgent items. System is calm.</p>
-              </div>
+              <MotionEmptyState
+                title="All clear"
+                description="No urgent items. System is calm and under control."
+              />
             ) : (
               urgentTasks.slice(0, 5).map((task: any, i: number) => (
                 <button
@@ -202,7 +184,10 @@ export default function CommandCenterPage() {
             </div>
             <div className="card-body space-y-2">
               {upcomingTasks.length === 0 ? (
-                <p className="text-xs text-center py-4" style={{ color: 'var(--on-surface-variant)' }}>No upcoming deadlines</p>
+                <MotionEmptyState
+                  title="No upcoming deadlines"
+                  description="You are clear for the next cycle."
+                />
               ) : (
                 upcomingTasks.slice(0, 4).map((task: any, i: number) => (
                   <div key={task._id || i} className="focus-card focus-card-warning">
@@ -253,10 +238,10 @@ export default function CommandCenterPage() {
         </div>
         <div className="card-body">
           {recentTasks.length === 0 ? (
-            <div className="empty-state py-8">
-              <p className="empty-state-title">No recent activity</p>
-              <p className="empty-state-desc">Tasks and actions will appear here as you work</p>
-            </div>
+            <MotionEmptyState
+              title="No recent activity"
+              description="Tasks and actions will appear here as your team executes workflow."
+            />
           ) : (
             <div className="space-y-2">
               {recentTasks.slice(0, 6).map((task: any, i: number) => (

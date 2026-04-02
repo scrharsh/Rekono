@@ -37,9 +37,9 @@ export class SmsParserService {
       timestamp: /on\s+(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/,
     },
     googlepay: {
-      sender: /GOOGLEPAY|Google\s*Pay/i,
+      sender: /GPAY|GOOGLEPAY|Google\s*Pay/i,
       amount: /(?:Rs|INR)\.?\s*(\d+(?:,\d+)*(?:\.\d{2})?)/,
-      transactionId: /UPI\s*(?:Ref|ID)\s*:?\s*(\w+)/i,
+      transactionId: /UPI\s*(?:transaction\s*)?(?:Ref|ID)\s*:?\s*(\w+)/i,
       timestamp: /on\s+(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/,
     },
     paytm: {

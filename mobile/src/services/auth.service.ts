@@ -2,6 +2,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'http://10.0.2.2:3000/v1';
 
+export type SubscriptionInfo = {
+  plan: 'free_ca' | 'business_monthly' | 'business_yearly';
+  status: 'active' | 'inactive' | 'cancelled';
+  required: boolean;
+  activatedAt?: string;
+  expiresAt?: string;
+};
+
+export type SubscriptionPaymentLink = {
+  paymentLinkId: string;
+  paymentUrl: string;
+  amount: number;
+  currency: string;
+  status: string;
+  plan: 'business_monthly' | 'business_yearly';
+  durationDays: number;
+};
+
 export type SignupPayload = {
   username: string;
   fullName: string;
@@ -87,4 +105,69 @@ export async function signupMobile(payload: SignupPayload) {
   }
 
   return storeAuthSession(await res.json());
+}
+
+export async function getSubscriptionStatus(): Promise<SubscriptionInfo> {
+  const token = await AsyncStorage.getItem('token');
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
+
+  const res = await fetch(`${API_URL}/auth/subscription`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Unable to fetch subscription status');
+  }
+
+  return (await res.json()) as SubscriptionInfo;
+}
+
+export async function refreshStoredSubscription(): Promise<SubscriptionInfo> {
+  const subscription = await getSubscriptionStatus();
+  const rawUser = await AsyncStorage.getItem('user');
+  if (rawUser) {
+    try {
+      const user = JSON.parse(rawUser) as Record<string, unknown>;
+      await AsyncStorage.setItem('user', JSON.stringify({ ...user, subscription }));
+    } catch {
+      // ignore malformed cache
+    }
+  }
+  return subscription;
+}
+
+export async function createBusinessSubscriptionPaymentLink(
+  plan: 'business_monthly' | 'business_yearly' = 'business_monthly',
+  durationDays = 30,
+): Promise<SubscriptionPaymentLink> {
+  const token = await AsyncStorage.getItem('token');
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
+
+  const res = await fetch(`${API_URL}/auth/subscription/payment-link`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ plan, durationDays }),
+  });
+
+  if (!res.ok) {
+    let message = 'Unable to start Razorpay checkout';
+    try {
+      const data = await res.json();
+      message = data?.error?.message || data?.message || message;
+    } catch {
+      // ignore parse errors
+    }
+    throw new Error(message);
+  }
+
+  return (await res.json()) as SubscriptionPaymentLink;
 }

@@ -1,6 +1,7 @@
 import { NativeModules, NativeEventEmitter, PermissionsAndroid, Platform } from 'react-native';
 import { smsParserService, KNOWN_UPI_SENDERS, PaymentMethod } from './smsParser.service';
 import { databaseService, LocalPaymentRecord } from './database.service';
+import { smsAutoMatchService } from './smsAutoMatch.service';
 
 const { SMSReceiverModule } = NativeModules;
 
@@ -110,12 +111,23 @@ class SMSReceiverService {
           syncStatus: 'pending' as const,
         };
 
-        await databaseService.createPaymentRecord(paymentRecord);
+        const createdPayment = await databaseService.createPaymentRecord(paymentRecord);
         console.log('Payment record created from SMS:', {
           amount: paymentRecord.amount,
           method: paymentRecord.paymentMethod,
           transactionId: paymentRecord.transactionId,
         });
+
+        // Attempt automatic matching to reduce exception queue (Enhanced: Auto-matching)
+        if (createdPayment?.id) {
+          const autoMatchResult = await smsAutoMatchService.attemptAutoMatch(createdPayment.id, showroomId);
+          if (autoMatchResult.matched) {
+            console.log('✓ Payment auto-matched on SMS capture:', {
+              saleId: autoMatchResult.saleId,
+              paymentId: autoMatchResult.paymentId,
+            });
+          }
+        }
       } else {
         // Parsing failed — log to review queue for manual inspection (Requirement 2.7)
         console.warn('Failed to parse UPI SMS:', {

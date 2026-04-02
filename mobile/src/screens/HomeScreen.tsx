@@ -41,15 +41,16 @@ export default function HomeScreen() {
   };
 
   const pending = Math.max(0, summary.totalSales - summary.matchedCount);
+  const partOfDay = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
 
   return (
-    <ScrollView style={s.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4f46e5" />}>
-      <StatusBar barStyle="light-content" backgroundColor="#0b1326" />
+    <ScrollView style={s.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1f5eff" />}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
 
       {/* Header */}
       <View style={s.header}>
         <View>
-          <Text style={s.greeting}>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'} 👋</Text>
+          <Text style={s.greeting}>Good {partOfDay}</Text>
           <Text style={s.showroomName}>{showroomName || 'Rekono Business'}</Text>
         </View>
         <View style={s.headerActions}>
@@ -111,7 +112,7 @@ export default function HomeScreen() {
         <View style={s.queueContainer}>
           <TouchableOpacity style={s.queueCard} onPress={() => navigation.navigate('Unmatched')}>
             <View style={[s.queueIconContainer, { backgroundColor: 'rgba(79,70,229,0.1)' }]}>
-              <Text style={s.queueIcon}>📋</Text>
+              <Text style={s.queueIcon}>UN</Text>
             </View>
             <View style={s.queueInfo}>
               <Text style={s.queueTitle}>Unmatched Sales</Text>
@@ -124,7 +125,7 @@ export default function HomeScreen() {
 
           <TouchableOpacity style={s.queueCard} onPress={() => navigation.navigate('Unknown')}>
              <View style={[s.queueIconContainer, { backgroundColor: 'rgba(255,180,171,0.1)' }]}>
-              <Text style={s.queueIcon}>❓</Text>
+              <Text style={s.queueIcon}>UK</Text>
             </View>
             <View style={s.queueInfo}>
               <Text style={s.queueTitle}>Unknown Payments</Text>
@@ -139,67 +140,93 @@ export default function HomeScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1326' },
-  header: { 
-    padding: 24, paddingTop: 60, 
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
-    backgroundColor: '#131b2e',
-    borderBottomWidth: 1, borderBottomColor: '#171f33'
+  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  header: {
+    padding: 24,
+    paddingTop: 60,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#d7e1ee',
   },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  greeting: { fontSize: 13, color: '#c7c4d8', marginBottom: 4, fontWeight: '500' },
-  showroomName: { fontSize: 24, fontWeight: '700', color: '#dae2fd' },
-  offlineBadge: { backgroundColor: '#ffb4ab', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  offlineText: { color: '#410e0b', fontSize: 11, fontWeight: '700' },
-  avatarBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#4f46e5', alignItems: 'center', justifyContent: 'center' },
+  greeting: { fontSize: 13, color: '#5f6b7d', marginBottom: 4, fontWeight: '500' },
+  showroomName: { fontSize: 24, fontWeight: '700', color: '#102135' },
+  offlineBadge: { backgroundColor: '#fde8e8', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  offlineText: { color: '#b42318', fontSize: 11, fontWeight: '700' },
+  avatarBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#1f5eff', alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  
+
   content: { padding: 20 },
-  sectionTitle: { fontSize: 15, fontWeight: '600', color: '#dae2fd', marginBottom: 12, letterSpacing: 0.3 },
-  
-  primaryCard: { 
-    backgroundColor: '#171f33', borderRadius: 20, padding: 24, 
-    borderWidth: 1, borderColor: '#222a3d', overflow: 'hidden',
-    position: 'relative'
+  sectionTitle: { fontSize: 15, fontWeight: '600', color: '#102135', marginBottom: 12, letterSpacing: 0.3 },
+
+  primaryCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#d7e1ee',
+    overflow: 'hidden',
+    position: 'relative',
   },
-  primaryCardBg: { 
-    position: 'absolute', top: 0, right: 0, width: '100%', height: '100%',
-    backgroundColor: 'rgba(79,70,229,0.05)',
+  primaryCardBg: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(31,94,255,0.06)',
   },
-  primaryTotalLabel: { fontSize: 14, color: '#c7c4d8', fontWeight: '500', marginBottom: 6 },
-  primaryTotalValue: { fontSize: 36, fontWeight: '800', color: '#dae2fd', letterSpacing: -0.5 },
+  primaryTotalLabel: { fontSize: 14, color: '#5f6b7d', fontWeight: '500', marginBottom: 6 },
+  primaryTotalValue: { fontSize: 36, fontWeight: '800', color: '#102135', letterSpacing: -0.5 },
   primaryStatsRow: { flexDirection: 'row', marginTop: 24, gap: 40, zIndex: 1 },
-  primaryStatLabel: { fontSize: 13, color: '#c7c4d8', marginBottom: 4 },
-  primaryStatValue: { fontSize: 20, fontWeight: '700', color: '#dae2fd' },
+  primaryStatLabel: { fontSize: 13, color: '#5f6b7d', marginBottom: 4 },
+  primaryStatValue: { fontSize: 20, fontWeight: '700', color: '#102135' },
 
   resolveBtn: {
-    backgroundColor: '#222a3d', borderRadius: 12, padding: 16, marginTop: 12,
-    flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#464555'
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#d7e1ee',
   },
-  resolveBadge: { backgroundColor: '#ffb4ab', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, marginRight: 12 },
-  resolveBadgeText: { color: '#410e0b', fontSize: 13, fontWeight: '700' },
-  resolveBtnText: { flex: 1, color: '#dae2fd', fontSize: 15, fontWeight: '600' },
-  resolveBtnArrow: { color: '#c7c4d8', fontSize: 18 },
+  resolveBadge: { backgroundColor: '#fde8e8', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, marginRight: 12 },
+  resolveBadgeText: { color: '#b42318', fontSize: 13, fontWeight: '700' },
+  resolveBtnText: { flex: 1, color: '#102135', fontSize: 15, fontWeight: '600' },
+  resolveBtnArrow: { color: '#5f6b7d', fontSize: 18 },
 
   quickEntryBtn: {
-    backgroundColor: '#171f33', borderRadius: 16, padding: 16,
-    flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#222a3d'
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#d7e1ee',
   },
-  quickEntryIconBg: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#4f46e5', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  quickEntryIconBg: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1f5eff', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
   quickEntryIcon: { color: '#fff', fontSize: 24, fontWeight: '300', marginTop: -2 },
-  quickEntryTitle: { fontSize: 16, fontWeight: '600', color: '#dae2fd', marginBottom: 2 },
-  quickEntryDesc: { fontSize: 13, color: '#c7c4d8' },
+  quickEntryTitle: { fontSize: 16, fontWeight: '600', color: '#102135', marginBottom: 2 },
+  quickEntryDesc: { fontSize: 13, color: '#5f6b7d' },
 
   queueContainer: {
-    backgroundColor: '#171f33', borderRadius: 16, borderWidth: 1, borderColor: '#222a3d',
-    overflow: 'hidden'
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#d7e1ee',
+    overflow: 'hidden',
   },
   queueCard: { padding: 16, flexDirection: 'row', alignItems: 'center' },
-  queueDivider: { height: 1, backgroundColor: '#222a3d', marginHorizontal: 16 },
+  queueDivider: { height: 1, backgroundColor: '#d7e1ee', marginHorizontal: 16 },
   queueIconContainer: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-  queueIcon: { fontSize: 18 },
+  queueIcon: { fontSize: 11, fontWeight: '800', color: '#334155', letterSpacing: 0.6 },
   queueInfo: { flex: 1 },
-  queueTitle: { fontSize: 15, fontWeight: '600', color: '#dae2fd', marginBottom: 2 },
-  queueDesc: { fontSize: 13, color: '#c7c4d8' },
-  queueCount: { fontSize: 18, fontWeight: '700', color: '#c7c4d8' },
+  queueTitle: { fontSize: 15, fontWeight: '600', color: '#102135', marginBottom: 2 },
+  queueDesc: { fontSize: 13, color: '#5f6b7d' },
+  queueCount: { fontSize: 18, fontWeight: '700', color: '#5f6b7d' },
 });

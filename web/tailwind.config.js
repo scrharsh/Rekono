@@ -4,47 +4,47 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Obsidian Architect — Surface System
+        // Landing Palette — Surface System
         surface: {
-          DEFAULT: '#0b1326',
-          low:    '#131b2e',
-          container: '#171f33',
-          high:   '#222a3d',
-          highest: '#2d3449',
+          DEFAULT: '#f5f9ff',
+          low:    '#f7fbff',
+          container: '#ffffff',
+          high:   '#edf4ff',
+          highest: '#e8f0ff',
         },
-        // Primary (Indigo Intelligence)
+        // Primary (Landing Blue)
         primary: {
-          DEFAULT: '#c3c0ff',
-          container: '#4f46e5',
-          50:  '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
+          DEFAULT: '#0b57d0',
+          container: '#0b57d0',
+          50:  '#f5f9ff',
+          100: '#ebf3ff',
+          200: '#dbe7ff',
+          300: '#b7d0ff',
+          400: '#7fb0ff',
+          500: '#4d8aff',
+          600: '#0e7ef0',
+          700: '#0b57d0',
+          800: '#0846ab',
+          900: '#143a73',
         },
         // Secondary
         secondary: {
-          container: '#3131c0',
+          container: '#0846ab',
         },
         // Tertiary
-        tertiary: '#bdc2ff',
+        tertiary: '#1f4f95',
         // On-surface text
         'on-surface': {
-          DEFAULT: '#dae2fd',
-          variant: '#c7c4d8',
+          DEFAULT: '#0f2347',
+          variant: '#4f71a5',
         },
         // Outline
-        'outline-variant': '#464555',
+        'outline-variant': '#d6e4ff',
         // Semantic
-        success: { DEFAULT: '#4ade80', dim: '#166534' },
-        warning: { DEFAULT: '#fbbf24', dim: '#92400e' },
-        danger:  { DEFAULT: '#ffb4ab', dim: '#93000a' },
-        info:    { DEFAULT: '#60a5fa', dim: '#1e40af' },
+        success: { DEFAULT: '#0d7c5f', dim: '#e7f7f2' },
+        warning: { DEFAULT: '#a05e08', dim: '#fff2db' },
+        danger:  { DEFAULT: '#d13438', dim: '#fde8e8' },
+        info:    { DEFAULT: '#1f6dde', dim: '#eef4ff' },
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
@@ -57,12 +57,12 @@ module.exports = {
         '4xl': '2rem',
       },
       boxShadow: {
-        'glow-sm': '0 0 10px rgba(79, 70, 229, 0.15)',
-        'glow-md': '0 0 20px rgba(79, 70, 229, 0.2)',
-        'glow-lg': '0 0 40px rgba(79, 70, 229, 0.25)',
-        'card':    '0 2px 8px rgba(0, 0, 0, 0.25)',
-        'card-md': '0 4px 16px rgba(0, 0, 0, 0.3)',
-        'card-lg': '0 8px 30px rgba(0, 0, 0, 0.35)',
+        'glow-sm': '0 0 10px rgba(11, 87, 208, 0.08)',
+        'glow-md': '0 0 20px rgba(11, 87, 208, 0.12)',
+        'glow-lg': '0 0 40px rgba(11, 87, 208, 0.16)',
+        'card':    '0 2px 8px rgba(11, 87, 208, 0.06)',
+        'card-md': '0 4px 16px rgba(11, 87, 208, 0.08)',
+        'card-lg': '0 8px 30px rgba(11, 87, 208, 0.1)',
       },
       animation: {
         'fade-in': 'fadeIn 0.2s ease-out',

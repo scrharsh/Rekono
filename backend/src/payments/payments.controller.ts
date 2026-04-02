@@ -23,6 +23,7 @@ import { MatchingService } from '../matching/matching.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ShowroomAccessGuard } from '../auth/guards/showroom-access.guard';
+import { SmsParserService } from '../common/services/sms-parser.service';
 
 @ApiTags('payments')
 @ApiBearerAuth()
@@ -32,6 +33,7 @@ export class PaymentsController {
   constructor(
     private readonly paymentsService: PaymentsService,
     private readonly matchingService: MatchingService,
+    private readonly smsParserService: SmsParserService,
   ) {}
 
   @Post(':showroomId/payments')
@@ -44,31 +46,50 @@ export class PaymentsController {
     @Body() createPaymentDto: CreatePaymentDto,
     @Request() req: any,
   ) {
-    try {
-      const payment = await this.paymentsService.create(
-        showroomId,
-        createPaymentDto,
-        req.user.userId,
-      );
+    return this.createAndMatch(showroomId, createPaymentDto, req.user.userId);
+  }
 
-      // Trigger matching engine after payment creation (Requirement 4.1)
-      await this.matchingService.autoMatch(payment);
+  @Post(':showroomId/payments/ingest-sms')
+  @ApiOperation({ summary: 'Parse a raw SMS and create a payment record' })
+  @ApiParam({ name: 'showroomId', description: 'Showroom ID' })
+  @ApiResponse({ status: 201, description: 'SMS parsed and payment created successfully' })
+  @ApiResponse({ status: 400, description: 'SMS could not be parsed' })
+  async ingestSms(
+    @Param('showroomId') showroomId: string,
+    @Body() body: { smsBody: string; sender: string },
+    @Request() req: any,
+  ) {
+    const parsedPayment = this.smsParserService.parse(body.smsBody, body.sender);
 
-      // Get match suggestions
-      const matches = await this.matchingService.findMatches(payment);
-
-      return { payment, matches };
-    } catch (error: any) {
+    if (!parsedPayment) {
       throw new HttpException(
         {
           error: {
-            code: 'VALIDATION_ERROR',
-            message: error.message,
+            code: 'SMS_PARSE_FAILED',
+            message: 'SMS could not be parsed into a payment record',
           },
         },
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const payment = await this.createAndMatch(
+      showroomId,
+      {
+        amount: parsedPayment.amount,
+        timestamp: parsedPayment.timestamp,
+        method: parsedPayment.provider,
+        transactionId: parsedPayment.transactionId,
+        senderName: parsedPayment.senderName ?? body.sender,
+        rawSMS: parsedPayment.rawSMS,
+      },
+      req.user.userId,
+    );
+
+    return {
+      sms: parsedPayment,
+      ...payment,
+    };
   }
 
   @Get(':showroomId/payments')
@@ -171,6 +192,38 @@ export class PaymentsController {
           },
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async createAndMatch(
+    showroomId: string,
+    createPaymentDto: CreatePaymentDto,
+    userId: string,
+  ) {
+    try {
+      const payment = await this.paymentsService.create(
+        showroomId,
+        createPaymentDto,
+        userId,
+      );
+
+      // Trigger matching engine after payment creation (Requirement 4.1)
+      await this.matchingService.autoMatch(payment);
+
+      // Get match suggestions
+      const matches = await this.matchingService.findMatches(payment);
+
+      return { payment, matches };
+    } catch (error: any) {
+      throw new HttpException(
+        {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: error.message,
+          },
+        },
+        HttpStatus.BAD_REQUEST,
       );
     }
   }

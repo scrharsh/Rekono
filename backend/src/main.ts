@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
+import * as express from 'express';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -14,6 +15,9 @@ async function bootstrap() {
 
   // Security
   app.use(helmet());
+
+  // Razorpay webhook signature verification requires raw request body.
+  app.use('/v1/auth/subscription/webhook/razorpay', express.raw({ type: '*/*' }));
 
   // CORS
   app.enableCors({

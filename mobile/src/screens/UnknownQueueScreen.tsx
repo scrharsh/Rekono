@@ -25,7 +25,13 @@ function ageLabel(ts: string) {
 }
 
 const METHOD_ICON: Record<string, string> = {
-  PhonePe: '📱', 'Google Pay': '🔵', Paytm: '💙', BHIM: '🇮🇳', cash: '💵', bank_transfer: '🏦', other: '💳',
+  PhonePe: 'PP',
+  'Google Pay': 'GP',
+  Paytm: 'PT',
+  BHIM: 'BH',
+  cash: 'CS',
+  bank_transfer: 'BN',
+  other: 'OT',
 };
 
 export default function UnknownQueueScreen() {
@@ -155,7 +161,7 @@ export default function UnknownQueueScreen() {
   const renderItem = ({ item }: { item: LocalPaymentRecord }) => {
     const age = ageLabel(item.timestamp);
     const isOld = Date.now() - new Date(item.timestamp).getTime() > 48 * 3600000;
-    const icon = METHOD_ICON[item.paymentMethod] ?? '💳';
+    const icon = METHOD_ICON[item.paymentMethod] ?? 'PM';
     return (
       <View style={s.card}>
         <View style={s.cardHeader}>
@@ -183,7 +189,7 @@ export default function UnknownQueueScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#131b2e" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
       <View style={s.header}>
         <Text style={s.title}>Unknown Payments</Text>
         <Text style={s.subtitle}>{payments.length} without matching sales</Text>
@@ -193,10 +199,10 @@ export default function UnknownQueueScreen() {
         renderItem={renderItem}
         keyExtractor={i => i.id}
         contentContainerStyle={s.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4f46e5" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1f5eff" />}
         ListEmptyComponent={
           <View style={s.empty}>
-            <Text style={s.emptyIcon}>✅</Text>
+            <View style={s.emptyGlyph}><Text style={s.emptyGlyphText}>OK</Text></View>
             <Text style={s.emptyTitle}>All clear!</Text>
             <Text style={s.emptyText}>No unknown payments</Text>
           </View>
@@ -207,30 +213,39 @@ export default function UnknownQueueScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1326' },
-  header: { backgroundColor: '#131b2e', padding: 20, paddingTop: 48, borderBottomWidth: 1, borderBottomColor: '#171f33' },
-  title: { fontSize: 20, fontWeight: '700', color: '#dae2fd' },
-  subtitle: { fontSize: 13, color: '#c7c4d8', marginTop: 4 },
+  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  header: { backgroundColor: '#ffffff', padding: 20, paddingTop: 48, borderBottomWidth: 1, borderBottomColor: '#d7e1ee' },
+  title: { fontSize: 20, fontWeight: '700', color: '#102135' },
+  subtitle: { fontSize: 13, color: '#5f6b7d', marginTop: 4 },
   list: { padding: 16 },
-  card: { backgroundColor: '#171f33', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#222a3d', elevation: 1 },
+  card: { backgroundColor: '#ffffff', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#d7e1ee', elevation: 1 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  methodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#222a3d', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  methodIcon: { fontSize: 13 },
-  methodText: { fontSize: 13, fontWeight: '600', color: '#dae2fd' },
+  methodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#e9f0ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  methodIcon: { fontSize: 10, fontWeight: '800', color: '#334155', letterSpacing: 0.5 },
+  methodText: { fontSize: 13, fontWeight: '600', color: '#102135' },
   age: { fontSize: 12, color: '#f59e0b', fontWeight: '600', backgroundColor: 'rgba(245, 158, 11, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
   ageOld: { color: '#ffb4ab', backgroundColor: 'rgba(255, 180, 171, 0.1)' },
-  amount: { fontSize: 28, fontWeight: '800', color: '#dae2fd', marginBottom: 4, letterSpacing: -0.5 },
+  amount: { fontSize: 28, fontWeight: '800', color: '#102135', marginBottom: 4, letterSpacing: -0.5 },
   time: { fontSize: 12, color: '#94a3b8', marginBottom: 4 },
   txn: { fontSize: 12, color: '#94a3b8', fontFamily: 'monospace', marginBottom: 6 },
-  meta: { fontSize: 14, color: '#c7c4d8', marginBottom: 16, fontWeight: '500' },
+  meta: { fontSize: 14, color: '#5f6b7d', marginBottom: 16, fontWeight: '500' },
   actions: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  btnPrimary: { flex: 2, backgroundColor: '#4f46e5', padding: 14, borderRadius: 10, alignItems: 'center' },
+  btnPrimary: { flex: 2, backgroundColor: '#1f5eff', padding: 14, borderRadius: 10, alignItems: 'center' },
   btnDisabled: { opacity: 0.65 },
   btnPrimaryText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-  btnOutline: { flex: 1, borderWidth: 1, borderColor: '#464555', backgroundColor: '#0b1326', padding: 14, borderRadius: 10, alignItems: 'center' },
-  btnOutlineText: { color: '#c7c4d8', fontSize: 14, fontWeight: '600' },
+  btnOutline: { flex: 1, borderWidth: 1, borderColor: '#d7e1ee', backgroundColor: '#f5f8fc', padding: 14, borderRadius: 10, alignItems: 'center' },
+  btnOutlineText: { color: '#5f6b7d', fontSize: 14, fontWeight: '600' },
   empty: { padding: 48, paddingTop: 64, alignItems: 'center' },
-  emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#dae2fd', marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#c7c4d8' },
+  emptyGlyph: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    marginBottom: 16,
+    backgroundColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyGlyphText: { fontSize: 16, fontWeight: '800', color: '#334155', letterSpacing: 0.7 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#102135', marginBottom: 4 },
+  emptyText: { fontSize: 14, color: '#5f6b7d' },
 });

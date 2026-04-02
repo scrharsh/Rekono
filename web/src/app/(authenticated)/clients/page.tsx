@@ -3,19 +3,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import Icon from '@/components/Icon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-}
-
-function Icon({ d, className = 'w-4 h-4' }: { d: string; className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
 }
 
 function HealthBadge({ score }: { score: number }) {
@@ -158,15 +152,11 @@ export default function ClientsPage() {
           {[1,2,3].map(i => <div key={i} className="h-20 skeleton" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-            style={{ background: 'rgba(79,70,229,0.1)' }}>
-            <Icon d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" className="w-6 h-6" />
-          </div>
-          <p className="empty-state-title">No clients yet</p>
-          <p className="empty-state-desc">Add your first client to get started</p>
-          <button onClick={() => setShowAdd(true)} className="btn-primary mt-4">Add Client</button>
-        </div>
+        <MotionEmptyState
+          title="No clients yet"
+          description="Start with your first client profile to activate the CA workspace pipeline."
+          action={<button onClick={() => setShowAdd(true)} className="btn-primary">Add Client</button>}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 stagger-children">
           {filtered.map((client: any) => (
@@ -193,7 +183,10 @@ export default function ClientsPage() {
                 </span>
               </div>
               {client.phone && (
-                <p className="text-xs mt-2" style={{ color: 'var(--on-surface-variant)' }}>📞 {client.phone}</p>
+                <p className="text-xs mt-2 flex items-center gap-1.5" style={{ color: 'var(--on-surface-variant)' }}>
+                  <Icon d="M2.25 4.5a1.5 1.5 0 011.5-1.5h2.25a1.5 1.5 0 011.406.976l1.106 2.767a1.5 1.5 0 01-.296 1.57l-.99.99a12.042 12.042 0 005.697 5.697l.99-.99a1.5 1.5 0 011.57-.296l2.767 1.106a1.5 1.5 0 01.976 1.406v2.25a1.5 1.5 0 01-1.5 1.5h-.75C9.65 21 3 14.35 3 6v-.75z" className="w-3.5 h-3.5" />
+                  {client.phone}
+                </p>
               )}
               {/* Progress bar for health */}
               <div className="progress-bar mt-3">

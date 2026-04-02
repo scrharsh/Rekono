@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import MotionEmptyState from '@/components/MotionEmptyState';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
@@ -91,9 +92,9 @@ export default function PaymentsPage() {
 
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          style={{ background: 'rgba(12, 26, 43, 0.34)', backdropFilter: 'blur(7px)' }}>
           <div className="w-full max-w-md animate-scale-in rounded-2xl p-6"
-            style={{ background: 'var(--surface-container)', border: '1px solid rgba(70,69,85,0.2)' }}>
+            style={{ background: 'var(--surface)', border: '1px solid var(--outline-variant)', boxShadow: '0 20px 64px rgba(15, 32, 56, 0.16)' }}>
             <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--on-surface)' }}>Record Payment</h2>
             <form onSubmit={e => { e.preventDefault(); addMutation.mutate(addForm); }} className="space-y-4">
               <div>
@@ -135,10 +136,10 @@ export default function PaymentsPage() {
       {isLoading ? (
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 skeleton" />)}</div>
       ) : payments.length === 0 ? (
-        <div className="empty-state">
-          <p className="empty-state-title">No payments recorded</p>
-          <p className="empty-state-desc">Start tracking client fee collections</p>
-        </div>
+        <MotionEmptyState
+          title="No payments recorded"
+          description="Start tracking client fee collections and due dates from one place."
+        />
       ) : (
         <div className="table-wrapper">
           <table className="table">

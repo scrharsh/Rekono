@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import TimelineView from '@/components/TimelineView';
 import { SmartSummary } from '@/components/SmartSummary';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import LottieLoader from '@/components/LottieLoader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -52,21 +54,18 @@ export default function ShowroomDetailPage() {
 
   if (loading) {
     return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-6 bg-slate-100 rounded w-48" />
-        <div className="h-4 bg-slate-100 rounded w-32" />
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          {[1,2,3].map(i => <div key={i} className="h-28 bg-slate-100 rounded-xl" />)}
-        </div>
+      <div className="animate-fade-in h-72 flex items-center justify-center">
+        <LottieLoader label="Loading showroom intelligence..." size={48} />
       </div>
     );
   }
 
   if (!showroom) {
     return (
-      <div className="empty-state">
-        <p className="empty-state-title">Showroom not found</p>
-      </div>
+      <MotionEmptyState
+        title="Showroom not found"
+        description="This showroom may be unavailable or you might not have access."
+      />
     );
   }
 

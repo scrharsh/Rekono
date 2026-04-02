@@ -20,6 +20,11 @@ type StoredUser = {
   username?: string;
   email?: string;
   role?: string;
+  subscription?: {
+    plan?: string;
+    status?: string;
+    required?: boolean;
+  };
 };
 
 export default function SettingsScreen() {
@@ -29,6 +34,9 @@ export default function SettingsScreen() {
   const [contextRefreshing, setContextRefreshing] = useState(false);
   const [showroomName, setShowroomName] = useState('Rekono Business');
   const [user, setUser] = useState<StoredUser | null>(null);
+
+  const subscription = (user?.subscription || {}) as Record<string, unknown>;
+  const subscriptionLabel = `${String(subscription.plan || 'business_monthly').replace('_', ' ').toUpperCase()} • ${String(subscription.status || 'inactive').toUpperCase()}`;
 
   const loadProfile = useCallback(async () => {
     const storedUser = await getStoredUser();
@@ -91,35 +99,41 @@ export default function SettingsScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#131b2e" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <View style={s.headerGlow} />
 
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={s.back}>Back</Text>
         </TouchableOpacity>
         <Text style={s.title}>Settings</Text>
+        <Text style={s.subtitle}>Account, sync and workspace controls</Text>
       </View>
 
       <ScrollView contentContainerStyle={s.content}>
         <View style={s.card}>
+          <Text style={s.sectionEyebrow}>Workspace</Text>
           <Text style={s.cardTitle}>Business Profile</Text>
           <Text style={s.mainText}>{showroomName}</Text>
           <Text style={s.subText}>{user?.email || 'No email available'}</Text>
           <Text style={s.subText}>User: {user?.fullName || user?.username || 'Business User'}</Text>
           <Text style={s.subText}>Role: {user?.role || 'staff'}</Text>
+          <Text style={s.subText}>Subscription: {subscriptionLabel}</Text>
         </View>
 
         <View style={s.card}>
+          <Text style={s.sectionEyebrow}>Data Integrity</Text>
           <Text style={s.cardTitle}>Data & Sync</Text>
           <TouchableOpacity style={s.actionBtn} onPress={handleSyncNow} disabled={syncing}>
             {syncing ? <ActivityIndicator color="#fff" /> : <Text style={s.actionText}>Sync Now</Text>}
           </TouchableOpacity>
           <TouchableOpacity style={s.secondaryBtn} onPress={handleRefreshContext} disabled={contextRefreshing}>
-            {contextRefreshing ? <ActivityIndicator color="#dae2fd" /> : <Text style={s.secondaryText}>Refresh Business Context</Text>}
+            {contextRefreshing ? <ActivityIndicator color="#1f5eff" /> : <Text style={s.secondaryText}>Refresh Business Context</Text>}
           </TouchableOpacity>
         </View>
 
         <View style={s.card}>
+          <Text style={s.sectionEyebrow}>Security</Text>
           <Text style={s.cardTitle}>Session</Text>
           <TouchableOpacity style={s.dangerBtn} onPress={handleLogout} disabled={loading}>
             {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.actionText}>Sign Out</Text>}
@@ -131,32 +145,48 @@ export default function SettingsScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1326' },
+  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  headerGlow: {
+    position: 'absolute',
+    top: 20,
+    right: -80,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(31, 94, 255, 0.08)',
+  },
   header: {
     paddingTop: 52,
     paddingHorizontal: 20,
     paddingBottom: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#171f33',
-    backgroundColor: '#131b2e',
+    borderBottomColor: '#d7e1ee',
+    backgroundColor: '#ffffff',
   },
-  back: { color: '#c3c0ff', fontSize: 14, fontWeight: '600', marginBottom: 10 },
-  title: { color: '#dae2fd', fontSize: 24, fontWeight: '800' },
+  back: { color: '#1f5eff', fontSize: 14, fontWeight: '600', marginBottom: 10 },
+  title: { color: '#102135', fontSize: 24, fontWeight: '800' },
+  subtitle: { color: '#5f6b7d', fontSize: 13, marginTop: 6 },
   content: { padding: 16, paddingBottom: 28 },
   card: {
-    backgroundColor: '#171f33',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#222a3d',
+    borderColor: '#d7e1ee',
     borderRadius: 14,
     padding: 16,
     marginBottom: 14,
+    shadowColor: '#102135',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
   },
-  cardTitle: { color: '#dae2fd', fontSize: 16, fontWeight: '700', marginBottom: 10 },
-  mainText: { color: '#dae2fd', fontSize: 18, fontWeight: '700', marginBottom: 4 },
-  subText: { color: '#c7c4d8', fontSize: 13, marginBottom: 4 },
+  sectionEyebrow: { color: '#1f5eff', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
+  cardTitle: { color: '#102135', fontSize: 16, fontWeight: '700', marginBottom: 10 },
+  mainText: { color: '#102135', fontSize: 18, fontWeight: '700', marginBottom: 4 },
+  subText: { color: '#5f6b7d', fontSize: 13, marginBottom: 4 },
   actionBtn: {
     marginTop: 4,
-    backgroundColor: '#4f46e5',
+    backgroundColor: '#1f5eff',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -165,13 +195,13 @@ const s = StyleSheet.create({
   },
   secondaryBtn: {
     borderWidth: 1,
-    borderColor: '#464555',
+    borderColor: '#d7e1ee',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
   },
-  secondaryText: { color: '#dae2fd', fontSize: 14, fontWeight: '600' },
+  secondaryText: { color: '#102135', fontSize: 14, fontWeight: '600' },
   dangerBtn: {
     backgroundColor: '#c2410c',
     borderRadius: 12,

@@ -2,19 +2,14 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import LottieLoader from '@/components/LottieLoader';
+import Icon from '@/components/Icon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   return { Authorization: `Bearer ${token}` };
-}
-
-function Icon({ d, className = 'w-5 h-5' }: { d: string; className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
 }
 
 export default function KnowledgePage() {
@@ -78,12 +73,14 @@ export default function KnowledgePage() {
         {/* Guide list */}
         <div className="lg:col-span-1 space-y-2">
           {isLoading ? (
-            <div className="space-y-3">{[1,2,3,4,5].map(i => <div key={i} className="h-20 skeleton" />)}</div>
-          ) : filtered.length === 0 ? (
-            <div className="empty-state py-10">
-              <p className="empty-state-title">No guides found</p>
-              <p className="empty-state-desc">Try a different search term</p>
+            <div className="h-56 flex items-center justify-center">
+              <LottieLoader label="Loading knowledge guides..." size={44} />
             </div>
+          ) : filtered.length === 0 ? (
+            <MotionEmptyState
+              title="No guides found"
+              description="Try a different search term or category."
+            />
           ) : (
             filtered.map((guide: any) => (
               <button
@@ -115,24 +112,15 @@ export default function KnowledgePage() {
         {/* Detail panel */}
         <div className="lg:col-span-2">
           {!selectedId ? (
-            <div className="card flex items-center justify-center" style={{ minHeight: 400 }}>
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                  style={{ background: 'rgba(79,70,229,0.1)' }}>
-                  <Icon d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" className="w-8 h-8" />
-                </div>
-                <p className="font-semibold" style={{ color: 'var(--on-surface)' }}>Select a guide</p>
-                <p className="text-xs mt-1" style={{ color: 'var(--on-surface-variant)' }}>
-                  Choose from the list to view structured steps, costs, and checklists
-                </p>
-              </div>
+            <div className="card" style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MotionEmptyState
+                title="Select a guide"
+                description="Choose from the list to view structured steps, costs, and checklists."
+              />
             </div>
           ) : !selected ? (
-            <div className="card p-6 space-y-4">
-              <div className="h-8 w-48 skeleton" />
-              <div className="h-4 w-full skeleton" />
-              <div className="h-4 w-3/4 skeleton" />
-              <div className="h-32 skeleton" />
+            <div className="card p-6 h-64 flex items-center justify-center">
+              <LottieLoader label="Loading guide detail..." size={44} />
             </div>
           ) : (
             <div className="card animate-slide-right">

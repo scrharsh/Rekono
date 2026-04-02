@@ -8,6 +8,23 @@ import UnknownQueueScreen from '../screens/UnknownQueueScreen';
 
 const Tab = createBottomTabNavigator();
 
+function TabGlyph({ label, color }: { label: string; color: string }) {
+  return (
+    <View style={{
+      width: 26,
+      height: 26,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: `${color}20`,
+      borderWidth: 1,
+      borderColor: `${color}40`,
+    }}>
+      <Text style={{ fontSize: 10, fontWeight: '800', color, letterSpacing: 0.5 }}>{label}</Text>
+    </View>
+  );
+}
+
 // Placeholder screens for navigation
 const MoreScreen = () => (
   <View style={styles.container}>
@@ -20,13 +37,17 @@ export const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#6b7280',
+        tabBarActiveTintColor: '#1f5eff',
+        tabBarInactiveTintColor: '#5f6b7d',
         tabBarStyle: {
-          height: 60,
-          paddingBottom: 8,
+          height: 66,
+          paddingBottom: 10,
           paddingTop: 8,
+          backgroundColor: '#ffffff',
+          borderTopColor: '#d7e1ee',
+          borderTopWidth: 1,
         },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
         headerShown: true,
       }}
     >
@@ -36,7 +57,7 @@ export const BottomTabNavigator = () => {
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24, color }}>🏠</Text>
+            <TabGlyph label="HM" color={color} />
           ),
         }}
       />
@@ -46,7 +67,7 @@ export const BottomTabNavigator = () => {
         options={{
           tabBarLabel: 'Payments',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24, color }}>💰</Text>
+            <TabGlyph label="PM" color={color} />
           ),
         }}
       />
@@ -56,7 +77,7 @@ export const BottomTabNavigator = () => {
         options={{
           tabBarLabel: 'Unmatched',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24, color }}>📋</Text>
+            <TabGlyph label="UN" color={color} />
           ),
         }}
       />
@@ -66,7 +87,7 @@ export const BottomTabNavigator = () => {
         options={{
           tabBarLabel: 'Unknown',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24, color }}>❓</Text>
+            <TabGlyph label="UK" color={color} />
           ),
         }}
       />
@@ -76,7 +97,7 @@ export const BottomTabNavigator = () => {
         options={{
           tabBarLabel: 'More',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24, color }}>⚙️</Text>
+            <TabGlyph label="MR" color={color} />
           ),
         }}
       />

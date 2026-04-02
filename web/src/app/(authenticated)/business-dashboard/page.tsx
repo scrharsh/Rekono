@@ -4,14 +4,7 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { SmartSummary } from '@/components/SmartSummary';
-
-function Icon({ d, className = 'w-5 h-5' }: { d: string; className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
-}
+import Icon from '@/components/Icon';
 
 export default function BusinessDashboardPage() {
   const { user } = useAuth();
@@ -48,17 +41,17 @@ export default function BusinessDashboardPage() {
           <div className="lg:col-span-2 card card-body space-y-4">
             <div>
               <h2 className="card-title">Quick Actions</h2>
-              <p className="text-xs text-slate-500 mt-1">Continue where the business left off</p>
+              <p className="text-xs text-[#4f71a5] mt-1">Continue where the business left off</p>
             </div>
             <div className="grid grid-cols-1 gap-3">
               {quickActions.map((action) => (
-                <Link key={action.label} href={action.href} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 hover:border-brand-200 hover:bg-brand-50/40 transition">
-                  <div className="w-9 h-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-brand-600">
+                <Link key={action.label} href={action.href} className="flex items-center gap-3 rounded-xl border border-[#dbe7ff] bg-[#f7fbff] px-4 py-3 hover:border-[#0b57d0] hover:bg-[#eef4ff] transition">
+                  <div className="w-9 h-9 rounded-xl bg-white border border-[#dbe7ff] flex items-center justify-center text-[#0b57d0]">
                     <Icon d={action.icon} className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">{action.label}</p>
-                    <p className="text-xs text-slate-500">Open the next workspace</p>
+                    <p className="text-sm font-semibold text-[#153c74]">{action.label}</p>
+                    <p className="text-xs text-[#4f71a5]">Open the next workspace</p>
                   </div>
                 </Link>
               ))}
@@ -66,7 +59,7 @@ export default function BusinessDashboardPage() {
 
             <div className="rounded-2xl bg-[#f7fbff] border border-[#dbe7ff] p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-[#0b57d0]">Next Step</p>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm text-[#4f71a5]">
                 Review unmatched items, then open exports when you are ready to share results with your CA.
               </p>
             </div>
@@ -78,7 +71,7 @@ export default function BusinessDashboardPage() {
             <Icon d="M17 20h5v-2a3 3 0 00-4-2.83M9 20H4v-2a3 3 0 014-2.83m10-4.34a3 3 0 11-6 0 3 3 0 016 0zm-10 0a3 3 0 11-6 0 3 3 0 016 0z" />
           </div>
           <h2 className="card-title justify-center">No showroom connected yet</h2>
-          <p className="text-sm text-slate-500 mt-2 max-w-xl mx-auto">
+          <p className="text-sm text-[#4f71a5] mt-2 max-w-xl mx-auto">
             Business login is live, but you still need a showroom or connection to start syncing sales and payments.
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">

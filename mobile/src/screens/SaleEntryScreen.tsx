@@ -162,7 +162,7 @@ export default function SaleEntryScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#131b2e" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
       <View style={s.header}>
         <Text style={s.title}>New Sale Entry</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Catalog')}>
@@ -202,7 +202,7 @@ export default function SaleEntryScreen() {
             )}
 
             <Text style={s.label}>Amount (₹)</Text>
-            <TextInput style={s.inputBig} placeholder="0.00" placeholderTextColor="#464555" keyboardType="numeric"
+            <TextInput style={s.inputBig} placeholder="0.00" placeholderTextColor="#94a3b8" keyboardType="numeric"
               value={quickAmount} onChangeText={setQuickAmount} autoFocus />
             <Text style={s.label}>Payment Method</Text>
             <View style={s.chipRow}>
@@ -223,8 +223,8 @@ export default function SaleEntryScreen() {
         {mode === 'detailed' && (
           <View style={s.form}>
             <Text style={s.sectionTitle}>Customer (optional)</Text>
-            <TextInput style={s.input} placeholder="Customer name" placeholderTextColor="#464555" value={customerName} onChangeText={setCustomerName} />
-            <TextInput style={s.input} placeholder="Phone number" placeholderTextColor="#464555" keyboardType="phone-pad" value={customerPhone} onChangeText={setCustomerPhone} />
+            <TextInput style={s.input} placeholder="Customer name" placeholderTextColor="#94a3b8" value={customerName} onChangeText={setCustomerName} />
+            <TextInput style={s.input} placeholder="Phone number" placeholderTextColor="#94a3b8" keyboardType="phone-pad" value={customerPhone} onChangeText={setCustomerPhone} />
 
             <Text style={s.sectionTitle}>Items</Text>
             {suggestedItems.length > 0 && (
@@ -258,10 +258,10 @@ export default function SaleEntryScreen() {
             ))}
 
             <View style={s.addItemBox}>
-              <TextInput style={s.input} placeholder="Item name" placeholderTextColor="#464555" value={itemName} onChangeText={setItemName} />
+              <TextInput style={s.input} placeholder="Item name" placeholderTextColor="#94a3b8" value={itemName} onChangeText={setItemName} />
               <View style={s.row}>
-                <TextInput style={[s.input, { flex: 1, marginRight: 8 }]} placeholderTextColor="#464555" placeholder="Price" keyboardType="numeric" value={itemPrice} onChangeText={setItemPrice} />
-                <TextInput style={[s.input, { width: 60 }]} placeholder="Qty" placeholderTextColor="#464555" keyboardType="numeric" value={itemQty} onChangeText={setItemQty} />
+                <TextInput style={[s.input, { flex: 1, marginRight: 8 }]} placeholderTextColor="#94a3b8" placeholder="Price" keyboardType="numeric" value={itemPrice} onChangeText={setItemPrice} />
+                <TextInput style={[s.input, { width: 60 }]} placeholder="Qty" placeholderTextColor="#94a3b8" keyboardType="numeric" value={itemQty} onChangeText={setItemQty} />
               </View>
               <Text style={[s.label, {marginTop: 8}]}>GST Rate</Text>
               <View style={s.chipRow}>
@@ -299,7 +299,7 @@ export default function SaleEntryScreen() {
                 <Text style={s.itemAmt}>₹{ss.amount.toLocaleString('en-IN')}</Text>
               </View>
             ))}
-            <TextInput style={s.inputBig} placeholder="Amount (₹)" placeholderTextColor="#464555" keyboardType="numeric"
+            <TextInput style={s.inputBig} placeholder="Amount (₹)" placeholderTextColor="#94a3b8" keyboardType="numeric"
               value={sessionAmount} onChangeText={setSessionAmount} />
             <TouchableOpacity style={s.outlineBtn} onPress={addSessionSale}>
               <Text style={s.outlineBtnText}>+ Queue Entry</Text>
@@ -319,51 +319,51 @@ export default function SaleEntryScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1326' },
+  container: { flex: 1, backgroundColor: '#f5f8fc' },
   header: { 
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#131b2e', padding: 20, paddingTop: 48,
+    backgroundColor: '#ffffff', padding: 20, paddingTop: 48,
   },
-  title: { fontSize: 20, fontWeight: '700', color: '#dae2fd' },
-  headerLink: { fontSize: 15, color: '#c3c0ff', fontWeight: '600' },
-  tabs: { flexDirection: 'row', backgroundColor: '#131b2e', borderBottomWidth: 1, borderBottomColor: '#171f33' },
+  title: { fontSize: 20, fontWeight: '700', color: '#102135' },
+  headerLink: { fontSize: 15, color: '#1f5eff', fontWeight: '600' },
+  tabs: { flexDirection: 'row', backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#d7e1ee' },
   tab: { flex: 1, paddingVertical: 14, alignItems: 'center' },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: '#4f46e5' },
-  tabText: { fontSize: 14, color: '#c7c4d8', fontWeight: '500' },
-  tabTextActive: { color: '#dae2fd', fontWeight: '700' },
+  tabActive: { borderBottomWidth: 2, borderBottomColor: '#1f5eff' },
+  tabText: { fontSize: 14, color: '#5f6b7d', fontWeight: '500' },
+  tabTextActive: { color: '#102135', fontWeight: '700' },
   scrollContent: { paddingBottom: 40 },
   form: { padding: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#dae2fd', marginTop: 16, marginBottom: 12 },
-  label: { fontSize: 14, fontWeight: '600', color: '#c7c4d8', marginBottom: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#102135', marginTop: 16, marginBottom: 12 },
+  label: { fontSize: 14, fontWeight: '600', color: '#5f6b7d', marginBottom: 8 },
   hint: { fontSize: 13, color: '#94a3b8', marginBottom: 16 },
   input: { 
-    backgroundColor: '#171f33', borderWidth: 1, borderColor: '#222a3d', 
-    borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 12, color: '#dae2fd' 
+    backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#d7e1ee', 
+    borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 12, color: '#102135' 
   },
   inputBig: { 
-    backgroundColor: '#171f33', borderWidth: 1, borderColor: '#4f46e5', 
-    borderRadius: 16, padding: 20, fontSize: 32, fontWeight: '700', marginBottom: 20, color: '#dae2fd',
+    backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#1f5eff', 
+    borderRadius: 16, padding: 20, fontSize: 32, fontWeight: '700', marginBottom: 20, color: '#102135',
     textAlign: 'center'
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#171f33', borderWidth: 1, borderColor: '#222a3d' },
-  chipSmall: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, backgroundColor: '#171f33', borderWidth: 1, borderColor: '#222a3d' },
-  chipActive: { backgroundColor: '#4f46e5', borderColor: '#4f46e5' },
-  chipText: { fontSize: 14, color: '#c7c4d8', fontWeight: '500' },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#d7e1ee' },
+  chipSmall: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, backgroundColor: '#e9f0ff', borderWidth: 1, borderColor: '#d7e1ee' },
+  chipActive: { backgroundColor: '#1f5eff', borderColor: '#1f5eff' },
+  chipText: { fontSize: 14, color: '#5f6b7d', fontWeight: '500' },
   chipTextActive: { color: '#ffffff', fontWeight: '700' },
-  btn: { backgroundColor: '#4f46e5', padding: 18, borderRadius: 14, alignItems: 'center', marginTop: 12 },
+  btn: { backgroundColor: '#1f5eff', padding: 18, borderRadius: 14, alignItems: 'center', marginTop: 12 },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  outlineBtn: { borderWidth: 1, borderColor: '#464555', backgroundColor: '#0b1326', padding: 14, borderRadius: 12, alignItems: 'center', marginBottom: 16 },
-  outlineBtnText: { color: '#dae2fd', fontSize: 15, fontWeight: '600' },
-  itemRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#171f33', padding: 16, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#222a3d' },
-  itemName: { fontSize: 15, fontWeight: '600', color: '#dae2fd', marginBottom: 4 },
-  itemMeta: { fontSize: 13, color: '#c7c4d8' },
-  itemAmt: { fontSize: 18, fontWeight: '700', color: '#dae2fd', marginLeft: 'auto' },
+  outlineBtn: { borderWidth: 1, borderColor: '#d7e1ee', backgroundColor: '#f5f8fc', padding: 14, borderRadius: 12, alignItems: 'center', marginBottom: 16 },
+  outlineBtnText: { color: '#102135', fontSize: 15, fontWeight: '600' },
+  itemRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f8fc', padding: 16, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#d7e1ee' },
+  itemName: { fontSize: 15, fontWeight: '600', color: '#102135', marginBottom: 4 },
+  itemMeta: { fontSize: 13, color: '#5f6b7d' },
+  itemAmt: { fontSize: 18, fontWeight: '700', color: '#102135', marginLeft: 'auto' },
   removeBtn: { padding: 8, marginLeft: 4 },
-  addItemBox: { backgroundColor: 'rgba(79,70,229,0.05)', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#222a3d', marginBottom: 16 },
+  addItemBox: { backgroundColor: 'rgba(31,94,255,0.05)', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#d7e1ee', marginBottom: 16 },
   row: { flexDirection: 'row' },
-  summary: { backgroundColor: '#171f33', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#4f46e5' },
-  summaryLabel: { fontSize: 14, color: '#c7c4d8', textAlign: 'center', marginBottom: 4 },
-  summaryText: { fontSize: 32, fontWeight: '800', color: '#dae2fd', marginBottom: 16, textAlign: 'center', letterSpacing: -0.5 },
+  summary: { backgroundColor: '#f5f8fc', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#1f5eff' },
+  summaryLabel: { fontSize: 14, color: '#5f6b7d', textAlign: 'center', marginBottom: 4 },
+  summaryText: { fontSize: 32, fontWeight: '800', color: '#102135', marginBottom: 16, textAlign: 'center', letterSpacing: -0.5 },
 });

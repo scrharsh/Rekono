@@ -2,19 +2,14 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import LottieLoader from '@/components/LottieLoader';
+import Icon from '@/components/Icon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-}
-
-function Icon({ d, className = 'w-4 h-4' }: { d: string; className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
 }
 
 export default function TasksPage() {
@@ -112,9 +107,9 @@ export default function TasksPage() {
       {/* Add Task Modal */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          style={{ background: 'rgba(12, 26, 43, 0.34)', backdropFilter: 'blur(7px)' }}>
           <div className="w-full max-w-md animate-scale-in rounded-2xl p-6"
-            style={{ background: 'var(--surface-container)', border: '1px solid rgba(70,69,85,0.2)' }}>
+            style={{ background: 'var(--surface)', border: '1px solid var(--outline-variant)', boxShadow: '0 20px 64px rgba(15, 32, 56, 0.16)' }}>
             <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--on-surface)' }}>Create Task</h2>
             <form onSubmit={e => { e.preventDefault(); addMutation.mutate(addForm); }} className="space-y-4">
               <div>
@@ -166,12 +161,14 @@ export default function TasksPage() {
 
       {/* Task list */}
       {isLoading ? (
-        <div className="space-y-3">{[1,2,3,4].map(i => <div key={i} className="h-20 skeleton" />)}</div>
-      ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <p className="empty-state-title">No tasks found</p>
-          <p className="empty-state-desc">{filter === 'all' ? 'Create your first task' : 'No tasks in this category'}</p>
+        <div className="h-64 flex items-center justify-center">
+          <LottieLoader label="Loading tasks..." size={44} />
         </div>
+      ) : filtered.length === 0 ? (
+        <MotionEmptyState
+          title="No tasks found"
+          description={filter === 'all' ? 'Create your first task and start execution flow.' : 'No tasks in this category yet.'}
+        />
       ) : (
         <div className="space-y-2 stagger-children">
           {filtered.map((task: any) => {

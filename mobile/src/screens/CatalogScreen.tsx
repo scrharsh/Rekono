@@ -162,10 +162,12 @@ export default function CatalogScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#131b2e" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <View style={s.headerGlow} />
       <View style={s.header}>
+        <View style={s.headerBadge}><Text style={s.headerBadgeText}>Catalog Intelligence</Text></View>
         <Text style={s.title}>Progressive Catalog</Text>
-        <Text style={s.subtitle}>Your smartest items learned over time</Text>
+        <Text style={s.subtitle}>Your most-used items and services, ready for fast sale entry.</Text>
       </View>
 
       <View style={s.toolbar}>
@@ -186,7 +188,7 @@ export default function CatalogScreen() {
       
       {loading ? (
         <View style={s.loadingWrap}>
-          <ActivityIndicator color="#4f46e5" size="large" />
+          <ActivityIndicator color="#1f5eff" size="large" />
         </View>
       ) : (
       <FlatList
@@ -194,7 +196,7 @@ export default function CatalogScreen() {
         renderItem={renderItem}
         keyExtractor={i => i._id}
         contentContainerStyle={s.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4f46e5" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1f5eff" />}
         ListEmptyComponent={
           <View style={s.emptyWrap}>
             <Text style={s.emptyTitle}>No catalog items</Text>
@@ -258,11 +260,31 @@ export default function CatalogScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1326' },
-  header: { 
-    backgroundColor: '#131b2e', padding: 20, paddingTop: 48, 
-    borderBottomWidth: 1, borderBottomColor: '#171f33' 
+  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  headerGlow: {
+    position: 'absolute',
+    top: 40,
+    right: -80,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(31, 94, 255, 0.08)',
   },
+  header: { 
+    backgroundColor: '#ffffff', padding: 20, paddingTop: 48,
+    borderBottomWidth: 1, borderBottomColor: '#d7e1ee' 
+  },
+  headerBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#e9f0ff',
+    borderWidth: 1,
+    borderColor: '#c9dafd',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 10,
+  },
+  headerBadgeText: { color: '#1f5eff', fontSize: 11, fontWeight: '700' },
   toolbar: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -273,40 +295,45 @@ const s = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#171f33',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#222a3d',
+    borderColor: '#d7e1ee',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#dae2fd',
+    color: '#102135',
   },
   filterBtn: {
     borderWidth: 1,
-    borderColor: '#464555',
+    borderColor: '#d7e1ee',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   filterBtnActive: {
-    backgroundColor: '#4f46e5',
-    borderColor: '#4f46e5',
+    backgroundColor: '#1f5eff',
+    borderColor: '#1f5eff',
   },
-  filterText: { color: '#c7c4d8', fontWeight: '600', fontSize: 12 },
+  filterText: { color: '#5f6b7d', fontWeight: '600', fontSize: 12 },
   filterTextActive: { color: '#fff' },
-  title: { fontSize: 20, fontWeight: '700', color: '#dae2fd' },
-  subtitle: { fontSize: 13, color: '#c7c4d8', marginTop: 4 },
+  title: { fontSize: 20, fontWeight: '700', color: '#102135' },
+  subtitle: { fontSize: 13, color: '#5f6b7d', marginTop: 4, lineHeight: 18 },
   list: { padding: 16, paddingBottom: 100 },
   itemCard: {
-    backgroundColor: '#171f33', borderRadius: 12, padding: 16,
+    backgroundColor: '#ffffff', borderRadius: 14, padding: 16,
     flexDirection: 'row', alignItems: 'center', marginBottom: 12,
-    borderWidth: 1, borderColor: '#222a3d'
+    borderWidth: 1, borderColor: '#d7e1ee',
+    shadowColor: '#102135',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
   },
   itemActions: { alignItems: 'flex-end' },
   inlineActions: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 },
   starBtn: {
     borderWidth: 1,
-    borderColor: '#464555',
+    borderColor: '#d7e1ee',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -320,58 +347,58 @@ const s = StyleSheet.create({
     paddingVertical: 4,
   },
   deleteText: { color: '#ffb4ab', fontSize: 12, fontWeight: '700' },
-  itemName: { fontSize: 16, fontWeight: '600', color: '#dae2fd', marginBottom: 4 },
-  itemType: { fontSize: 13, color: '#c7c4d8' },
-  itemPrice: { fontSize: 18, fontWeight: '700', color: '#dae2fd' },
+  itemName: { fontSize: 16, fontWeight: '600', color: '#102135', marginBottom: 4 },
+  itemType: { fontSize: 13, color: '#5f6b7d' },
+  itemPrice: { fontSize: 18, fontWeight: '700', color: '#102135' },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { alignItems: 'center', paddingTop: 40 },
-  emptyTitle: { color: '#dae2fd', fontSize: 17, fontWeight: '700', marginBottom: 6 },
-  emptyText: { color: '#c7c4d8', fontSize: 13, textAlign: 'center' },
+  emptyTitle: { color: '#102135', fontSize: 17, fontWeight: '700', marginBottom: 6 },
+  emptyText: { color: '#5f6b7d', fontSize: 13, textAlign: 'center' },
   fab: {
     position: 'absolute', bottom: 24, right: 24,
     width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#4f46e5', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#1f5eff', alignItems: 'center', justifyContent: 'center',
     elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84,
   },
   fabIcon: { color: '#fff', fontSize: 32, fontWeight: '300', marginTop: -2 },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(11, 19, 38, 0.7)',
+    backgroundColor: 'rgba(15, 33, 53, 0.5)',
     justifyContent: 'flex-end',
   },
   modalCard: {
-    backgroundColor: '#131b2e',
+    backgroundColor: '#ffffff',
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#222a3d',
+    borderTopColor: '#d7e1ee',
   },
-  modalTitle: { color: '#dae2fd', fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  modalTitle: { color: '#102135', fontSize: 18, fontWeight: '700', marginBottom: 12 },
   modalInput: {
-    backgroundColor: '#171f33',
+    backgroundColor: '#f5f8fc',
     borderWidth: 1,
-    borderColor: '#222a3d',
+    borderColor: '#d7e1ee',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#dae2fd',
+    color: '#102135',
     marginBottom: 10,
   },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   cancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#464555',
+    borderColor: '#d7e1ee',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
   },
-  cancelBtnText: { color: '#c7c4d8', fontWeight: '700' },
+  cancelBtnText: { color: '#5f6b7d', fontWeight: '700' },
   saveBtn: {
     flex: 1,
-    backgroundColor: '#4f46e5',
+    backgroundColor: '#1f5eff',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',

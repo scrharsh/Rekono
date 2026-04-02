@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { useAuth } from '@/contexts/AuthContext';
+import BrandLogoLink from '@/components/BrandLogoLink';
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] });
 
@@ -87,20 +88,30 @@ export default function RegisterPage() {
     <div className={`${jakarta.className} h-screen overflow-hidden flex bg-[#f5f9ff] text-[#0f2347]`}>
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-10"
-        style={{ background: 'linear-gradient(135deg, #0b57d0 0%, #0e7ef0 100%)' }}>
+        style={{ background: '#0b57d0' }}>
         <div className="absolute inset-0 opacity-[0.12]"
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #dce8ff 1px, transparent 0)', backgroundSize: '48px 48px' }} />
         <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(214,231,255,0.25) 0%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)' }} />
 
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: '#1f6dde', boxShadow: '0 10px 22px rgba(11,87,208,0.35)' }}>
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+        <div className="relative z-10">
+          <div className="relative inline-flex items-center px-3 py-0">
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: '-40px',
+                right: '-8px',
+                top: 0,
+                bottom: 0,
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(243,248,255,0.88) 100%)',
+                border: '1px solid rgba(255,255,255,0.56)',
+                clipPath: 'polygon(0 0, calc(100% - 48px) 0, 100% 100%, 0 100%)',
+                boxShadow: '0 8px 18px rgba(4,39,96,0.22), 0 0 16px rgba(168,215,255,0.48), 0 0 34px rgba(206,234,255,0.24)',
+              }}
+            />
+            <BrandLogoLink className="relative z-10" logoClassName="h-12 w-auto" variant="default" />
           </div>
-          <span className="text-2xl font-bold text-white tracking-tight">Rekono</span>
         </div>
 
         <div className="relative z-10 space-y-5">
@@ -133,13 +144,8 @@ export default function RegisterPage() {
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-hidden">
         <div className="w-full max-w-md animate-fade-in rounded-3xl border border-[#d0e1ff] bg-white p-6">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#0b57d0' }}>
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold tracking-tight text-[#153c74]">Rekono</span>
+          <div className="lg:hidden mb-5">
+            <BrandLogoLink logoClassName="h-12 w-auto" />
           </div>
 
           <Link

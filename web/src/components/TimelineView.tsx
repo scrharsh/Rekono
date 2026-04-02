@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import MotionEmptyState from './MotionEmptyState';
 
 interface TimelineEvent {
   id: string;
@@ -114,10 +115,10 @@ export default function TimelineView(props: TimelineViewProps) {
 
           <div className="space-y-5">
             {events.length === 0 ? (
-              <div className="empty-state py-6">
-                <p className="empty-state-title">No timeline events</p>
-                <p className="empty-state-desc">Check again when tasks or alerts change.</p>
-              </div>
+              <MotionEmptyState
+                title="No timeline events"
+                description="Check again when tasks or alerts change."
+              />
             ) : (
               events.map((event) => {
                 const cfg = STATUS_CONFIG[event.status];

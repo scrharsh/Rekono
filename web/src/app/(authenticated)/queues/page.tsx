@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import LottieLoader from '@/components/LottieLoader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -106,9 +108,14 @@ export default function QueueManagementPage() {
             <span className="text-xs text-slate-400">{queue.length} items</span>
           </div>
           {loading ? (
-            <div className="p-6 space-y-3 animate-pulse">{[1,2,3].map(i => <div key={i} className="h-16 bg-slate-100 rounded-lg" />)}</div>
+            <div className="h-56 flex items-center justify-center p-6">
+              <LottieLoader label="Loading queue intelligence..." size={46} />
+            </div>
           ) : queue.length === 0 ? (
-            <div className="empty-state"><p className="empty-state-title">Queue is empty</p><p className="empty-state-desc">No items need attention</p></div>
+            <MotionEmptyState
+              title="Queue is empty"
+              description="No items need attention right now."
+            />
           ) : (
             <div className="divide-y divide-slate-100/60 bg-white">
               {queue.map(item => {

@@ -1,11 +1,24 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Request,
+  Headers,
+  Req,
+  HttpCode,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto, SelfRegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { ActivateSubscriptionDto } from './dto/subscription.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { SkipSubscriptionCheck } from './decorators/skip-subscription.decorator';
+import { SubscriptionPlan } from '../schemas/user.schema';
 
 // 5 requests per minute for auth endpoints
 const AUTH_THROTTLE_LIMIT = 5;
@@ -69,6 +82,60 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user' })
   async getProfile(@Request() req: any) {
     return req.user;
+  }
+
+  @Get('subscription')
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user subscription status' })
+  async getSubscription(@Request() req: any) {
+    return this.authService.getSubscriptionStatus(req.user.userId);
+  }
+
+  @Post('subscription/activate')
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Activate current user subscription (CA remains free)' })
+  async activateSubscription(
+    @Request() req: any,
+    @Body() dto: ActivateSubscriptionDto,
+  ) {
+    return this.authService.activateBusinessSubscription(
+      req.user.userId,
+      dto.plan || SubscriptionPlan.BUSINESS_MONTHLY,
+      dto.durationDays || 30,
+    );
+  }
+
+  @Post('subscription/payment-link')
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create Razorpay payment link for business subscription' })
+  async createSubscriptionPaymentLink(
+    @Request() req: any,
+    @Body() dto: ActivateSubscriptionDto,
+  ) {
+    return this.authService.createBusinessSubscriptionPaymentLink(
+      req.user.userId,
+      dto.plan || SubscriptionPlan.BUSINESS_MONTHLY,
+      dto.durationDays || 30,
+    );
+  }
+
+  @Post('subscription/webhook/razorpay')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Razorpay webhook handler for subscription activation' })
+  async razorpayWebhook(
+    @Req() req: any,
+    @Headers('x-razorpay-signature') signature?: string,
+  ) {
+    const rawBody = Buffer.isBuffer(req.body)
+      ? req.body
+      : Buffer.from(JSON.stringify(req.body || {}), 'utf8');
+    return this.authService.processRazorpayWebhook(rawBody, signature);
   }
 
   @Get('health')

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import LottieLoader from '@/components/LottieLoader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -84,13 +86,9 @@ export default function TransactionListPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse border-b border-slate-100">
-                    {[1,2,3,4,5,6].map(j => <td key={j}><div className="h-3.5 bg-slate-100 rounded w-3/4" /></td>)}
-                  </tr>
-                ))
+                <tr><td colSpan={6}><div className="h-56 flex items-center justify-center"><LottieLoader label="Loading transactions..." size={44} /></div></td></tr>
               ) : transactions.length === 0 ? (
-                <tr><td colSpan={6}><div className="empty-state"><p className="empty-state-title">No transactions found</p></div></td></tr>
+                <tr><td colSpan={6}><MotionEmptyState title="No transactions found" description="Transactions for this showroom will appear here." /></td></tr>
               ) : transactions.map((t: any) => (
                 <tr key={t._id} onClick={() => setSelected(t === selected ? null : t)}
                   className={`cursor-pointer ${selected?._id === t._id ? 'bg-brand-50' : ''}`}>

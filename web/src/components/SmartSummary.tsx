@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import MotionEmptyState from './MotionEmptyState';
+import LottieLoader from './LottieLoader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -85,13 +87,14 @@ export const SmartSummary = ({ showroomId, startDate, endDate }: Props) => {
 
       <div className="card-body">
         {loading ? (
-          <div className="animate-pulse space-y-3">
-            {[1,2,3,4].map(i => <div key={i} className="h-10 bg-slate-100 rounded-lg" />)}
+          <div className="h-48 flex items-center justify-center">
+            <LottieLoader label="Loading summary..." size={40} />
           </div>
         ) : !summary ? (
-          <div className="empty-state py-8">
-            <p className="empty-state-title">No data available</p>
-          </div>
+          <MotionEmptyState
+            title="No data available"
+            description="Summary data appears once transactions sync in this period."
+          />
         ) : (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">

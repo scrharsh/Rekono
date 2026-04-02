@@ -2,6 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import MotionEmptyState from '@/components/MotionEmptyState';
+import LottieLoader from '@/components/LottieLoader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -53,19 +55,14 @@ export default function ReportsPage() {
 
       <div className="table-wrapper">
         {isLoading ? (
-          <div className="p-6 space-y-3 animate-pulse">
-            {[1,2,3].map(i => <div key={i} className="h-12 bg-slate-100 rounded-lg" />)}
+          <div className="h-64 flex items-center justify-center p-6">
+            <LottieLoader label="Loading reports..." size={46} />
           </div>
         ) : reports.length === 0 ? (
-          <div className="empty-state py-16">
-            <svg className="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="empty-state-title">No reports yet</p>
-            <p className="empty-state-desc">
-              When a connected showroom sends you a GST summary or Tally export, it will appear here.
-            </p>
-          </div>
+          <MotionEmptyState
+            title="No reports yet"
+            description="When a connected showroom sends a GST summary or Tally export, it will appear here."
+          />
         ) : (
           <table className="table">
             <thead>

@@ -1,15 +1,9 @@
 import Link from 'next/link';
 import { Plus_Jakarta_Sans } from 'next/font/google';
+import Icon from '@/components/Icon';
+import BrandLogoLink from '@/components/BrandLogoLink';
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] });
-
-function Icon({ d, className = 'w-5 h-5' }: { d: string; className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  );
-}
 
 export default function ProductsPage() {
   return (
@@ -22,14 +16,7 @@ export default function ProductsPage() {
       {/* Sticky Navigation */}
       <nav className="sticky top-0 z-50 border-b border-[#d6e4ff] bg-white/95 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 sm:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0b57d0] text-white shadow-[0_10px_22px_rgba(11,87,208,0.35)]">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <span className="text-lg font-semibold tracking-tight">Rekono</span>
-          </div>
+          <BrandLogoLink logoClassName="h-11 w-auto" />
 
           <div className="hidden items-center gap-8 text-sm text-[#2f4f83] md:flex">
             <Link href="/features" className="hover:text-[#0b57d0] transition">Features</Link>
@@ -221,13 +208,8 @@ export default function ProductsPage() {
       <footer className="border-t border-[#dce8ff] bg-white">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-5 py-12 sm:grid-cols-2 sm:px-8 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0b57d0] text-white">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <p className="text-lg font-bold text-[#143468]">Rekono</p>
+            <div className="mb-4">
+              <BrandLogoLink logoClassName="h-11 w-auto" />
             </div>
             <p className="max-w-sm text-sm leading-relaxed text-[#5c7cae]">
               Business reconciliation and CA intelligence platform. Built for Indian businesses that move fast. Available on mobile, web, and desktop.

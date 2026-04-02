@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import MotionEmptyState from './MotionEmptyState';
+import LottieLoader from './LottieLoader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -118,17 +120,14 @@ export const AlertsDashboard = () => {
           <h2 className="card-title">All Alerts</h2>
         </div>
         {loading ? (
-          <div className="p-6 space-y-3 animate-pulse">
-            {[1,2,3].map(i => <div key={i} className="h-12 bg-slate-100 rounded-lg" />)}
+          <div className="h-56 flex items-center justify-center p-6">
+            <LottieLoader label="Loading alert intelligence..." size={46} />
           </div>
         ) : alerts.length === 0 ? (
-          <div className="empty-state">
-            <svg className="empty-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="empty-state-title">All clear</p>
-            <p className="empty-state-desc">No pending alerts at this time.</p>
-          </div>
+          <MotionEmptyState
+            title="All clear"
+            description="No pending alerts at this time."
+          />
         ) : (
           <table className="table">
             <thead>

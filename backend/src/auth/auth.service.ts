@@ -4,20 +4,151 @@ import {
   HttpException,
   ConflictException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { createHmac, timingSafeEqual } from 'crypto';
 import * as bcrypt from 'bcrypt';
-import { User } from '../schemas/user.schema';
+import {
+  SubscriptionPlan,
+  SubscriptionStatus,
+  User,
+} from '../schemas/user.schema';
 import { RegisterDto, SelfRegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+
+type SubscriptionSnapshot = {
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  required: boolean;
+  activatedAt?: Date;
+  expiresAt?: Date;
+};
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
+
+  private getPlanAmountInPaise(plan: SubscriptionPlan): number {
+    if (plan === SubscriptionPlan.BUSINESS_YEARLY) {
+      return Number(this.configService.get('RAZORPAY_BUSINESS_YEARLY_AMOUNT_PAISE') || 1999900);
+    }
+
+    return Number(this.configService.get('RAZORPAY_BUSINESS_MONTHLY_AMOUNT_PAISE') || 199900);
+  }
+
+  private getRazorpayAuthHeader(): string {
+    const keyId = this.configService.get<string>('RAZORPAY_KEY_ID');
+    const keySecret = this.configService.get<string>('RAZORPAY_KEY_SECRET');
+
+    if (!keyId || !keySecret) {
+      throw new HttpException('Razorpay is not configured', 500);
+    }
+
+    return `Basic ${Buffer.from(`${keyId}:${keySecret}`).toString('base64')}`;
+  }
+
+  private parsePlan(plan?: string): SubscriptionPlan {
+    if (plan === SubscriptionPlan.BUSINESS_YEARLY) {
+      return SubscriptionPlan.BUSINESS_YEARLY;
+    }
+
+    if (plan === SubscriptionPlan.FREE_CA) {
+      return SubscriptionPlan.FREE_CA;
+    }
+
+    return SubscriptionPlan.BUSINESS_MONTHLY;
+  }
+
+  private getDefaultSubscriptionForRole(role: string): SubscriptionSnapshot {
+    if (role === 'ca') {
+      return {
+        plan: SubscriptionPlan.FREE_CA,
+        status: SubscriptionStatus.ACTIVE,
+        required: false,
+        activatedAt: new Date(),
+      };
+    }
+
+    if (role === 'admin') {
+      return {
+        plan: SubscriptionPlan.BUSINESS_MONTHLY,
+        status: SubscriptionStatus.ACTIVE,
+        required: false,
+        activatedAt: new Date(),
+      };
+    }
+
+    return {
+      plan: SubscriptionPlan.BUSINESS_MONTHLY,
+      status: SubscriptionStatus.INACTIVE,
+      required: true,
+    };
+  }
+
+  private getSubscriptionSnapshot(user: Pick<User, 'role' | 'subscription'>): SubscriptionSnapshot {
+    const defaults = this.getDefaultSubscriptionForRole(user.role);
+    const sub = user.subscription;
+
+    return {
+      plan: sub?.plan || defaults.plan,
+      status: sub?.status || defaults.status,
+      required: sub?.required ?? defaults.required,
+      activatedAt: sub?.activatedAt || defaults.activatedAt,
+      expiresAt: sub?.expiresAt,
+    };
+  }
+
+  private toAuthResponse(user: User & { _id: any }): {
+    access_token: string;
+    user: {
+      id: any;
+      username: string;
+      role: string;
+      showroomIds: any[];
+      subscription: SubscriptionSnapshot;
+    };
+  } {
+    const showroomIds = (user.showroomIds || []).map((id: any) => id.toString());
+    const subscription = this.getSubscriptionSnapshot(user);
+
+    const payload = {
+      sub: user._id.toString(),
+      username: user.username,
+      role: user.role,
+      showroomIds,
+      subscription,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+        showroomIds,
+        subscription,
+      },
+    };
+  }
+
+  private ensureSubscriptionActive(subscription: SubscriptionSnapshot): void {
+    if (subscription.required && subscription.status !== SubscriptionStatus.ACTIVE) {
+      throw new HttpException(
+        {
+          code: 'SUBSCRIPTION_REQUIRED',
+          message: 'Active business subscription required to use Rekono.',
+          subscription,
+        },
+        402,
+      );
+    }
+  }
 
   async selfRegister(dto: SelfRegisterDto) {
     const existing = await this.userModel.findOne({ username: dto.username });
@@ -32,20 +163,11 @@ export class AuthService {
       phone: dto.phone,
       role: dto.role,
       showroomIds: [],
+      subscription: this.getDefaultSubscriptionForRole(dto.role),
     });
     await user.save();
 
-    const payload = {
-      sub: user._id.toString(),
-      username: user.username,
-      role: user.role,
-      showroomIds: [],
-    };
-
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: { id: user._id, username: user.username, role: user.role, showroomIds: [] },
-    };
+    return this.toAuthResponse(user as User & { _id: any });
   }
 
   async register(registerDto: RegisterDto) {
@@ -56,6 +178,7 @@ export class AuthService {
       password: hashedPassword,
       role: registerDto.role,
       showroomIds: registerDto.showroomIds || [],
+      subscription: this.getDefaultSubscriptionForRole(registerDto.role),
     });
 
     await user.save();
@@ -101,26 +224,212 @@ export class AuthService {
       await user.save();
     }
 
-    const payload = {
-      sub: user._id.toString(),
-      username: user.username,
-      role: user.role,
-      showroomIds: user.showroomIds.map((id) => id.toString()),
-    };
-
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user._id,
-        username: user.username,
-        role: user.role,
-        showroomIds: user.showroomIds,
-      },
-    };
+    return this.toAuthResponse(user as User & { _id: any });
   }
 
   async validateUser(userId: string) {
     return this.userModel.findById(userId).select('-password');
+  }
+
+  async ensureSubscribedUser(userId: string) {
+    const user = await this.userModel.findById(userId).select('-password');
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const subscription = this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+    this.ensureSubscriptionActive(subscription);
+
+    return {
+      user,
+      subscription,
+    };
+  }
+
+  async getSubscriptionStatus(userId: string) {
+    const user = await this.userModel.findById(userId).select('-password');
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+  }
+
+  async activateBusinessSubscription(
+    userId: string,
+    plan: SubscriptionPlan = SubscriptionPlan.BUSINESS_MONTHLY,
+    durationDays = 30,
+  ) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (user.role === 'ca') {
+      user.subscription = {
+        plan: SubscriptionPlan.FREE_CA,
+        status: SubscriptionStatus.ACTIVE,
+        required: false,
+        activatedAt: new Date(),
+      } as any;
+      await user.save();
+      return this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+    }
+
+    const activatedAt = new Date();
+    const expiresAt = new Date(activatedAt.getTime() + Math.max(1, durationDays) * 24 * 60 * 60 * 1000);
+
+    user.subscription = {
+      plan,
+      status: SubscriptionStatus.ACTIVE,
+      required: true,
+      activatedAt,
+      expiresAt,
+    } as any;
+
+    await user.save();
+    return this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+  }
+
+  async createBusinessSubscriptionPaymentLink(
+    userId: string,
+    plan: SubscriptionPlan = SubscriptionPlan.BUSINESS_MONTHLY,
+    durationDays = 30,
+  ) {
+    const user = await this.userModel.findById(userId).select('-password');
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (user.role === 'ca') {
+      return {
+        free: true,
+        message: 'CA workspace is free for now.',
+        subscription: this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>),
+      };
+    }
+
+    const existingSubscription = this.getSubscriptionSnapshot(
+      user as unknown as Pick<User, 'role' | 'subscription'>,
+    );
+    if (existingSubscription.status === SubscriptionStatus.ACTIVE) {
+      return {
+        alreadyActive: true,
+        message: 'Subscription is already active.',
+        subscription: existingSubscription,
+      };
+    }
+
+    const selectedPlan =
+      plan === SubscriptionPlan.BUSINESS_YEARLY
+        ? SubscriptionPlan.BUSINESS_YEARLY
+        : SubscriptionPlan.BUSINESS_MONTHLY;
+
+    const amount = this.getPlanAmountInPaise(selectedPlan);
+    const callbackUrl = this.configService.get<string>('RAZORPAY_CALLBACK_URL');
+
+    const payload: Record<string, unknown> = {
+      amount,
+      currency: 'INR',
+      accept_partial: false,
+      description:
+        selectedPlan === SubscriptionPlan.BUSINESS_YEARLY
+          ? 'Rekono Business Yearly Subscription'
+          : 'Rekono Business Monthly Subscription',
+      customer: {
+        name: user.fullName || user.username,
+        email: user.email,
+        contact: user.phone,
+      },
+      notify: {
+        sms: Boolean(user.phone),
+        email: Boolean(user.email),
+      },
+      reminder_enable: true,
+      notes: {
+        userId: user._id.toString(),
+        plan: selectedPlan,
+        durationDays: String(durationDays),
+        source: 'rekono_subscription',
+      },
+    };
+
+    if (callbackUrl) {
+      payload.callback_url = callbackUrl;
+      payload.callback_method = 'get';
+    }
+
+    const response = await fetch('https://api.razorpay.com/v1/payment_links', {
+      method: 'POST',
+      headers: {
+        Authorization: this.getRazorpayAuthHeader(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = (await response.json()) as Record<string, any>;
+    if (!response.ok) {
+      throw new HttpException(
+        data?.error?.description || data?.error?.reason || 'Unable to create Razorpay payment link',
+        502,
+      );
+    }
+
+    return {
+      paymentLinkId: data.id,
+      paymentUrl: data.short_url || data.shortUrl,
+      amount: data.amount,
+      currency: data.currency,
+      status: data.status,
+      plan: selectedPlan,
+      durationDays,
+    };
+  }
+
+  async processRazorpayWebhook(rawBody: Buffer, signature: string | undefined) {
+    const webhookSecret = this.configService.get<string>('RAZORPAY_WEBHOOK_SECRET');
+    if (!webhookSecret) {
+      throw new HttpException('Razorpay webhook secret missing', 500);
+    }
+
+    if (!signature) {
+      throw new HttpException('Missing webhook signature', 401);
+    }
+
+    const digest = createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+    const expected = Buffer.from(digest, 'utf8');
+    const provided = Buffer.from(signature, 'utf8');
+    const valid = expected.length === provided.length && timingSafeEqual(expected, provided);
+
+    if (!valid) {
+      throw new HttpException('Invalid webhook signature', 401);
+    }
+
+    const payload = JSON.parse(rawBody.toString('utf8')) as Record<string, any>;
+    const eventType = String(payload.event || '');
+
+    if (eventType !== 'payment_link.paid') {
+      return { received: true, ignored: true, event: eventType };
+    }
+
+    const notes =
+      payload?.payload?.payment_link?.entity?.notes || payload?.payload?.payment?.entity?.notes || {};
+    const userId = String(notes.userId || '');
+    if (!userId) {
+      return { received: true, ignored: true, reason: 'Missing userId note' };
+    }
+
+    const plan = this.parsePlan(String(notes.plan || SubscriptionPlan.BUSINESS_MONTHLY));
+    const durationDays = Number(notes.durationDays || 30);
+    const subscription = await this.activateBusinessSubscription(userId, plan, durationDays);
+
+    return {
+      received: true,
+      activated: true,
+      userId,
+      subscription,
+    };
   }
 
   verifyToken(token: string) {
@@ -144,21 +453,6 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const newPayload = {
-      sub: user._id.toString(),
-      username: user.username,
-      role: user.role,
-      showroomIds: user.showroomIds.map((id) => id.toString()),
-    };
-
-    return {
-      access_token: this.jwtService.sign(newPayload),
-      user: {
-        id: user._id,
-        username: user.username,
-        role: user.role,
-        showroomIds: user.showroomIds,
-      },
-    };
+    return this.toAuthResponse(user as User & { _id: any });
   }
 }
