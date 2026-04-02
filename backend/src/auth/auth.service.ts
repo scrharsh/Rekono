@@ -95,13 +95,27 @@ export class AuthService {
     const defaults = this.getDefaultSubscriptionForRole(user.role);
     const sub = user.subscription;
 
-    return {
+    const snapshot: SubscriptionSnapshot = {
       plan: sub?.plan || defaults.plan,
       status: sub?.status || defaults.status,
       required: sub?.required ?? defaults.required,
       activatedAt: sub?.activatedAt || defaults.activatedAt,
       expiresAt: sub?.expiresAt,
     };
+
+    if (
+      snapshot.required &&
+      snapshot.status === SubscriptionStatus.ACTIVE &&
+      snapshot.expiresAt &&
+      new Date(snapshot.expiresAt).getTime() <= Date.now()
+    ) {
+      return {
+        ...snapshot,
+        status: SubscriptionStatus.INACTIVE,
+      };
+    }
+
+    return snapshot;
   }
 
   private toAuthResponse(user: User & { _id: any }): {
@@ -217,10 +231,44 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    let shouldPersist = false;
+
     // Reset failed attempts on successful login
     if (user.failedLoginAttempts > 0) {
       user.failedLoginAttempts = 0;
       user.lockedUntil = undefined;
+      shouldPersist = true;
+    }
+
+    const currentSubscription = this.getSubscriptionSnapshot(
+      user as unknown as Pick<User, 'role' | 'subscription'>,
+    );
+
+    // First successful login for business users starts a one-month free trial.
+    if (
+      user.role === 'staff' &&
+      currentSubscription.required &&
+      currentSubscription.status !== SubscriptionStatus.ACTIVE &&
+      !currentSubscription.activatedAt
+    ) {
+      const trialDays = Number(this.configService.get('BUSINESS_TRIAL_DAYS') || 30);
+      const activatedAt = new Date();
+      const expiresAt = new Date(
+        activatedAt.getTime() + Math.max(1, trialDays) * 24 * 60 * 60 * 1000,
+      );
+
+      user.subscription = {
+        plan: SubscriptionPlan.BUSINESS_MONTHLY,
+        status: SubscriptionStatus.ACTIVE,
+        required: true,
+        activatedAt,
+        expiresAt,
+      } as any;
+
+      shouldPersist = true;
+    }
+
+    if (shouldPersist) {
       await user.save();
     }
 
@@ -238,6 +286,12 @@ export class AuthService {
     }
 
     const subscription = this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+
+    if (user.subscription?.status === SubscriptionStatus.ACTIVE && subscription.status !== SubscriptionStatus.ACTIVE) {
+      user.subscription.status = subscription.status as any;
+      await user.save();
+    }
+
     this.ensureSubscriptionActive(subscription);
 
     return {
@@ -252,7 +306,14 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    return this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+    const subscription = this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+
+    if (user.subscription?.status === SubscriptionStatus.ACTIVE && subscription.status !== SubscriptionStatus.ACTIVE) {
+      user.subscription.status = subscription.status as any;
+      await user.save();
+    }
+
+    return subscription;
   }
 
   async activateBusinessSubscription(
@@ -312,12 +373,10 @@ export class AuthService {
     const existingSubscription = this.getSubscriptionSnapshot(
       user as unknown as Pick<User, 'role' | 'subscription'>,
     );
-    if (existingSubscription.status === SubscriptionStatus.ACTIVE) {
-      return {
-        alreadyActive: true,
-        message: 'Subscription is already active.',
-        subscription: existingSubscription,
-      };
+
+    if (user.subscription?.status === SubscriptionStatus.ACTIVE && existingSubscription.status !== SubscriptionStatus.ACTIVE) {
+      user.subscription.status = existingSubscription.status as any;
+      await user.save();
     }
 
     const selectedPlan =

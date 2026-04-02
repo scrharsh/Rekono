@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -11,6 +11,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { ShowroomAccessGuard } from './guards/showroom-access.guard';
 import { User, UserSchema } from '../schemas/user.schema';
 
+@Global()
 @Module({
   imports: [
     PassportModule,
