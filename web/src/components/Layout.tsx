@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Icon from '@/components/Icon';
 import BrandMark from '@/components/BrandMark';
 import BrandLogoLink from '@/components/BrandLogoLink';
+import TrialBanner from '@/components/TrialBanner';
 
 interface NavItem {
   label: string;
@@ -26,6 +27,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const isBusinessUser = user?.role === 'staff';
+  const homeHref = isBusinessUser ? '/dashboard' : '/command-center';
   const primaryShowroomId = user?.showroomIds?.[0];
 
   const navSections: NavSection[] = isBusinessUser
@@ -47,6 +49,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               label: 'Reports',
               href: '/reports',
               icon: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z',
+            },
+            {
+              label: 'Subscription',
+              href: '/subscribe',
+              icon: 'M12 6v12m6-6H6',
             },
           ],
         },
@@ -141,11 +148,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-1.5 px-4 h-16 shrink-0"
           style={{ borderBottom: '1px solid rgba(214,228,255,0.95)' }}>
           {collapsed ? (
-            <Link href="/" aria-label="Go to home" className="inline-flex items-center">
+            <Link href={homeHref} aria-label="Go to home" className="inline-flex items-center">
               <BrandMark className="w-10 h-10 shrink-0" />
             </Link>
           ) : (
-            <BrandLogoLink logoClassName="h-10 w-auto" />
+            <BrandLogoLink logoClassName="h-10 w-auto" href={homeHref} />
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
@@ -219,6 +226,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Trial Banner */}
+        <TrialBanner />
+
         {/* Top bar */}
         <header className="h-14 flex items-center px-6 gap-4 shrink-0 sticky top-0 z-10"
           style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(214,228,255,0.95)' }}>

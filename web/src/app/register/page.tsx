@@ -75,8 +75,17 @@ export default function RegisterPage() {
         throw new Error(msg || 'Registration failed. Please try again.');
       }
 
-      await login(form.username, form.password);
-      router.push('/dashboard');
+      const loggedInUser = await login(form.username, form.password);
+      const requiresSubscription = Boolean(loggedInUser.subscription?.required);
+      const hasActiveSubscription = loggedInUser.subscription?.status === 'active';
+      const isBusinessUser = loggedInUser.role === 'staff';
+
+      if (isBusinessUser && requiresSubscription && !hasActiveSubscription) {
+        router.push('/subscribe');
+        return;
+      }
+
+      router.push(isBusinessUser ? '/dashboard' : '/command-center');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
     } finally {

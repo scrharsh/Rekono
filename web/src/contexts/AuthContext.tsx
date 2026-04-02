@@ -21,7 +21,7 @@ export interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   hasActiveSubscription: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User>;
   logout: () => void;
 }
 
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string): Promise<User> => {
     const response = await fetch(`${API_URL}/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -72,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(accessToken);
     setUser(data.user);
     setIsAuthenticated(true);
+    return data.user as User;
   };
 
   const logout = () => {

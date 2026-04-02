@@ -26,8 +26,17 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(username, password);
-      router.push('/dashboard');
+      const loggedInUser = await login(username, password);
+      const requiresSubscription = Boolean(loggedInUser.subscription?.required);
+      const hasActiveSubscription = loggedInUser.subscription?.status === 'active';
+      const isBusinessUser = loggedInUser.role === 'staff';
+
+      if (isBusinessUser && requiresSubscription && !hasActiveSubscription) {
+        router.push('/subscribe');
+        return;
+      }
+
+      router.push(isBusinessUser ? '/dashboard' : '/command-center');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Login failed');
     } finally {
