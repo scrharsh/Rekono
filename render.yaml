@@ -23,5 +23,11 @@ services:
         sync: false
       - key: THROTTLE_TTL
         value: 60000
+      - key: THROTTLE_TTL_MS
+        value: 60000
       - key: THROTTLE_LIMIT
         value: 100
+      - key: ENABLE_SWAGGER
+        value: false
+      - key: PAYMENT_WEBHOOK_SECRET
+        sync: false

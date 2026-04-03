@@ -12,6 +12,28 @@ function authHeaders() {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
+type ClientStatus = 'active' | 'inactive' | 'pending';
+
+interface ClientRecord {
+  _id: string;
+  name: string;
+  gstin?: string;
+  phone?: string;
+  email?: string;
+  businessType?: string;
+  status?: ClientStatus;
+  healthScore?: number;
+}
+
+interface AddClientForm {
+  name: string;
+  gstin: string;
+  phone: string;
+  email: string;
+  businessType: string;
+  notes: string;
+}
+
 function HealthBadge({ score }: { score: number }) {
   const color = score >= 80 ? 'var(--success)' : score >= 60 ? 'var(--warning)' : 'var(--error)';
   const label = score >= 80 ? 'Healthy' : score >= 60 ? 'At Risk' : 'Critical';
@@ -32,24 +54,24 @@ export default function ClientsPage() {
   const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [search, setSearch] = useState('');
-  const [addForm, setAddForm] = useState({ name: '', gstin: '', phone: '', email: '', businessType: 'proprietor', notes: '' });
+  const [addForm, setAddForm] = useState<AddClientForm>({ name: '', gstin: '', phone: '', email: '', businessType: 'proprietor', notes: '' });
 
-  const { data: clients = [], isLoading } = useQuery({
+  const { data: clients = [], isLoading } = useQuery<ClientRecord[]>({
     queryKey: ['ca-clients-list'],
-    queryFn: async () => {
+    queryFn: async (): Promise<ClientRecord[]> => {
       const res = await fetch(`${API_URL}/v1/ca/clients`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return (await res.json()) as ClientRecord[];
     },
   });
 
   const addMutation = useMutation({
-    mutationFn: async (body: typeof addForm) => {
+    mutationFn: async (body: AddClientForm): Promise<ClientRecord> => {
       const res = await fetch(`${API_URL}/v1/ca/clients`, {
         method: 'POST', headers: authHeaders(), body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error('Failed to add client');
-      return res.json();
+      return (await res.json()) as ClientRecord;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['ca-clients-list'] });
@@ -58,7 +80,7 @@ export default function ClientsPage() {
     },
   });
 
-  const filtered = clients.filter((c: any) =>
+  const filtered = clients.filter((c) =>
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
     c.gstin?.toLowerCase().includes(search.toLowerCase())
   );
@@ -159,7 +181,7 @@ export default function ClientsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 stagger-children">
-          {filtered.map((client: any) => (
+          {filtered.map((client) => (
             <button
               key={client._id}
               onClick={() => router.push(`/clients/${client._id}`)}

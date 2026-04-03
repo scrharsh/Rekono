@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import MotionEmptyState from '@/components/MotionEmptyState';
 
@@ -11,19 +11,32 @@ function authHeaders(token: string | null) {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
+type SearchResult = {
+  id: string;
+  username: string;
+};
+
+type ConnectionRecord = {
+  id: string;
+  status: 'active' | 'pending' | 'rejected' | 'disconnected';
+  connectedAt?: string;
+  ca?: {
+    username?: string;
+  };
+};
+
 export default function ConnectCAPage() {
   const { token } = useAuth();
-  const qc = useQueryClient();
 
   const [showroomId, setShowroomId] = useState('');
   const [caUsername, setCaUsername] = useState('');
   const [message, setMessage] = useState('');
-  const [searchResult, setSearchResult] = useState<any>(null);
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [searchError, setSearchError] = useState('');
   const [searching, setSearching] = useState(false);
 
   // Get existing connections for a showroom
-  const { data: connections = [], refetch } = useQuery({
+  const { data: connections = [], refetch } = useQuery<ConnectionRecord[]>({
     queryKey: ['showroom-connections', showroomId],
     queryFn: async () => {
       if (!showroomId) return [];
@@ -31,7 +44,7 @@ export default function ConnectCAPage() {
         headers: authHeaders(token),
       });
       if (!res.ok) return [];
-      return res.json();
+      return res.json() as Promise<ConnectionRecord[]>;
     },
     enabled: !!showroomId,
   });
@@ -44,7 +57,7 @@ export default function ConnectCAPage() {
         headers: authHeaders(token),
       });
       if (!res.ok) { setSearchError('CA not found on this platform'); return; }
-      setSearchResult(await res.json());
+      setSearchResult((await res.json()) as SearchResult);
     } catch { setSearchError('Search failed'); }
     finally { setSearching(false); }
   }, [caUsername, token]);
@@ -182,7 +195,7 @@ export default function ConnectCAPage() {
               />
             ) : (
               <div className="space-y-3">
-                {connections.map((c: any) => (
+                {connections.map((c) => (
                   <div key={c.id} className="flex items-center justify-between p-3 bg-surface-50 rounded-xl border border-slate-100">
                     <div>
                       <p className="font-semibold text-sm text-slate-800">{c.ca?.username}</p>

@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { SaleEntry, SaleEntryDocument } from '../schemas/sale-entry.schema';
 import { PaymentRecord, PaymentRecordDocument } from '../schemas/payment-record.schema';
 import { Match, MatchDocument } from '../schemas/match.schema';
+import { CaAlert, CaAlertDocument } from '../schemas/ca-alert.schema';
 
 @Injectable()
 export class CaosService {
@@ -11,7 +12,71 @@ export class CaosService {
     @InjectModel(SaleEntry.name) private saleEntryModel: Model<SaleEntryDocument>,
     @InjectModel(PaymentRecord.name) private paymentRecordModel: Model<PaymentRecordDocument>,
     @InjectModel(Match.name) private matchModel: Model<MatchDocument>,
+    @InjectModel(CaAlert.name) private alertModel: Model<CaAlertDocument>,
   ) {}
+
+  private buildAlertId(showroomId: string, type: string, scope: string): string {
+    return `${type}-${showroomId}-${scope}`;
+  }
+
+  private async syncAlerts(showroomId: string, generatedAlerts: any[]): Promise<any[]> {
+    const existingAlerts = await this.alertModel.find({ showroomId }).exec();
+    const existingById = new Map(existingAlerts.map((alert) => [alert.alertId, alert]));
+    const generatedIds = new Set<string>();
+    const activeAlerts: any[] = [];
+
+    for (const alert of generatedAlerts) {
+      generatedIds.add(alert.id);
+      const existing = existingById.get(alert.id);
+
+      if (existing?.acknowledgedAt) {
+        continue;
+      }
+
+      await this.alertModel.updateOne(
+        { showroomId, alertId: alert.id },
+        {
+          $set: {
+            showroomId,
+            alertId: alert.id,
+            type: alert.type,
+            severity: alert.severity,
+            title: alert.title,
+            description: alert.description,
+            active: true,
+            showroomName: alert.showroomName,
+            lastEvaluatedAt: new Date(),
+          },
+          $setOnInsert: {
+            createdAt: new Date(),
+          },
+        },
+        { upsert: true },
+      );
+
+      activeAlerts.push(alert);
+    }
+
+    const staleAlerts = existingAlerts.filter((alert) => alert.active && !generatedIds.has(alert.alertId));
+    if (staleAlerts.length > 0) {
+      await Promise.all(
+        staleAlerts.map((alert) =>
+          this.alertModel.updateOne(
+            { _id: alert._id },
+            {
+              $set: {
+                active: false,
+                resolvedAt: new Date(),
+                lastEvaluatedAt: new Date(),
+              },
+            },
+          ),
+        ),
+      );
+    }
+
+    return activeAlerts;
+  }
 
   async calculateHealthScore(showroomId: string): Promise<{ score: number; breakdown: any }> {
     const [totalSales, totalPayments, matches, unmatchedSales, unmatchedPayments] =
@@ -166,7 +231,7 @@ export class CaosService {
 
     if (totalGSTMismatch > 5000) {
       alerts.push({
-        id: `gst-mismatch-${showroomId}`,
+        id: this.buildAlertId(showroomId, 'gst_mismatch', 'current'),
         type: 'gst_mismatch',
         severity: 'critical',
         title: 'GST mismatch detected',
@@ -183,7 +248,7 @@ export class CaosService {
 
     if (salesWithoutInvoice > 0) {
       alerts.push({
-        id: `missing-invoice-${showroomId}`,
+        id: this.buildAlertId(showroomId, 'missing_invoice', 'current'),
         type: 'missing_invoice',
         severity: 'high',
         title: 'Transactions without invoices',
@@ -199,8 +264,9 @@ export class CaosService {
     );
 
     if (daysUntilDeadline <= 3 && daysUntilDeadline > 0) {
+      const deadlineScope = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       alerts.push({
-        id: `gstr1-deadline-${showroomId}`,
+        id: this.buildAlertId(showroomId, 'gstr1_deadline', deadlineScope),
         type: 'filing_deadline',
         severity: 'critical',
         title: 'GSTR-1 deadline approaching',
@@ -209,7 +275,34 @@ export class CaosService {
       });
     }
 
-    return alerts;
+    return this.syncAlerts(showroomId, alerts);
+  }
+
+  async acknowledgeAlert(
+    alertId: string,
+    allowedShowroomIds: string[],
+    notes?: string,
+  ): Promise<boolean> {
+    if (!allowedShowroomIds || allowedShowroomIds.length === 0) {
+      return false;
+    }
+
+    const result = await this.alertModel.updateOne(
+      {
+        alertId,
+        showroomId: { $in: allowedShowroomIds },
+      },
+      {
+        $set: {
+          acknowledgedAt: new Date(),
+          acknowledgedNotes: notes,
+          active: false,
+          resolvedAt: new Date(),
+        },
+      },
+    );
+
+    return (result.modifiedCount ?? 0) > 0 || (result.upsertedCount ?? 0) > 0;
   }
 
   async generateSmartSummary(showroomId: string, startDate: Date, endDate: Date): Promise<any> {

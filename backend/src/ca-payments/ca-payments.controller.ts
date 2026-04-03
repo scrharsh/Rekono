@@ -28,6 +28,12 @@ export class CaPaymentsController {
     return this.caPaymentsService.getPendingSummary(req.user.userId);
   }
 
+  @Get('aging-analysis')
+  @ApiOperation({ summary: 'Get aging analysis of receivables' })
+  async getAgingAnalysis(@Request() req: any, @Query('clientId') clientId?: string) {
+    return this.caPaymentsService.getAgingAnalysis(req.user.userId, clientId);
+  }
+
   @Put(':id/mark-paid')
   @ApiOperation({ summary: 'Mark payment as paid' })
   async markPaid(@Request() req: any, @Param('id') id: string, @Body() body: { paymentMethod: string; transactionRef?: string }) {

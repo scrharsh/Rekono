@@ -100,4 +100,32 @@ export class DashboardController {
       );
     }
   }
+
+  /** Business dashboard stats for a showroom */
+  @Get('showrooms/:showroomId/stats')
+  @ApiOperation({ summary: 'Reconciliation stats for a showroom (sales, payments, health score)' })
+  async getShowroomStats(@Param('showroomId') showroomId: string) {
+    try {
+      return await this.svc.getShowroomStats(showroomId);
+    } catch (e: any) {
+      throw new HttpException(
+        { error: 'Failed to fetch stats' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /** Business dashboard queue summary */
+  @Get('showrooms/:showroomId/queues')
+  @ApiOperation({ summary: 'Queue summaries for a showroom (unmatched, unknown, exceptions)' })
+  async getShowroomQueues(@Param('showroomId') showroomId: string) {
+    try {
+      return await this.svc.getShowroomQueues(showroomId);
+    } catch (e: any) {
+      throw new HttpException(
+        { error: 'Failed to fetch queues' },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

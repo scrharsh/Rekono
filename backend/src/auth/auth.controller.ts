@@ -10,7 +10,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto, SelfRegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -39,6 +39,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @Throttle({ default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL } })
   @ApiOperation({ summary: 'Register a new user' })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
@@ -139,6 +140,7 @@ export class AuthController {
   }
 
   @Get('health')
+  @SkipThrottle()
   @ApiOperation({ summary: 'Health check endpoint' })
   async healthCheck() {
     return { status: 'ok', timestamp: new Date().toISOString() };

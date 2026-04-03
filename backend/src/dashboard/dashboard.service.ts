@@ -3,6 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Connection, ConnectionDocument } from '../schemas/connection.schema';
 import { SharedReport, SharedReportDocument } from '../schemas/shared-report.schema';
+import { SaleEntry, SaleEntryDocument } from '../schemas/sale-entry.schema';
+import { PaymentRecord, PaymentRecordDocument } from '../schemas/payment-record.schema';
+import { Match, MatchDocument } from '../schemas/match.schema';
 
 /**
  * CA Dashboard — shows the CA's own workspace:
@@ -18,6 +21,9 @@ export class DashboardService {
   constructor(
     @InjectModel(Connection.name) private connectionModel: Model<ConnectionDocument>,
     @InjectModel(SharedReport.name) private reportModel: Model<SharedReportDocument>,
+    @InjectModel(SaleEntry.name) private saleModel: Model<SaleEntryDocument>,
+    @InjectModel(PaymentRecord.name) private paymentModel: Model<PaymentRecordDocument>,
+    @InjectModel(Match.name) private matchingModel: Model<MatchDocument>,
   ) {}
 
   /** Get all showrooms connected to this CA */
@@ -81,6 +87,57 @@ export class DashboardService {
       pendingRequests: pendingCount,
       unreadReports,
       recentReports,
+    };
+  }
+
+  /** Get business dashboard stats for a showroom */
+  async getShowroomStats(showroomId: string): Promise<any> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [totalSales, matchedSalesCount, unmatchedSalesCount, totalPayments, matchedPaymentsCount, unknownPaymentsCount] = await Promise.all([
+      this.saleModel.countDocuments({ showroomId, dateCreated: { $gte: today } }),
+      this.matchingModel.countDocuments({ showroomId, saleId: { $ne: null }, dateCreated: { $gte: today } }),
+      this.saleModel.countDocuments({ showroomId, dateCreated: { $gte: today }, matchedPaymentId: { $exists: false } }),
+      this.paymentModel.countDocuments({ showroomId, dateCreated: { $gte: today } }),
+      this.matchingModel.countDocuments({ showroomId, paymentId: { $ne: null }, dateCreated: { $gte: today } }),
+      this.paymentModel.countDocuments({ showroomId, dateCreated: { $gte: today }, linkedSaleId: { $exists: false } }),
+    ]);
+
+    // Calculate health score based on reconciliation percentage
+    const totalTxns = totalSales + totalPayments;
+    const matchedTxns = matchedSalesCount + matchedPaymentsCount;
+    const reconciliationHealth = totalTxns > 0 ? Math.round((matchedTxns / totalTxns) * 100) : 100;
+
+    return {
+      totalSales,
+      matchedSales: matchedSalesCount,
+      unmatchedSales: unmatchedSalesCount,
+      totalPayments,
+      matchedPayments: matchedPaymentsCount,
+      unknownPayments: unknownPaymentsCount,
+      reconciliationHealth,
+    };
+  }
+
+  /** Get queue summaries for a showroom */
+  async getShowroomQueues(showroomId: string): Promise<any> {
+    const [unmatchedSales, unknownPayments] = await Promise.all([
+      this.saleModel.find({ showroomId, matchedPaymentId: { $exists: false } })
+        .sort({ dateCreated: -1 })
+        .limit(10)
+        .select('id amount description dateCreated'),
+      this.paymentModel.find({ showroomId, linkedSaleId: { $exists: false } })
+        .sort({ dateCreated: -1 })
+        .limit(10)
+        .select('id amount paymentMethod dateCreated'),
+    ]);
+
+    return {
+      unmatchedSalesCount: unmatchedSales.length,
+      unmatchedSales,
+      unknownPaymentsCount: unknownPayments.length,
+      unknownPayments,
     };
   }
 }

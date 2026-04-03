@@ -243,7 +243,7 @@ export default function SubscribePage() {
           </div>
           <div>
             <p className="font-medium text-[#102135] mb-1">What happens when my trial ends?</p>
-            <p>You'll receive email reminders before expiry. Your workspace will be locked until you activate a paid plan, but your data is safely stored.</p>
+            <p>You&apos;ll receive email reminders before expiry. Your workspace will be locked until you activate a paid plan, but your data is safely stored.</p>
           </div>
           <div>
             <p className="font-medium text-[#102135] mb-1">Is payment secure?</p>

@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpStatus,
   HttpException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { CaosService } from './caos.service';
@@ -18,6 +19,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Connection, ConnectionDocument } from '../schemas/connection.schema';
+import { CaTasksService } from '../ca-tasks/ca-tasks.service';
 
 @ApiTags('ca-os')
 @ApiBearerAuth()
@@ -27,6 +29,7 @@ export class CaosController {
   constructor(
     private readonly caosService: CaosService,
     @InjectModel(Connection.name) private connectionModel: Model<ConnectionDocument>,
+    private readonly caTasksService: CaTasksService,
   ) {}
 
   private async getConnectedShowrooms(caUserId: string): Promise<any[]> {
@@ -39,6 +42,41 @@ export class CaosController {
       connectionId: c._id,
       showroom: c.showroomId,
       connectedAt: c.connectedAt,
+    }));
+  }
+
+  private async ensureSystemTasksForShowroom(caUserId: string, showroomId: string): Promise<any[]> {
+    const generatedTasks = await this.caosService.generateTasks(showroomId);
+    const persisted = await Promise.all(
+      generatedTasks.map((task: any) =>
+        this.caTasksService.createSystemTask(caUserId, {
+          type: task.type,
+          priority: task.priority,
+          title: task.title,
+          description: task.description,
+          dueDate: task.dueDate,
+          actionData: {
+            showroomId: String(showroomId),
+            generatedBy: 'ca-os',
+          },
+        }),
+      ),
+    );
+
+    const activeTypes = [...new Set(generatedTasks.map((task: any) => String(task.type)))];
+    await this.caTasksService.reconcileSystemTasks(caUserId, showroomId, activeTypes);
+
+    const operational = await this.caTasksService.findSystemOperationalTasks(caUserId, showroomId);
+
+    return operational.map((task: any) => ({
+      id: task._id?.toString?.() ?? task.id,
+      type: task.type,
+      priority: task.priority,
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      showroomId: task.actionData?.showroomId || String(showroomId),
+      status: task.status,
     }));
   }
 
@@ -58,7 +96,7 @@ export class CaosController {
         connected.map(async (c: any) => {
           const id = c.showroom?._id?.toString?.() ?? c.showroom?.id ?? c.showroom?._id;
           if (!id) return [];
-          return this.caosService.generateTasks(id);
+          return this.ensureSystemTasksForShowroom(req.user.userId, String(id));
         }),
       );
 
@@ -71,10 +109,23 @@ export class CaosController {
 
   @Post('tasks/:taskId/complete')
   @Roles('ca', 'admin')
-  async completeTask(@Param('taskId') taskId: string, @Body() body: { notes?: string }) {
+  async completeTask(
+    @Request() req: any,
+    @Param('taskId') taskId: string,
+    @Body() body: { notes?: string },
+  ) {
     try {
-      return { message: 'Task marked as complete', taskId, notes: body.notes };
+      const task = await this.caTasksService.updateStatus(
+        req.user.userId,
+        taskId,
+        'completed',
+        body.notes,
+      );
+      return { message: 'Task marked as complete', task };
     } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new HttpException(
         { error: 'Failed to complete task' },
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -130,9 +181,20 @@ export class CaosController {
 
   @Post('alerts/:alertId/acknowledge')
   @Roles('ca', 'admin')
-  async acknowledgeAlert(@Param('alertId') alertId: string, @Body() body: { notes?: string }) {
+  async acknowledgeAlert(
+    @Request() req: any,
+    @Param('alertId') alertId: string,
+    @Body() body: { notes?: string },
+  ) {
     try {
-      return { message: 'Alert acknowledged', alertId, notes: body.notes };
+      const connected = await this.getConnectedShowrooms(req.user.userId);
+      const showroomIds = connected
+        .map((c: any) => c.showroom?._id?.toString?.() ?? c.showroom?.id ?? c.showroom?._id)
+        .filter(Boolean)
+        .map((x: any) => String(x));
+
+      const acknowledged = await this.caosService.acknowledgeAlert(alertId, showroomIds, body.notes);
+      return { message: acknowledged ? 'Alert acknowledged' : 'Alert not found', alertId, notes: body.notes };
     } catch (error: any) {
       throw new HttpException(
         { error: 'Failed to acknowledge alert' },
@@ -168,7 +230,7 @@ export class CaosController {
 
         const [health, tasks, alerts] = await Promise.all([
           this.caosService.calculateHealthScore(showroomId),
-          this.caosService.generateTasks(showroomId),
+          this.ensureSystemTasksForShowroom(req.user.userId, showroomId),
           this.caosService.generateAlerts(showroomId),
         ]);
 

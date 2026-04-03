@@ -5,404 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rekono CA Desktop</title>
     <style>
-      :root {
-        --bg: #090f1f;
-        --bg-2: #10182d;
-        --panel: rgba(16, 24, 42, 0.92);
-        --panel-2: rgba(22, 33, 59, 0.96);
-        --panel-border: rgba(148, 163, 184, 0.16);
-        --text: #edf3ff;
-        --muted: #aebad8;
-        --accent: #8b6cff;
-        --accent-2: #33d6a6;
-        --accent-3: #7dd3fc;
-      }
-      * { box-sizing: border-box; }
-      html, body { width: 100%; height: 100%; }
       body {
         margin: 0;
-        overflow: hidden;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background:
-          radial-gradient(circle at top right, rgba(139, 108, 255, 0.16), transparent 30%),
-          radial-gradient(circle at bottom left, rgba(51, 214, 166, 0.12), transparent 28%),
-          linear-gradient(180deg, var(--bg), var(--bg-2));
-        color: var(--text);
-      }
-      .titlebar {
-        height: 46px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 12px 0 16px;
-        background: rgba(5, 10, 20, 0.92);
-        border-bottom: 1px solid rgba(148, 163, 184, 0.14);
-        -webkit-app-region: drag;
-      }
-      .titlebar-left { display:flex; align-items:center; gap:12px; }
-      .brand-mark { width:28px; height:28px; border-radius:9px; background: linear-gradient(135deg, #8b6cff, #33d6a6); box-shadow: 0 10px 24px rgba(139,108,255,0.24); }
-      .brand-title { font-size:0.92rem; font-weight:700; }
-      .brand-subtitle { font-size:0.74rem; color:var(--muted); }
-      .window-controls { display:flex; gap:6px; -webkit-app-region:no-drag; }
-      .window-button { width:34px; height:28px; border:0; border-radius:8px; background:transparent; color:var(--text); cursor:pointer; }
-      .window-button:hover { background: rgba(255,255,255,0.08); }
-      .window-button.close:hover { background: #e5484d; }
-      .app {
+        min-height: 100vh;
         display: grid;
-        grid-template-columns: 74px 280px 1fr 300px;
-        height: calc(100vh - 46px);
-        min-width: 1100px;
+        place-items: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: linear-gradient(180deg, #f8fbff, #edf4ff);
+        color: #0f2347;
       }
-      .activity {
-        background: rgba(5, 10, 20, 0.78);
-        border-right: 1px solid rgba(148, 163, 184, 0.14);
+      .card {
+        max-width: 560px;
+        border: 1px solid #d6e4ff;
+        border-radius: 20px;
+        background: #ffffff;
+        padding: 32px;
+        box-shadow: 0 8px 24px rgba(11, 87, 208, 0.08);
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #0b57d0;
+      }
+      p {
+        margin: 0 0 20px;
+        line-height: 1.6;
+        color: #4f71a5;
+        font-size: 15px;
+      }
+      .actions {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 12px 0;
         gap: 10px;
+        margin-top: 18px;
       }
-      .activity-btn { width:44px; height:44px; border:0; border-radius:14px; background:transparent; color:var(--muted); cursor:pointer; }
-      .activity-btn.active { background: rgba(139,108,255,0.18); color: white; }
-      .sidebar, .inspector { background: rgba(12,18,32,0.72); border-right:1px solid rgba(148,163,184,0.12); backdrop-filter: blur(16px); display:flex; flex-direction:column; min-height:0; }
-      .inspector { border-right:0; border-left:1px solid rgba(148,163,184,0.12); }
-      .panel-head { padding:18px 18px 14px; border-bottom:1px solid rgba(148,163,184,0.12); }
-      .panel-title { margin:0; font-size:1rem; }
-      .panel-subtitle { margin:6px 0 0; color:var(--muted); font-size:0.86rem; }
-      .nav-list, .dock-list { list-style:none; margin:0; padding:12px; display:grid; gap:8px; }
-      .nav-item { display:flex; justify-content:space-between; align-items:center; padding:12px; border-radius:14px; background:transparent; border:1px solid transparent; color:var(--muted); cursor:pointer; }
-      .nav-item.active { background: rgba(139,108,255,0.14); border-color: rgba(139,108,255,0.22); color: var(--text); }
-      .nav-pill { font-size:0.72rem; color:#e6dbff; background: rgba(139,108,255,0.16); border-radius:999px; padding:4px 8px; }
-      .workspace { min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
-      .workspace-top { padding:18px 22px 12px; border-bottom:1px solid rgba(148,163,184,0.12); background: rgba(8,14,25,0.42); }
-      .crumbs { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-      .crumb-title { margin:0; font-size:1.55rem; line-height:1.15; }
-      .crumb-subtitle { margin:8px 0 0; color:var(--muted); max-width:70ch; font-size:0.92rem; }
-      .chip-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-      .chip { border:1px solid rgba(148,163,184,0.16); background: rgba(255,255,255,0.04); color:var(--text); border-radius:999px; padding:7px 12px; font-size:0.82rem; }
-      .workspace-body { min-height:0; padding:18px; display:grid; grid-template-columns:minmax(0,1.6fr) minmax(320px,0.95fr); gap:16px; }
-      .main-card, .side-card, .tab-shell, .dock-card { background: var(--panel); border:1px solid var(--panel-border); border-radius:20px; box-shadow:0 16px 36px rgba(0,0,0,0.24); }
-      .main-card { min-width:0; min-height:0; display:flex; flex-direction:column; }
-      .toolbar { display:flex; align-items:center; gap:10px; padding:14px; border-bottom:1px solid rgba(148,163,184,0.12); }
-      .searchbox { flex:1; border:1px solid rgba(148,163,184,0.16); background:rgba(255,255,255,0.04); color:var(--text); border-radius:14px; padding:12px 14px; outline:none; }
-      .cmd-btn { border:1px solid rgba(148,163,184,0.16); background:rgba(255,255,255,0.05); color:var(--text); border-radius:14px; padding:12px 14px; cursor:pointer; }
-      .tab-strip { padding:10px 14px 0; display:flex; gap:8px; flex-wrap:wrap; }
-      .tab { border:0; border-radius:12px 12px 0 0; background:transparent; color:var(--muted); padding:11px 14px; cursor:pointer; }
-      .tab.active { background: var(--panel-2); color: var(--text); border:1px solid rgba(148,163,184,0.16); border-bottom-color: var(--panel-2); margin-bottom:-1px; }
-      .view { display:none; padding:16px; }
-      .view.active { display:grid; gap:16px; }
-      .metric-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-      .metric { padding:16px; border-radius:18px; background: var(--panel-2); border:1px solid var(--panel-border); }
-      .metric-label { color:var(--muted); font-size:0.84rem; }
-      .metric-value { margin-top:8px; font-size:1.8rem; font-weight:700; }
-      .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-      .stack, .dock-stack { display:grid; gap:12px; }
-      .list-card, .dock-card { padding:16px; }
-      .list-card h3, .dock-card h3, .dock-card h4 { margin:0 0 10px; }
-      .queue-item { padding:12px 14px; border-radius:14px; background: rgba(255,255,255,0.04); border:1px solid rgba(148,163,184,0.14); color:var(--muted); }
-      .queue-item strong { color: var(--text); }
-      .action-row { display:flex; gap:10px; flex-wrap:wrap; }
-      .primary-btn, .secondary-btn { border:0; border-radius:12px; padding:11px 14px; cursor:pointer; text-decoration:none; }
-      .primary-btn { background: linear-gradient(180deg, #8b6cff, #6f53d9); color:white; }
-      .secondary-btn { background: rgba(255,255,255,0.05); color: var(--text); border:1px solid rgba(148,163,184,0.16); }
-      .inspector { min-width:0; overflow:hidden; }
-      .inspector-content { padding:14px; overflow:auto; min-height:0; }
-      .status-line { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:0.82rem; }
-      .palette-backdrop { position:fixed; inset:46px 0 0; display:none; align-items:flex-start; justify-content:center; padding-top:84px; background: rgba(2,6,12,0.52); backdrop-filter: blur(12px); }
-      .palette-backdrop.open { display:flex; }
-      .palette { width:min(760px, calc(100vw - 28px)); border-radius:20px; background: rgba(9,15,28,0.98); border:1px solid rgba(148,163,184,0.2); box-shadow:0 24px 72px rgba(0,0,0,0.4); overflow:hidden; }
-      .palette input { width:100%; border:0; outline:none; padding:18px 20px; color:var(--text); background:transparent; font:inherit; border-bottom:1px solid rgba(148,163,184,0.12); }
-      .palette-list { display:grid; gap:8px; padding:12px; }
-      .palette-item { border:0; border-radius:14px; padding:14px; background: rgba(255,255,255,0.04); color:var(--text); text-align:left; cursor:pointer; }
-      .palette-item span { display:block; color:var(--muted); font-size:0.86rem; margin-top:4px; }
-      @media (max-width:1260px) { .app { grid-template-columns:74px 240px 1fr; } .inspector { display:none; } }
-      @media (max-width:980px) { body { overflow:auto; } .app { min-width:0; grid-template-columns:1fr; height:auto; } .activity, .sidebar { display:none; } .workspace-body { grid-template-columns:1fr; } .metric-grid, .grid-2 { grid-template-columns:1fr; } }
+      .btn {
+        border: 1px solid #d0e1ff;
+        background: #ffffff;
+        color: #0b57d0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: #0b57d0;
+        border-color: #0b57d0;
+        color: #ffffff;
+      }
+      .meta {
+        margin-top: 14px;
+        color: #4f71a5;
+        font-size: 13px;
+      }
+      code {
+        color: #0b57d0;
+        background: #eef4ff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'SF Mono', Monaco, monospace;
+        font-size: 13px;
+      }
+      .next-step {
+        background: #f7fbff;
+        border: 1px solid #dbe7ff;
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+      .next-step p {
+        font-size: 13px;
+        color: #0b57d0;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.8px;
+        margin-bottom: 8px;
+      }
+      .next-step-text {
+        color: #4f71a5;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
-    <div class="titlebar">
-      <div class="titlebar-left">
-        <div class="brand-mark"></div>
-        <div>
-          <div class="brand-title">Rekono CA Desktop</div>
-          <div class="brand-subtitle">CA OS workspace</div>
-        </div>
+    <div class="card">
+      <h1>Web UI Unavailable</h1>
+      <p>
+        This desktop app connects to the web frontend. Please ensure the web server is running on
+        <code id="target-url">http://localhost:3001</code> (or set the <code>REKONO_WEB_URL</code> environment variable)
+        and reopen the desktop app.
+      </p>
+      <div class="next-step">
+        <p>Quick setup</p>
+        <p class="next-step-text">In your terminal, run: <code>cd web && npm run dev</code></p>
       </div>
-      <div class="window-controls">
-        <button class="window-button" data-window="minimize" aria-label="Minimize">—</button>
-        <button class="window-button" data-window="maximize" aria-label="Maximize">▢</button>
-        <button class="window-button close" data-window="close" aria-label="Close">✕</button>
+      <div class="actions">
+        <button id="reconnect" class="btn btn-primary">Reconnect</button>
+        <button id="reload" class="btn">Reload Fallback</button>
       </div>
+      <p class="meta" id="runtime-meta">Checking runtime configuration...</p>
     </div>
-
-    <div class="palette-backdrop" id="paletteBackdrop" aria-hidden="true">
-      <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
-        <input id="paletteInput" type="search" placeholder="Type a command or jump to a workspace..." />
-        <div class="palette-list" id="paletteList"></div>
-      </div>
-    </div>
-
-    <div class="app">
-      <nav class="activity">
-        <button class="activity-btn active" data-tab="command-center" title="Command Center">⌂</button>
-        <button class="activity-btn" data-tab="clients" title="Clients">◫</button>
-        <button class="activity-btn" data-tab="services" title="Services">◧</button>
-        <button class="activity-btn" data-tab="tasks" title="Tasks">≡</button>
-        <button class="activity-btn" data-tab="knowledge" title="Knowledge">☰</button>
-      </nav>
-
-      <aside class="sidebar">
-        <div class="panel-head">
-          <h2 class="panel-title">Rekono CA OS</h2>
-          <p class="panel-subtitle">Desktop workspace for client operations and compliance.</p>
-        </div>
-        <ul class="nav-list">
-          <li class="nav-item active" data-tab="command-center"><span>Command Center</span><span class="nav-pill">Home</span></li>
-          <li class="nav-item" data-tab="clients"><span>Clients</span><span class="nav-pill">11</span></li>
-          <li class="nav-item" data-tab="services"><span>Services</span><span class="nav-pill">Live</span></li>
-          <li class="nav-item" data-tab="tasks"><span>Tasks</span><span class="nav-pill">6</span></li>
-          <li class="nav-item" data-tab="knowledge"><span>Knowledge</span><span class="nav-pill">Base</span></li>
-          <li class="nav-item" data-tab="billing"><span>Billing</span><span class="nav-pill">Trial</span></li>
-        </ul>
-      </aside>
-
-      <section class="workspace">
-        <div class="workspace-top">
-          <div class="crumbs">
-            <div>
-              <h1 class="crumb-title">CA Desktop</h1>
-              <p class="crumb-subtitle">A local desktop shell with internal views, docked tools, and command-driven navigation. It is not a browser wrapper anymore.</p>
-            </div>
-            <div class="status-line"><span>Compliance</span><strong style="color:#93f3c0">stable</strong></div>
-          </div>
-          <div class="chip-row">
-            <span class="chip">Ctrl+K commands</span>
-            <span class="chip">Ctrl+1 center</span>
-            <span class="chip">Ctrl+2 clients</span>
-            <span class="chip">Ctrl+3 services</span>
-          </div>
-        </div>
-
-        <div class="workspace-body">
-          <article class="main-card">
-            <div class="toolbar">
-              <input class="searchbox" type="search" placeholder="Search clients, services, tasks, knowledge..." />
-              <button class="cmd-btn" id="openPalette">Command Palette</button>
-            </div>
-            <div class="tab-strip">
-              <button class="tab active" data-tab="command-center">Command Center</button>
-              <button class="tab" data-tab="clients">Clients</button>
-              <button class="tab" data-tab="services">Services</button>
-              <button class="tab" data-tab="tasks">Tasks</button>
-              <button class="tab" data-tab="knowledge">Knowledge</button>
-              <button class="tab" data-tab="billing">Billing</button>
-            </div>
-
-            <div class="view active" data-view="command-center">
-              <div class="metric-grid">
-                <div class="metric"><div class="metric-label">Clients</div><div class="metric-value">0</div></div>
-                <div class="metric"><div class="metric-label">High Priority Tasks</div><div class="metric-value">0</div></div>
-                <div class="metric"><div class="metric-label">Pending Collections</div><div class="metric-value">₹0.00</div></div>
-              </div>
-              <div class="grid-2">
-                <div class="list-card">
-                  <h3>Operational Focus</h3>
-                  <div class="stack">
-                    <div class="queue-item"><strong>Track compliance work</strong><br />Keep it visible without switching away from the command center.</div>
-                    <div class="queue-item"><strong>Move quickly</strong><br />Jump between client documents, services, and payment activity.</div>
-                    <div class="queue-item"><strong>Review exceptions</strong><br />Keep high-risk items surfaced for follow-up.</div>
-                  </div>
-                </div>
-                <div class="list-card">
-                  <h3>Quick Actions</h3>
-                  <div class="action-row">
-                    <a class="primary-btn" href="#">Open Client List</a>
-                    <a class="secondary-btn" href="#">Review Pending Work</a>
-                  </div>
-                  <div class="stack" style="margin-top:14px">
-                    <div class="queue-item"><strong>App shell</strong><br />Persistent desktop chrome, internal navigation, and utility panels.</div>
-                    <div class="queue-item"><strong>Subscription</strong><br />Trial and billing live in the same workspace, not a separate modal.</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="view" data-view="clients">
-              <div class="grid-2">
-                <div class="list-card"><h3>Client Review</h3><p style="color:var(--muted)">Bulk client operations can live here as a dedicated desktop view.</p></div>
-                <div class="list-card"><h3>Client List</h3><p style="color:var(--muted)">Pinned lists, filters, and status can be docked beside the work area.</p></div>
-              </div>
-            </div>
-
-            <div class="view" data-view="services">
-              <div class="grid-2">
-                <div class="list-card"><h3>Services</h3><p style="color:var(--muted)">Client service workflows and compliance tasks stay inside the shell.</p></div>
-                <div class="list-card"><h3>Review Queue</h3><p style="color:var(--muted)">Use the desktop layout to move between open services and review queues.</p></div>
-              </div>
-            </div>
-
-            <div class="view" data-view="tasks">
-              <div class="stack">
-                <div class="queue-item"><strong>Task 1</strong> - follow up on reconciliation exception</div>
-                <div class="queue-item"><strong>Task 2</strong> - request supporting document</div>
-                <div class="queue-item"><strong>Task 3</strong> - validate payment reference</div>
-              </div>
-            </div>
-
-            <div class="view" data-view="knowledge">
-              <div class="grid-2">
-                <div class="list-card"><h3>Knowledge Base</h3><p style="color:var(--muted)">Desk-side notes, playbooks, and helpers can be surfaced here.</p></div>
-                <div class="list-card"><h3>Guidance</h3><p style="color:var(--muted)">Native app-style reference area for operators and reviewers.</p></div>
-              </div>
-            </div>
-
-            <div class="view" data-view="billing">
-              <div class="grid-2">
-                <div class="list-card"><h3>Billing</h3><p style="color:var(--muted)">Subscription and renewal inside the desktop shell, no popup-style handoff.</p></div>
-                <div class="list-card"><h3>Trial State</h3><p style="color:var(--muted)">Days left and upgrade actions can be persistent in the app chrome.</p></div>
-              </div>
-            </div>
-          </article>
-
-          <aside class="side-card">
-            <div class="panel-head">
-              <h2 class="panel-title">Docked Workspace</h2>
-              <p class="panel-subtitle">Permanent shell, docked context, and internal actions.</p>
-            </div>
-            <div class="dock-stack" style="padding:14px">
-              <div class="dock-card"><h4>Desktop Model</h4><p>This app now owns its window, menus, shortcuts, and surface layout.</p></div>
-              <div class="dock-card"><h4>Keyboard Flow</h4><p>Use Ctrl+K to open the palette and jump between internal views instantly.</p></div>
-              <div class="dock-card"><h4>State</h4><p>Local state can be persisted without requiring a live web app to be open.</p></div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <aside class="inspector">
-        <div class="panel-head">
-          <h2 class="panel-title">Inspector</h2>
-          <p class="panel-subtitle">Context, shortcuts, and workspace hints.</p>
-        </div>
-        <div class="inspector-content">
-          <div class="dock-stack">
-            <div class="dock-card"><h3>Shortcuts</h3><p>Ctrl+1 Center, Ctrl+2 Clients, Ctrl+3 Services, Ctrl+K Commands.</p></div>
-            <div class="dock-card"><h3>Live State</h3><p>Can be extended to show alerts, follow-ups, and user context later.</p></div>
-            <div class="dock-card"><h3>Shell Status</h3><p>This is now a standalone desktop shell, not a localhost wrapper.</p></div>
-          </div>
-        </div>
-      </aside>
-    </div>
-
     <script>
-      const tabs = Array.from(document.querySelectorAll('[data-tab]'));
-      const views = Array.from(document.querySelectorAll('[data-view]'));
-      const paletteBackdrop = document.getElementById('paletteBackdrop');
-      const paletteInput = document.getElementById('paletteInput');
-      const paletteList = document.getElementById('paletteList');
-      const openPalette = document.getElementById('openPalette');
-      const commands = [
-        { label: 'Go to Command Center', description: 'Show the compliance overview', tab: 'command-center' },
-        { label: 'Go to Clients', description: 'Open client operations', tab: 'clients' },
-        { label: 'Go to Services', description: 'Open service workflows', tab: 'services' },
-        { label: 'Go to Tasks', description: 'Review tasks', tab: 'tasks' },
-        { label: 'Go to Knowledge', description: 'Open guidance and notes', tab: 'knowledge' },
-        { label: 'Go to Billing', description: 'Open subscription and trial', tab: 'billing' },
-      ];
+      const reconnectBtn = document.getElementById('reconnect');
+      const reloadBtn = document.getElementById('reload');
+      const targetUrlEl = document.getElementById('target-url');
+      const runtimeMeta = document.getElementById('runtime-meta');
 
-      function activateTab(tabName) {
-        tabs.forEach((tab) => {
-          const isActive = tab.dataset.tab === tabName;
-          tab.classList.toggle('active', isActive);
-          if (tab.classList.contains('nav-item') || tab.classList.contains('activity-btn')) {
-            tab.classList.toggle('active', isActive);
-          }
-        });
-        views.forEach((view) => view.classList.toggle('active', view.dataset.view === tabName));
-      }
-
-      function renderPalette(query = '') {
-        const lower = query.trim().toLowerCase();
-        const filtered = commands.filter((item) => item.label.toLowerCase().includes(lower) || item.description.toLowerCase().includes(lower));
-        paletteList.innerHTML = filtered.map((item) => `<button class="palette-item" data-go="${item.tab}" type="button"><strong>${item.label}</strong><span>${item.description}</span></button>`).join('');
-      }
-
-      function openCommandPalette() {
-        paletteBackdrop.classList.add('open');
-        paletteBackdrop.setAttribute('aria-hidden', 'false');
-        paletteInput.value = '';
-        renderPalette();
-        setTimeout(() => paletteInput.focus(), 0);
-      }
-
-      function closeCommandPalette() {
-        paletteBackdrop.classList.remove('open');
-        paletteBackdrop.setAttribute('aria-hidden', 'true');
-      }
-
-      document.addEventListener('click', (event) => {
-        const tab = event.target.closest('[data-tab]');
-        if (tab) {
-          const tabName = tab.dataset.tab;
-          if (tabName) activateTab(tabName);
-        }
-        const winButton = event.target.closest('[data-window]');
-        if (winButton && window.rekonoDesktop) {
-          const action = winButton.dataset.window;
-          if (action === 'minimize') window.rekonoDesktop.minimize();
-          if (action === 'maximize') window.rekonoDesktop.maximize();
-          if (action === 'close') window.rekonoDesktop.close();
-        }
-        const paletteAction = event.target.closest('[data-go]');
-        if (paletteAction) {
-          activateTab(paletteAction.dataset.go);
-          closeCommandPalette();
-        }
-      });
-
-      paletteBackdrop.addEventListener('click', (event) => {
-        if (event.target === paletteBackdrop) closeCommandPalette();
-      });
-      paletteInput.addEventListener('input', (event) => renderPalette(event.target.value));
-      paletteInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closeCommandPalette();
-        if (event.key === 'Enter') {
-          const first = paletteList.querySelector('[data-go]');
-          if (first) {
-            activateTab(first.dataset.go);
-            closeCommandPalette();
-          }
-        }
-      });
-      document.addEventListener('keydown', (event) => {
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-          event.preventDefault();
-          openCommandPalette();
-        }
-        if ((event.ctrlKey || event.metaKey) && event.key === '1') {
-          event.preventDefault();
-          activateTab('command-center');
-        }
-        if ((event.ctrlKey || event.metaKey) && event.key === '2') {
-          event.preventDefault();
-          activateTab('clients');
-        }
-        if ((event.ctrlKey || event.metaKey) && event.key === '3') {
-          event.preventDefault();
-          activateTab('services');
-        }
-        if (event.key === 'Escape') closeCommandPalette();
-      });
-      openPalette.addEventListener('click', openCommandPalette);
-
-      if (window.require) {
+      reloadBtn.addEventListener('click', () => window.location.reload());
+      reconnectBtn.addEventListener('click', async () => {
+        reconnectBtn.disabled = true;
+        reconnectBtn.textContent = 'Reconnecting...';
         try {
-          const { ipcRenderer } = window.require('electron');
-          ipcRenderer.on('desktop:navigate', (_, tabName) => activateTab(tabName));
-        } catch (_) {}
-      }
+          await window.rekonoDesktop.retryConnection();
+        } finally {
+          reconnectBtn.disabled = false;
+          reconnectBtn.textContent = 'Reconnect';
+        }
+      });
 
-      renderPalette();
-      activateTab('command-center');
+      (async () => {
+        try {
+          const runtime = await window.rekonoDesktop.getRuntimeConfig();
+          const targetUrl = `${runtime.webBaseUrl}${runtime.startPath}`;
+          targetUrlEl.textContent = targetUrl;
+          runtimeMeta.textContent = `${runtime.surface} Desktop • Target: ${targetUrl}`;
+        } catch {
+          runtimeMeta.textContent = 'Runtime details unavailable';
+        }
+      })();
     </script>
   </body>
 </html>

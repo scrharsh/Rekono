@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPaymentsByShowroom, LocalPaymentRecord } from '../services/database.service';
+import colors from '../constants/colors';
 
 const METHOD_ICON: Record<string, string> = {
   PhonePe: 'PP',
@@ -61,11 +62,11 @@ export default function PaymentListScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
       <View style={s.headerGlow} />
       <View style={s.header}>
-        <View style={s.headerBadge}><Text style={s.headerBadgeText}>Payment Feed</Text></View>
-        <Text style={s.title}>Payments</Text>
+        <View style={s.headerBadge}><Text style={s.headerBadgeText}>Payment Inbox</Text></View>
+        <Text style={s.title}>Payment Inbox</Text>
         <View style={s.filterRow}>
           {(['all', 'unmatched', 'matched'] as const).map(f => (
             <TouchableOpacity key={f} style={[s.filterBtn, filter === f && s.filterBtnActive]}
@@ -98,7 +99,7 @@ export default function PaymentListScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  container: { flex: 1, backgroundColor: colors.surface },
   headerGlow: {
     position: 'absolute',
     top: 30,
@@ -108,32 +109,32 @@ const s = StyleSheet.create({
     borderRadius: 110,
     backgroundColor: 'rgba(31, 94, 255, 0.08)',
   },
-  header: { backgroundColor: '#fff', padding: 16, paddingTop: 44, borderBottomWidth: 1, borderBottomColor: '#d7e1ee' },
+  header: { backgroundColor: colors.surfaceContainer, padding: 16, paddingTop: 44, borderBottomWidth: 1, borderBottomColor: colors.outlineLighter },
   headerBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e9f0ff',
+    backgroundColor: colors.surfaceHigh,
     borderWidth: 1,
-    borderColor: '#c9dafd',
+    borderColor: colors.outlineVariant,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginBottom: 8,
   },
-  headerBadgeText: { color: '#1f5eff', fontSize: 11, fontWeight: '700' },
-  title: { fontSize: 20, fontWeight: '700', color: '#1e293b', marginBottom: 12 },
+  headerBadgeText: { color: colors.primary, fontSize: 11, fontWeight: '700' },
+  title: { fontSize: 20, fontWeight: '700', color: colors.onSurface, marginBottom: 12 },
   filterRow: { flexDirection: 'row', gap: 8 },
-  filterBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
-  filterBtnActive: { backgroundColor: '#1f5eff', borderColor: '#1f5eff' },
-  filterText: { fontSize: 13, color: '#475569', fontWeight: '500' },
-  filterTextActive: { color: '#fff', fontWeight: '700' },
+  filterBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: colors.surfaceLow, borderWidth: 1, borderColor: colors.outlineLighter },
+  filterBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  filterText: { fontSize: 13, color: colors.onSurfaceVariant, fontWeight: '500' },
+  filterTextActive: { color: colors.white, fontWeight: '700' },
   list: { padding: 16 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surfaceContainer,
     borderRadius: 14,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     shadowColor: '#102135',
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -141,25 +142,25 @@ const s = StyleSheet.create({
     elevation: 1,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  methodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  methodIcon: { fontSize: 10, fontWeight: '800', color: '#334155', letterSpacing: 0.5 },
-  methodText: { fontSize: 13, fontWeight: '600', color: '#475569' },
+  methodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surfaceLow, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  methodIcon: { fontSize: 10, fontWeight: '800', color: colors.onSurfaceVariant, letterSpacing: 0.5 },
+  methodText: { fontSize: 13, fontWeight: '600', color: colors.onSurfaceVariant },
   statusBadge: { fontSize: 11, fontWeight: '700', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  amount: { fontSize: 22, fontWeight: '700', color: '#1e293b', marginBottom: 4 },
-  time: { fontSize: 12, color: '#94a3b8', marginBottom: 2 },
-  txn: { fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', marginBottom: 2 },
-  meta: { fontSize: 13, color: '#64748b' },
+  amount: { fontSize: 22, fontWeight: '700', color: colors.onSurface, marginBottom: 4 },
+  time: { fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 2 },
+  txn: { fontSize: 11, color: colors.onSurfaceVariant, fontFamily: 'monospace', marginBottom: 2 },
+  meta: { fontSize: 13, color: colors.onSurfaceVariant },
   empty: { padding: 48, alignItems: 'center' },
   emptyGlyph: {
     width: 62,
     height: 62,
     borderRadius: 20,
     marginBottom: 12,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: colors.surfaceHigh,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyGlyphText: { fontSize: 16, fontWeight: '800', color: '#334155', letterSpacing: 0.7 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1e293b', marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#94a3b8', textAlign: 'center' },
+  emptyGlyphText: { fontSize: 16, fontWeight: '800', color: colors.onSurfaceVariant, letterSpacing: 0.7 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.onSurface, marginBottom: 4 },
+  emptyText: { fontSize: 14, color: colors.onSurfaceVariant, textAlign: 'center' },
 });

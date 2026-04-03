@@ -49,14 +49,23 @@ export class CaDocumentsService {
       clientId: new Types.ObjectId(clientId),
     });
 
+    const uploadedDocs = documents.map(d => ({ 
+      type: d.documentType, 
+      name: d.originalName, 
+      status: d.status, 
+      uploadedAt: d.createdAt,
+      uploaded: d.status === 'verified' || d.status === 'uploaded',
+    }));
     const uploaded = documents.map(d => d.documentType);
     const missing = required.filter(r => !uploaded.includes(r));
     const completeness = Math.round(((required.length - missing.length) / required.length) * 100);
 
     return {
-      uploaded: documents.map(d => ({ type: d.documentType, name: d.originalName, status: d.status, uploadedAt: d.createdAt })),
+      documents: uploadedDocs,
+      uploaded: uploadedDocs,
       missing,
       completeness,
+      percentage: completeness,
       totalRequired: required.length,
       totalUploaded: required.length - missing.length,
     };

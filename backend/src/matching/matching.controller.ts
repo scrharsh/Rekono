@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -131,6 +132,103 @@ export class MatchingController {
       if (error instanceof NotFoundException) {
         throw error;
       }
+      throw new HttpException(
+        {
+          error: {
+            code: 'SERVER_ERROR',
+            message: error.message,
+          },
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post(':showroomId/matches/:paymentId/quick-match')
+  @ApiOperation({
+    summary: 'Quick-match: Get top suggestion and confirm with one action (1-tap resolve)',
+  })
+  @ApiParam({ name: 'showroomId', description: 'Showroom ID' })
+  @ApiParam({ name: 'paymentId', description: 'Payment Record ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Auto-matched or returned suggestions',
+  })
+  async quickMatch(
+    @Param('showroomId') _showroomId: string,
+    @Param('paymentId') paymentId: string,
+    @Request() req: any,
+  ) {
+    try {
+      const result = await this.matchingService.quickMatch(paymentId, req.user.userId);
+      return result;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        {
+          error: {
+            code: 'SERVER_ERROR',
+            message: error.message,
+          },
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post(':showroomId/matches/bulk/suggestions')
+  @ApiOperation({
+    summary: 'Get all unmatched items with top suggestions (for bulk-resolve UI)',
+  })
+  @ApiParam({ name: 'showroomId', description: 'Showroom ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'All unmatched sales/payments with suggestions',
+  })
+  async getBulkSuggestions(@Param('showroomId') showroomId: string) {
+    try {
+      return await this.matchingService.getBulkSuggestions(showroomId);
+    } catch (error: any) {
+      throw new HttpException(
+        {
+          error: {
+            code: 'SERVER_ERROR',
+            message: error.message,
+          },
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post(':showroomId/matches/bulk/confirm')
+  @ApiOperation({
+    summary: 'Confirm multiple matches at once (bulk-resolve from dashboard)',
+  })
+  @ApiParam({ name: 'showroomId', description: 'Showroom ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Matches confirmed',
+  })
+  async confirmBulkMatches(
+    @Param('showroomId') _showroomId: string,
+    @Body() body: { matches: Array<{ paymentId: string; saleId: string }> },
+    @Request() req: any,
+  ) {
+    try {
+      const results = await Promise.allSettled(
+        body.matches.map((m) =>
+          this.matchingService.confirmMatch(m.paymentId, m.saleId, req.user.userId),
+        ),
+      );
+
+      const successful = results.filter((r) => r.status === 'fulfilled').length;
+      const failed = results.filter((r) => r.status === 'rejected').length;
+
+      return { successful, failed, results };
+    } catch (error: any) {
       throw new HttpException(
         {
           error: {

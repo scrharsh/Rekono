@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
 import BrandMark from '../components/BrandMark';
+import colors from '../constants/colors';
 
 export default function SplashScreen() {
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
       <View style={s.heroGlow} />
       <View style={s.logoWrap}>
         <View style={s.logoBadge}>
@@ -19,7 +20,7 @@ export default function SplashScreen() {
       <Text style={s.title}>Rekono</Text>
       <Text style={s.subtitle}>Loading your workspace</Text>
       <View style={s.loaderWrap}>
-        <ActivityIndicator size="large" color="#1f5eff" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     </View>
   );
@@ -28,7 +29,7 @@ export default function SplashScreen() {
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f8fc',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
@@ -45,9 +46,9 @@ const s = StyleSheet.create({
     width: '100%',
     maxWidth: 320,
     borderRadius: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surfaceContainer,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -63,9 +64,9 @@ const s = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 20,
-    backgroundColor: '#eef4ff',
+    backgroundColor: colors.surfaceHighest,
     borderWidth: 1,
-    borderColor: '#c9dafd',
+    borderColor: colors.outlineVariant,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -74,33 +75,33 @@ const s = StyleSheet.create({
     flex: 1,
   },
   logoMetaTitle: {
-    color: '#102135',
+    color: colors.onSurface,
     fontSize: 13,
     fontWeight: '700',
     marginBottom: 3,
   },
   logoMetaSub: {
-    color: '#5f6b7d',
+    color: colors.onSurfaceVariant,
     fontSize: 12,
   },
   title: {
-    color: '#102135',
+    color: colors.onSurface,
     fontSize: 30,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
   subtitle: {
-    color: '#5f6b7d',
+    color: colors.onSurfaceVariant,
     fontSize: 14,
     marginTop: 6,
   },
   loaderWrap: {
     marginTop: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surfaceContainer,
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
   },
 });

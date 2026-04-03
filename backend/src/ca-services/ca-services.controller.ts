@@ -36,6 +36,12 @@ export class CaServicesController {
     return this.caServicesService.getServicesSummary(req.user.userId);
   }
 
+  @Get('period-insights')
+  @ApiOperation({ summary: 'Get service period tracking insights' })
+  async getPeriodInsights(@Request() req: any) {
+    return this.caServicesService.getPeriodInsights(req.user.userId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get service by ID' })
   async findById(@Request() req: any, @Param('id') id: string) {

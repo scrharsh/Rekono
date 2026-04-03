@@ -74,7 +74,8 @@ export class CaServicesService {
 
   async getServicesSummary(caUserId: string): Promise<any> {
     const caObjId = new Types.ObjectId(caUserId);
-    const [totalActive, byType, monthlyRevenue] = await Promise.all([
+    const [totalServices, activeServices, byType, monthlyRevenue] = await Promise.all([
+      this.serviceModel.countDocuments({ caUserId: caObjId }),
       this.serviceModel.countDocuments({ caUserId: caObjId, status: 'active' }),
       this.serviceModel.aggregate([
         { $match: { caUserId: caObjId, status: 'active' } },
@@ -88,9 +89,98 @@ export class CaServicesService {
     ]);
 
     return {
-      totalActive,
+      totalServices,
+      activeServices,
       byType,
       monthlyRevenue: monthlyRevenue.length > 0 ? monthlyRevenue[0].total : 0,
+    };
+  }
+
+  async getPeriodInsights(caUserId: string): Promise<any> {
+    const caObjId = new Types.ObjectId(caUserId);
+    const services = await this.serviceModel.find({ caUserId: caObjId, status: 'active' }).populate('clientId', 'name phone');
+
+    const insights: any = {
+      totalPeriods: 0,
+      completedPeriods: 0,
+      pendingPeriods: 0,
+      overduePeriods: 0,
+      inProgressPeriods: 0,
+      byStatus: { completed: [], pending: [], inProgress: [], overdue: [] },
+      byClient: new Map<string, any>(),
+    };
+
+    services.forEach(service => {
+      const populatedClient = service.clientId as any;
+      const clientName = populatedClient?.name || 'Unknown';
+      const clientInfo = {
+        clientId: service.clientId,
+        clientName,
+      };
+
+      service.periodStatuses.forEach(period => {
+        insights.totalPeriods += 1;
+
+        const entry = {
+          period: period.period,
+          serviceName: service.name,
+          serviceType: service.serviceType,
+          ...clientInfo,
+          status: period.status,
+          completedAt: period.completedAt,
+          notes: period.notes,
+        };
+
+        switch (period.status) {
+          case 'completed':
+            insights.completedPeriods += 1;
+            insights.byStatus.completed.push(entry);
+            break;
+          case 'pending':
+            insights.pendingPeriods += 1;
+            insights.byStatus.pending.push(entry);
+            break;
+          case 'in_progress':
+            insights.inProgressPeriods += 1;
+            insights.byStatus.inProgress.push(entry);
+            break;
+          case 'overdue':
+            insights.overduePeriods += 1;
+            insights.byStatus.overdue.push(entry);
+            break;
+        }
+
+        const clientId = (service.clientId as any)._id?.toString() || service.clientId.toString();
+        if (!insights.byClient.has(clientId)) {
+          insights.byClient.set(clientId, {
+            clientId,
+            clientName,
+            total: 0,
+            completed: 0,
+            pending: 0,
+            overdue: 0,
+          });
+        }
+
+        const clientEntry = insights.byClient.get(clientId);
+        clientEntry.total += 1;
+        if (period.status === 'completed') clientEntry.completed += 1;
+        else if (period.status === 'pending') clientEntry.pending += 1;
+        else if (period.status === 'overdue') clientEntry.overdue += 1;
+      });
+    });
+
+    return {
+      summary: {
+        totalPeriods: insights.totalPeriods,
+        completedPeriods: insights.completedPeriods,
+        pendingPeriods: insights.pendingPeriods,
+        overduePeriods: insights.overduePeriods,
+        inProgressPeriods: insights.inProgressPeriods,
+        completionRate: insights.totalPeriods > 0 ? Math.round((insights.completedPeriods / insights.totalPeriods) * 100) : 0,
+      },
+      byStatus: insights.byStatus,
+      byClient: Array.from(insights.byClient.values()).sort((a: any, b: any) => b.overdue - a.overdue),
     };
   }
 }

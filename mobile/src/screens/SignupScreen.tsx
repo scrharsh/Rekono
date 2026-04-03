@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, StatusBar, Keyboar
 import { useNavigation } from '@react-navigation/native';
 import { signupMobile } from '../services/auth.service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import colors from '../constants/colors';
 
 export default function SignupScreen() {
   const navigation = useNavigation<any>();
@@ -51,14 +52,14 @@ export default function SignupScreen() {
 
   return (
     <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
       <View style={s.heroGlow} />
       <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
         <View style={s.card}>
           <View style={s.brandRow}>
             <View style={s.brandBadge}><Text style={s.brandBadgeText}>RK</Text></View>
             <View style={{ flex: 1 }}>
-              <Text style={s.eyebrow}>Business Signup</Text>
+              <Text style={s.eyebrow}>Create Workspace</Text>
               <Text style={s.title}>Create your account</Text>
             </View>
           </View>
@@ -92,7 +93,7 @@ export default function SignupScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  container: { flex: 1, backgroundColor: colors.surface },
   content: { flexGrow: 1, justifyContent: 'center', padding: 20 },
   heroGlow: {
     position: 'absolute',
@@ -104,11 +105,11 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(31, 94, 255, 0.08)',
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surfaceContainer,
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     shadowColor: '#102135',
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -120,31 +121,31 @@ const s = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 14,
-    backgroundColor: '#e9f0ff',
+    backgroundColor: colors.surfaceHigh,
     borderWidth: 1,
-    borderColor: '#c9dafd',
+    borderColor: colors.outlineVariant,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  brandBadgeText: { color: '#1f5eff', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
-  eyebrow: { color: '#0f9d7a', textTransform: 'uppercase', letterSpacing: 2, fontSize: 11, fontWeight: '700', marginBottom: 8 },
-  title: { color: '#102135', fontSize: 28, fontWeight: '800' },
-  subtitle: { color: '#5f6b7d', marginTop: 8, marginBottom: 14, lineHeight: 20 },
+  brandBadgeText: { color: colors.primary, fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
+  eyebrow: { color: colors.success, textTransform: 'uppercase', letterSpacing: 2, fontSize: 11, fontWeight: '700', marginBottom: 8 },
+  title: { color: colors.onSurface, fontSize: 28, fontWeight: '800' },
+  subtitle: { color: colors.onSurfaceVariant, marginTop: 8, marginBottom: 14, lineHeight: 20 },
   signalRow: { flexDirection: 'row', gap: 8, marginBottom: 18 },
   signalPill: {
-    backgroundColor: '#f7f9fc',
-    borderColor: '#d7e1ee',
+    backgroundColor: colors.surfaceLow,
+    borderColor: colors.outlineLighter,
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  signalText: { color: '#5f6b7d', fontSize: 11, fontWeight: '700' },
-  input: { backgroundColor: '#f7f9fc', borderWidth: 1, borderColor: '#d7e1ee', borderRadius: 14, padding: 14, color: '#102135', marginBottom: 12 },
-  error: { color: '#b42318', marginBottom: 10 },
-  primaryBtn: { backgroundColor: '#1f5eff', padding: 15, borderRadius: 14, alignItems: 'center', marginTop: 4 },
+  signalText: { color: colors.onSurfaceVariant, fontSize: 11, fontWeight: '700' },
+  input: { backgroundColor: colors.surfaceLow, borderWidth: 1, borderColor: colors.outlineLighter, borderRadius: 14, padding: 14, color: colors.onSurface, marginBottom: 12 },
+  error: { color: colors.error, marginBottom: 10 },
+  primaryBtn: { backgroundColor: colors.primary, padding: 15, borderRadius: 14, alignItems: 'center', marginTop: 4 },
   disabledBtn: { opacity: 0.7 },
-  primaryBtnText: { color: '#fff', fontWeight: '700' },
-  link: { color: '#1f5eff', textAlign: 'center', marginTop: 16, fontWeight: '600' },
+  primaryBtnText: { color: colors.white, fontWeight: '700' },
+  link: { color: colors.primary, textAlign: 'center', marginTop: 16, fontWeight: '600' },
 });

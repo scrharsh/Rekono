@@ -30,7 +30,6 @@ export default function BrandLogo({ className = 'h-10 w-auto', variant = 'defaul
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label="Rekono logo"
-      draggable="false"
       style={{ userSelect: 'none' }}
     >
       <defs>

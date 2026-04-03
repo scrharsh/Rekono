@@ -10,40 +10,78 @@ function authHeaders() {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
+type ClientLite = {
+  _id: string;
+  name: string;
+};
+
+type PaymentStatus = 'pending' | 'overdue' | 'paid';
+
+type PaymentItem = {
+  _id: string;
+  clientId?: string | ClientLite;
+  amount?: number;
+  description?: string;
+  dueDate?: string;
+  status: PaymentStatus;
+};
+
+type PaymentSummary = {
+  totalCollected: number;
+  totalPending: number;
+  totalOverdueAmount: number;
+};
+
+type PaymentCreateForm = {
+  clientId: string;
+  amount: string;
+  description: string;
+  dueDate: string;
+  status: 'pending';
+};
+
+const DEFAULT_ADD_FORM: PaymentCreateForm = {
+  clientId: '',
+  amount: '',
+  description: '',
+  dueDate: '',
+  status: 'pending',
+};
+
 export default function PaymentsPage() {
   const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ clientId: '', amount: '', description: '', dueDate: '' });
+  const [addForm, setAddForm] = useState<PaymentCreateForm>(DEFAULT_ADD_FORM);
 
-  const { data: payments = [], isLoading } = useQuery({
+  const { data: payments = [], isLoading } = useQuery<PaymentItem[]>({
     queryKey: ['ca-payments'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/v1/ca/payments`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return res.json() as Promise<PaymentItem[]>;
     },
   });
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<ClientLite[]>({
     queryKey: ['ca-clients-list'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/v1/ca/clients`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return res.json() as Promise<ClientLite[]>;
     },
   });
 
-  const { data: summary } = useQuery({
+  const { data: summary } = useQuery<PaymentSummary | null>({
     queryKey: ['payment-summary'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/v1/ca/payments/summary`, { headers: authHeaders() });
       if (!res.ok) return null;
-      return res.json();
+      return res.json() as Promise<PaymentSummary>;
     },
   });
 
   const addMutation = useMutation({
-    mutationFn: async (body: any) => {
+    mutationFn: async (body: PaymentCreateForm) => {
       const res = await fetch(`${API_URL}/v1/ca/payments`, {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ ...body, amount: Number(body.amount) }),
@@ -70,6 +108,12 @@ export default function PaymentsPage() {
     { label: 'Pending', value: `₹${(summary?.totalPending ?? 0).toLocaleString('en-IN')}`, color: '#fbbf24' },
     { label: 'Overdue', value: `₹${(summary?.totalOverdueAmount ?? 0).toLocaleString('en-IN')}`, color: '#ffb4ab' },
   ];
+
+  const getClientName = (clientRef?: string | ClientLite) => {
+    if (!clientRef) return '—';
+    const clientId = typeof clientRef === 'string' ? clientRef : clientRef._id;
+    return clients.find((c) => c._id === clientId)?.name ?? '—';
+  };
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -102,7 +146,7 @@ export default function PaymentsPage() {
                 <select className="input" value={addForm.clientId} required
                   onChange={e => setAddForm(p => ({ ...p, clientId: e.target.value }))}>
                   <option value="">Select client...</option>
-                  {clients.map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                  {clients.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -147,9 +191,9 @@ export default function PaymentsPage() {
               <tr><th>Client</th><th>Amount</th><th>Description</th><th>Due Date</th><th>Status</th><th>Action</th></tr>
             </thead>
             <tbody>
-              {payments.map((p: any) => (
+              {payments.map((p) => (
                 <tr key={p._id}>
-                  <td className="font-medium">{p.clientId?.name ?? clients.find((c: any) => c._id === p.clientId)?.name ?? '—'}</td>
+                  <td className="font-medium">{getClientName(p.clientId)}</td>
                   <td className="tabular-nums font-semibold">₹{p.amount?.toLocaleString('en-IN')}</td>
                   <td style={{ color: 'var(--on-surface-variant)' }}>{p.description || '—'}</td>
                   <td className="tabular-nums text-xs">{p.dueDate ? new Date(p.dueDate).toLocaleDateString('en-IN') : '—'}</td>

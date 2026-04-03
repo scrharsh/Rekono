@@ -20,6 +20,7 @@ import {
   fetchCatalogItems,
   toggleCatalogFavorite,
 } from '../services/businessProfile.service';
+import colors from '../constants/colors';
 
 const MOCK_CATALOG = [
   { _id: 'c1', name: 'General Consultation', category: 'Services', type: 'Service', sellingPrice: 500 },
@@ -162,11 +163,11 @@ export default function CatalogScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
       <View style={s.headerGlow} />
       <View style={s.header}>
         <View style={s.headerBadge}><Text style={s.headerBadgeText}>Catalog Intelligence</Text></View>
-        <Text style={s.title}>Progressive Catalog</Text>
+        <Text style={s.title}>Saved Items</Text>
         <Text style={s.subtitle}>Your most-used items and services, ready for fast sale entry.</Text>
       </View>
 
@@ -188,7 +189,7 @@ export default function CatalogScreen() {
       
       {loading ? (
         <View style={s.loadingWrap}>
-          <ActivityIndicator color="#1f5eff" size="large" />
+          <ActivityIndicator color={colors.primary} size="large" />
         </View>
       ) : (
       <FlatList
@@ -196,7 +197,7 @@ export default function CatalogScreen() {
         renderItem={renderItem}
         keyExtractor={i => i._id}
         contentContainerStyle={s.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1f5eff" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         ListEmptyComponent={
           <View style={s.emptyWrap}>
             <Text style={s.emptyTitle}>No catalog items</Text>
@@ -260,7 +261,7 @@ export default function CatalogScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  container: { flex: 1, backgroundColor: colors.surface },
   headerGlow: {
     position: 'absolute',
     top: 40,
@@ -271,20 +272,20 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(31, 94, 255, 0.08)',
   },
   header: { 
-    backgroundColor: '#ffffff', padding: 20, paddingTop: 48,
-    borderBottomWidth: 1, borderBottomColor: '#d7e1ee' 
+    backgroundColor: colors.surfaceContainer, padding: 20, paddingTop: 48,
+    borderBottomWidth: 1, borderBottomColor: colors.outlineLighter 
   },
   headerBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e9f0ff',
+    backgroundColor: colors.surfaceHigh,
     borderWidth: 1,
-    borderColor: '#c9dafd',
+    borderColor: colors.outlineVariant,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginBottom: 10,
   },
-  headerBadgeText: { color: '#1f5eff', fontSize: 11, fontWeight: '700' },
+  headerBadgeText: { color: colors.primary, fontSize: 11, fontWeight: '700' },
   toolbar: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -295,34 +296,34 @@ const s = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surfaceContainer,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#102135',
+    color: colors.onSurface,
   },
   filterBtn: {
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   filterBtnActive: {
-    backgroundColor: '#1f5eff',
-    borderColor: '#1f5eff',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
-  filterText: { color: '#5f6b7d', fontWeight: '600', fontSize: 12 },
-  filterTextActive: { color: '#fff' },
-  title: { fontSize: 20, fontWeight: '700', color: '#102135' },
-  subtitle: { fontSize: 13, color: '#5f6b7d', marginTop: 4, lineHeight: 18 },
+  filterText: { color: colors.onSurfaceVariant, fontWeight: '600', fontSize: 12 },
+  filterTextActive: { color: colors.white },
+  title: { fontSize: 20, fontWeight: '700', color: colors.onSurface },
+  subtitle: { fontSize: 13, color: colors.onSurfaceVariant, marginTop: 4, lineHeight: 18 },
   list: { padding: 16, paddingBottom: 100 },
   itemCard: {
-    backgroundColor: '#ffffff', borderRadius: 14, padding: 16,
+    backgroundColor: colors.surfaceContainer, borderRadius: 14, padding: 16,
     flexDirection: 'row', alignItems: 'center', marginBottom: 12,
-    borderWidth: 1, borderColor: '#d7e1ee',
+    borderWidth: 1, borderColor: colors.outlineLighter,
     shadowColor: '#102135',
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -333,69 +334,69 @@ const s = StyleSheet.create({
   inlineActions: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 },
   starBtn: {
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  starText: { color: '#fbbf24', fontSize: 16 },
+  starText: { color: colors.warning, fontSize: 16 },
   deleteBtn: {
     borderWidth: 1,
-    borderColor: '#7f1d1d',
+    borderColor: colors.error,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  deleteText: { color: '#ffb4ab', fontSize: 12, fontWeight: '700' },
-  itemName: { fontSize: 16, fontWeight: '600', color: '#102135', marginBottom: 4 },
-  itemType: { fontSize: 13, color: '#5f6b7d' },
-  itemPrice: { fontSize: 18, fontWeight: '700', color: '#102135' },
+  deleteText: { color: colors.errorLight, fontSize: 12, fontWeight: '700' },
+  itemName: { fontSize: 16, fontWeight: '600', color: colors.onSurface, marginBottom: 4 },
+  itemType: { fontSize: 13, color: colors.onSurfaceVariant },
+  itemPrice: { fontSize: 18, fontWeight: '700', color: colors.onSurface },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { alignItems: 'center', paddingTop: 40 },
-  emptyTitle: { color: '#102135', fontSize: 17, fontWeight: '700', marginBottom: 6 },
-  emptyText: { color: '#5f6b7d', fontSize: 13, textAlign: 'center' },
+  emptyTitle: { color: colors.onSurface, fontSize: 17, fontWeight: '700', marginBottom: 6 },
+  emptyText: { color: colors.onSurfaceVariant, fontSize: 13, textAlign: 'center' },
   fab: {
     position: 'absolute', bottom: 24, right: 24,
     width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#1f5eff', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
     elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84,
   },
-  fabIcon: { color: '#fff', fontSize: 32, fontWeight: '300', marginTop: -2 },
+  fabIcon: { color: colors.white, fontSize: 32, fontWeight: '300', marginTop: -2 },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(15, 33, 53, 0.5)',
     justifyContent: 'flex-end',
   },
   modalCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surfaceContainer,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#d7e1ee',
+    borderTopColor: colors.outlineLighter,
   },
-  modalTitle: { color: '#102135', fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  modalTitle: { color: colors.onSurface, fontSize: 18, fontWeight: '700', marginBottom: 12 },
   modalInput: {
-    backgroundColor: '#f5f8fc',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#102135',
+    color: colors.onSurface,
     marginBottom: 10,
   },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   cancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
   },
-  cancelBtnText: { color: '#5f6b7d', fontWeight: '700' },
+  cancelBtnText: { color: colors.onSurfaceVariant, fontWeight: '700' },
   saveBtn: {
     flex: 1,
     backgroundColor: '#1f5eff',

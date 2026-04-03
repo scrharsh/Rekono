@@ -1,12 +1,9 @@
 import Link from 'next/link';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import BrandLogoLink from '@/components/BrandLogoLink';
-
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] });
 
 export default function FAQPage() {
   return (
-    <div className={`${jakarta.className} min-h-screen bg-[#f5f9ff] text-[#0f2347]`}>
+    <div className="min-h-screen bg-[#f5f9ff] text-[#0f2347]">
       {/* Announcement Bar */}
       <div className="bg-[#0b57d0] px-4 py-2.5 text-center text-xs text-white sm:text-sm font-medium">
         Rekono: Business reconciliation OS for Indian businesses and CAs
@@ -40,7 +37,7 @@ export default function FAQPage() {
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0b57d0]">Questions Answered</p>
           <h1 className="mt-4 text-4xl font-bold text-[#142b57] sm:text-5xl">Frequently asked questions</h1>
-          <p className="mt-6 max-w-2xl mx-auto text-lg text-[#4f71a5]">Everything you need to know about Rekono's features, pricing, and support.</p>
+          <p className="mt-6 max-w-2xl mx-auto text-lg text-[#4f71a5]">Everything you need to know about Rekono&apos;s features, pricing, and support.</p>
         </div>
       </section>
 
@@ -59,7 +56,7 @@ export default function FAQPage() {
           <div className="rounded-2xl border border-[#d8e6ff] bg-white p-6">
             <h3 className="text-lg font-semibold text-[#1a447f]">Can my business operate without connecting a CA?</h3>
             <p className="mt-4 text-base leading-relaxed text-[#5277ae]">
-              Yes, completely. Business OS and CA OS are independent systems. A business owner can run Business OS without any CA involvement. Similarly, a CA can run CA OS without direct integration to their clients' businesses. Connection happens only if both parties choose it, and only with explicit permission from both sides. Data sharing is granular and you control what gets shared.
+              Yes, completely. Business OS and CA OS are independent systems. A business owner can run Business OS without any CA involvement. Similarly, a CA can run CA OS without direct integration to their clients&apos; businesses. Connection happens only if both parties choose it, and only with explicit permission from both sides. Data sharing is granular and you control what gets shared.
             </p>
           </div>
 

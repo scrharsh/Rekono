@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from './config/database.module';
 import { AuthModule } from './auth/auth.module';
@@ -25,6 +25,7 @@ import { KnowledgeModule } from './knowledge/knowledge.module';
 import { AuditModule } from './audit/audit.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { BusinessProfilesModule } from './business-profiles/business-profiles.module';
+import { AlertModule } from './alert/alert.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
@@ -34,12 +35,20 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000,
-        limit: 100,
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const ttl = Number(configService.get('THROTTLE_TTL_MS') ?? configService.get('THROTTLE_TTL') ?? 60000);
+        const limit = Number(configService.get('THROTTLE_LIMIT') ?? 100);
+
+        return [
+          {
+            ttl,
+            limit,
+          },
+        ];
       },
-    ]),
+    }),
     DatabaseModule,
     AuthModule,
     SalesModule,
@@ -63,6 +72,7 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
     AuditModule,
     CatalogModule,
     BusinessProfilesModule,
+    AlertModule,
   ],
   providers: [
     {

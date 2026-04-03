@@ -11,40 +11,81 @@ function authHeaders() {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
+type ClientLite = {
+  _id: string;
+  name: string;
+};
+
+type ServiceStatus = 'active' | 'inactive';
+
+type ServiceItem = {
+  _id: string;
+  clientId?: string | ClientLite;
+  serviceType?: string;
+  name: string;
+  frequency?: string;
+  fees?: number;
+  status: ServiceStatus;
+};
+
+type ServiceSummary = {
+  totalServices: number;
+  activeServices: number;
+  monthlyRevenue: number;
+};
+
+type ServiceCreateForm = {
+  clientId: string;
+  serviceType: string;
+  name: string;
+  frequency: string;
+  fees: string;
+  startDate: string;
+};
+
+const DEFAULT_ADD_FORM: ServiceCreateForm = {
+  clientId: '',
+  serviceType: 'gst_filing',
+  name: '',
+  frequency: 'monthly',
+  fees: '',
+  startDate: '',
+};
+
 export default function ServicesPage() {
   const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ clientId: '', serviceName: '', frequency: 'monthly', fees: '', startDate: '' });
+  const [addForm, setAddForm] = useState<ServiceCreateForm>(DEFAULT_ADD_FORM);
 
-  const { data: services = [], isLoading } = useQuery({
+  const { data: services = [], isLoading } = useQuery<ServiceItem[]>({
     queryKey: ['ca-services'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/v1/ca/services`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return res.json() as Promise<ServiceItem[]>;
     },
   });
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<ClientLite[]>({
     queryKey: ['ca-clients-list'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/v1/ca/clients`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return res.json() as Promise<ClientLite[]>;
     },
   });
 
-  const { data: summary } = useQuery({
+  const { data: summary } = useQuery<ServiceSummary | null>({
     queryKey: ['service-summary'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/v1/ca/services/summary`, { headers: authHeaders() });
       if (!res.ok) return null;
-      return res.json();
+      return res.json() as Promise<ServiceSummary>;
     },
   });
 
   const addMutation = useMutation({
-    mutationFn: async (body: any) => {
+    mutationFn: async (body: ServiceCreateForm) => {
       const res = await fetch(`${API_URL}/v1/ca/services`, {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ ...body, fees: Number(body.fees) }),
@@ -60,6 +101,12 @@ export default function ServicesPage() {
     { label: 'Active', value: summary?.activeServices ?? 0 },
     { label: 'Monthly Revenue', value: `₹${(summary?.monthlyRevenue ?? 0).toLocaleString('en-IN')}` },
   ];
+
+  const getClientName = (clientRef?: string | ClientLite) => {
+    if (!clientRef) return '—';
+    const clientId = typeof clientRef === 'string' ? clientRef : clientRef._id;
+    return clients.find((c) => c._id === clientId)?.name ?? '—';
+  };
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -96,21 +143,39 @@ export default function ServicesPage() {
                 <select className="input" value={addForm.clientId} required
                   onChange={e => setAddForm(p => ({ ...p, clientId: e.target.value }))}>
                   <option value="">Select client...</option>
-                  {clients.map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                  {clients.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="input-label">Service Type *</label>
+                <select className="input" value={addForm.serviceType} required
+                  onChange={e => setAddForm(p => ({ ...p, serviceType: e.target.value }))}>
+                  <option value="gst_filing">GST Filing</option>
+                  <option value="gst_registration">GST Registration</option>
+                  <option value="income_tax_filing">Income Tax Filing</option>
+                  <option value="tds_return">TDS Return</option>
+                  <option value="company_incorporation">Company Incorporation</option>
+                  <option value="msme_registration">MSME Registration</option>
+                  <option value="import_export_code">Import-Export Code</option>
+                  <option value="consultation">Consultation</option>
+                  <option value="compliance_review">Compliance Review</option>
+                  <option value="bookkeeping">Bookkeeping</option>
+                  <option value="audit">Audit</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
               <div>
                 <label className="input-label">Service Name *</label>
-                <input className="input" value={addForm.serviceName} required
-                  onChange={e => setAddForm(p => ({ ...p, serviceName: e.target.value }))}
-                  placeholder="e.g. GST Filing" />
+                <input className="input" value={addForm.name} required
+                  onChange={e => setAddForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g. GST Filing for FY2025-26" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="input-label">Frequency</label>
                   <select className="input" value={addForm.frequency}
                     onChange={e => setAddForm(p => ({ ...p, frequency: e.target.value }))}>
-                    {['monthly', 'quarterly', 'yearly', 'one_time'].map(f => (
+                    {['monthly', 'quarterly', 'annual', 'one_time'].map(f => (
                       <option key={f} value={f}>{f.replace('_', '-')}</option>
                     ))}
                   </select>
@@ -156,10 +221,10 @@ export default function ServicesPage() {
               </tr>
             </thead>
             <tbody>
-              {services.map((s: any) => (
+              {services.map((s) => (
                 <tr key={s._id}>
-                  <td className="font-medium">{s.clientId?.name ?? clients.find((c: any) => c._id === s.clientId)?.name ?? '—'}</td>
-                  <td>{s.serviceName}</td>
+                  <td className="font-medium">{getClientName(s.clientId)}</td>
+                  <td>{s.name}</td>
                   <td className="capitalize">{s.frequency?.replace('_', '-')}</td>
                   <td className="tabular-nums">₹{s.fees?.toLocaleString('en-IN') ?? 0}</td>
                   <td><span className={`badge-${s.status === 'active' ? 'green' : 'gray'}`}>{s.status}</span></td>

@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { forceSyncNow } from '../services/sync.service';
 import { getStoredUser, logoutMobile } from '../services/auth.service';
 import { hydrateBusinessContextFromServer } from '../services/businessProfile.service';
+import colors from '../constants/colors';
 
 type StoredUser = {
   fullName?: string;
@@ -99,14 +100,14 @@ export default function SettingsScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
       <View style={s.headerGlow} />
 
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={s.back}>Back</Text>
         </TouchableOpacity>
-        <Text style={s.title}>Settings</Text>
+        <Text style={s.title}>Workspace Settings</Text>
         <Text style={s.subtitle}>Account, sync and workspace controls</Text>
       </View>
 
@@ -125,10 +126,19 @@ export default function SettingsScreen() {
           <Text style={s.sectionEyebrow}>Data Integrity</Text>
           <Text style={s.cardTitle}>Data & Sync</Text>
           <TouchableOpacity style={s.actionBtn} onPress={handleSyncNow} disabled={syncing}>
-            {syncing ? <ActivityIndicator color="#fff" /> : <Text style={s.actionText}>Sync Now</Text>}
+            {syncing ? <ActivityIndicator color={colors.white} /> : <Text style={s.actionText}>Sync Now</Text>}
           </TouchableOpacity>
           <TouchableOpacity style={s.secondaryBtn} onPress={handleRefreshContext} disabled={contextRefreshing}>
-            {contextRefreshing ? <ActivityIndicator color="#1f5eff" /> : <Text style={s.secondaryText}>Refresh Business Context</Text>}
+            {contextRefreshing ? <ActivityIndicator color={colors.primary} /> : <Text style={s.secondaryText}>Refresh Business Context</Text>}
+          </TouchableOpacity>
+        </View>
+
+        <View style={s.card}>
+          <Text style={s.sectionEyebrow}>Notifications</Text>
+          <Text style={s.cardTitle}>Activity Feed</Text>
+          <Text style={s.subText}>View task assignments, payment events, and CA updates in one place.</Text>
+          <TouchableOpacity style={s.secondaryBtn} onPress={() => navigation.navigate('Main', { screen: 'Notifications' })}>
+            <Text style={s.secondaryText}>Open Notifications</Text>
           </TouchableOpacity>
         </View>
 
@@ -136,7 +146,7 @@ export default function SettingsScreen() {
           <Text style={s.sectionEyebrow}>Security</Text>
           <Text style={s.cardTitle}>Session</Text>
           <TouchableOpacity style={s.dangerBtn} onPress={handleLogout} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.actionText}>Sign Out</Text>}
+            {loading ? <ActivityIndicator color={colors.white} /> : <Text style={s.actionText}>Sign Out</Text>}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -145,7 +155,7 @@ export default function SettingsScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  container: { flex: 1, backgroundColor: colors.surface },
   headerGlow: {
     position: 'absolute',
     top: 20,
@@ -160,17 +170,17 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#d7e1ee',
-    backgroundColor: '#ffffff',
+    borderBottomColor: colors.outlineLighter,
+    backgroundColor: colors.surfaceContainer,
   },
-  back: { color: '#1f5eff', fontSize: 14, fontWeight: '600', marginBottom: 10 },
-  title: { color: '#102135', fontSize: 24, fontWeight: '800' },
-  subtitle: { color: '#5f6b7d', fontSize: 13, marginTop: 6 },
+  back: { color: colors.primary, fontSize: 14, fontWeight: '600', marginBottom: 10 },
+  title: { color: colors.onSurface, fontSize: 24, fontWeight: '800' },
+  subtitle: { color: colors.onSurfaceVariant, fontSize: 13, marginTop: 6 },
   content: { padding: 16, paddingBottom: 28 },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surfaceContainer,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     borderRadius: 14,
     padding: 16,
     marginBottom: 14,
@@ -180,13 +190,13 @@ const s = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 1,
   },
-  sectionEyebrow: { color: '#1f5eff', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
-  cardTitle: { color: '#102135', fontSize: 16, fontWeight: '700', marginBottom: 10 },
-  mainText: { color: '#102135', fontSize: 18, fontWeight: '700', marginBottom: 4 },
-  subText: { color: '#5f6b7d', fontSize: 13, marginBottom: 4 },
+  sectionEyebrow: { color: colors.primary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
+  cardTitle: { color: colors.onSurface, fontSize: 16, fontWeight: '700', marginBottom: 10 },
+  mainText: { color: colors.onSurface, fontSize: 18, fontWeight: '700', marginBottom: 4 },
+  subText: { color: colors.onSurfaceVariant, fontSize: 13, marginBottom: 4 },
   actionBtn: {
     marginTop: 4,
-    backgroundColor: '#1f5eff',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -195,19 +205,19 @@ const s = StyleSheet.create({
   },
   secondaryBtn: {
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
   },
-  secondaryText: { color: '#102135', fontSize: 14, fontWeight: '600' },
+  secondaryText: { color: colors.onSurface, fontSize: 14, fontWeight: '600' },
   dangerBtn: {
-    backgroundColor: '#c2410c',
+    backgroundColor: colors.warning,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
   },
-  actionText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  actionText: { color: colors.white, fontWeight: '700', fontSize: 15 },
 });

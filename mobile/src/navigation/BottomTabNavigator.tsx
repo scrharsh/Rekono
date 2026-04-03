@@ -28,8 +28,8 @@ function TabGlyph({ label, color }: { label: string; color: string }) {
 // Placeholder screens for navigation
 const MoreScreen = () => (
   <View style={styles.container}>
-    <Text style={styles.title}>More</Text>
-    <Text style={styles.subtitle}>Settings and Profile</Text>
+    <Text style={styles.title}>Workspace</Text>
+    <Text style={styles.subtitle}>Settings and profile</Text>
   </View>
 );
 
@@ -55,9 +55,9 @@ export const BottomTabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: 'Workspace',
           tabBarIcon: ({ color }) => (
-            <TabGlyph label="HM" color={color} />
+            <TabGlyph label="WS" color={color} />
           ),
         }}
       />
@@ -65,9 +65,9 @@ export const BottomTabNavigator = () => {
         name="Payments"
         component={PaymentListScreen}
         options={{
-          tabBarLabel: 'Payments',
+          tabBarLabel: 'Inbox',
           tabBarIcon: ({ color }) => (
-            <TabGlyph label="PM" color={color} />
+            <TabGlyph label="PI" color={color} />
           ),
         }}
       />
@@ -75,9 +75,9 @@ export const BottomTabNavigator = () => {
         name="Unmatched"
         component={UnmatchedQueueScreen}
         options={{
-          tabBarLabel: 'Unmatched',
+          tabBarLabel: 'Pending',
           tabBarIcon: ({ color }) => (
-            <TabGlyph label="UN" color={color} />
+            <TabGlyph label="PS" color={color} />
           ),
         }}
       />
@@ -85,9 +85,9 @@ export const BottomTabNavigator = () => {
         name="Unknown"
         component={UnknownQueueScreen}
         options={{
-          tabBarLabel: 'Unknown',
+          tabBarLabel: 'Auto Match',
           tabBarIcon: ({ color }) => (
-            <TabGlyph label="UK" color={color} />
+            <TabGlyph label="AM" color={color} />
           ),
         }}
       />
@@ -95,9 +95,9 @@ export const BottomTabNavigator = () => {
         name="More"
         component={MoreScreen}
         options={{
-          tabBarLabel: 'More',
+          tabBarLabel: 'Settings',
           tabBarIcon: ({ color }) => (
-            <TabGlyph label="MR" color={color} />
+            <TabGlyph label="ST" color={color} />
           ),
         }}
       />

@@ -3,11 +3,8 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import { useAuth } from '@/contexts/AuthContext';
 import BrandLogoLink from '@/components/BrandLogoLink';
-
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -94,7 +91,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className={`${jakarta.className} h-screen overflow-hidden flex bg-[#f5f9ff] text-[#0f2347]`}>
+    <div className="h-screen overflow-hidden flex bg-[#f5f9ff] text-[#0f2347]">
       {/* Left Panel */}
       <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-10"
         style={{ background: '#0b57d0' }}>
@@ -164,7 +161,7 @@ export default function RegisterPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Back to home
+            Rekono home
           </Link>
 
           {/* Step indicator */}
@@ -185,8 +182,8 @@ export default function RegisterPage() {
           {step === 1 ? (
             /* Step 1: Role Selection */
             <div className="animate-slide-up">
-              <h1 className="text-2xl font-bold mb-1 text-[#153c74]">Create your account</h1>
-              <p className="text-sm mb-5 text-[#4f71a5]">How will you use Rekono?</p>
+              <h1 className="text-2xl font-bold mb-1 text-[#153c74]">Set up your workspace</h1>
+              <p className="text-sm mb-5 text-[#4f71a5]">Choose the workspace that fits how you run Rekono.</p>
 
               <div className="space-y-3">
                 {roles.map((role) => (
@@ -237,7 +234,7 @@ export default function RegisterPage() {
                 disabled={!selectedRole}
                 className={`${primaryButtonClass} mt-6`}
               >
-                Continue
+                Continue setup
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -254,7 +251,7 @@ export default function RegisterPage() {
                   </svg>
                 </button>
                 <div>
-                  <h1 className="text-xl font-bold text-[#153c74]">Your details</h1>
+                  <h1 className="text-xl font-bold text-[#153c74]">Workspace details</h1>
                   <p className="text-xs text-[#4f71a5]">
                     Joining as {selectedRole === 'ca' ? 'Chartered Accountant' : 'Business Owner'}
                   </p>
@@ -342,7 +339,7 @@ export default function RegisterPage() {
                       </svg>
                       Creating account...
                     </>
-                  ) : 'Create Account'}
+                  ) : 'Create workspace'}
                 </button>
               </form>
             </div>

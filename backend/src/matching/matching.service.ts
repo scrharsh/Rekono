@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   Logger,
@@ -243,6 +244,119 @@ export class MatchingService {
         method: p.paymentMethod,
         timestamp: p.timestamp,
       })),
+    };
+  }
+
+  async quickMatch(
+    paymentId: string,
+    userId: string,
+  ): Promise<{
+    status: 'auto-matched' | 'suggestions';
+    matchId?: string;
+    suggestions?: MatchCandidate[];
+  }> {
+    const payment = await this.paymentRecordModel.findById(paymentId);
+    if (!payment) {
+      throw new NotFoundException(`Payment record ${paymentId} not found`);
+    }
+
+    if (payment.status === 'matched' || payment.status === 'verified') {
+      throw new ConflictException(`Payment ${paymentId} is already matched`);
+    }
+
+    const suggestions = await this.findMatches(payment);
+
+    if (suggestions.length === 1 && suggestions[0].confidence >= this.autoMatchThreshold) {
+      const match = await this.matchModel.create({
+        showroomId: payment.showroomId,
+        saleId: suggestions[0].saleEntry._id,
+        paymentId: payment._id,
+        confidence: suggestions[0].confidence,
+        matchType: 'manual',
+        verifiedBy: userId,
+        verifiedAt: new Date(),
+      });
+
+      payment.status = 'verified';
+      payment.matchedSaleId = suggestions[0].saleEntry._id.toString();
+      await payment.save();
+
+      const sale = suggestions[0].saleEntry;
+      if (!sale.matchedPaymentIds.includes(payment._id.toString())) {
+        sale.matchedPaymentIds.push(payment._id.toString());
+      }
+
+      const totalPaid = await this.calculateTotalPaid(sale);
+      const diff = totalPaid - sale.totalAmount;
+      if (Math.abs(diff) <= this.amountTolerance) {
+        sale.status = 'verified';
+      } else if (diff > this.amountTolerance) {
+        sale.status = 'discrepancy';
+      } else {
+        sale.status = 'partial';
+      }
+      await sale.save();
+
+      return { status: 'auto-matched', matchId: match._id.toString() };
+    }
+
+    return {
+      status: 'suggestions',
+      suggestions: suggestions.slice(0, 3),
+    };
+  }
+
+  async getBulkSuggestions(showroomId: string): Promise<{
+    unmatchedSales: Array<{
+      saleId: string;
+      amount: number;
+      timestamp: Date;
+      topSuggestion?: MatchCandidate;
+    }>;
+    unknownPayments: Array<{
+      paymentId: string;
+      amount: number;
+      timestamp: Date;
+      topSuggestion?: MatchCandidate;
+    }>;
+  }> {
+    const unmatchedSales = await this.saleEntryModel.find({
+      showroomId,
+      status: 'unmatched',
+    });
+
+    const unknownPayments = await this.paymentRecordModel.find({
+      showroomId,
+      status: { $in: ['unmatched', 'unknown'] },
+    });
+
+    const salesWithSuggestions = await Promise.all(
+      unmatchedSales.map(async (sale) => {
+        const suggestions = await this.findMatches(sale as any);
+        return {
+          saleId: sale._id.toString(),
+          amount: sale.totalAmount,
+          timestamp: sale.timestamp,
+          topSuggestion: suggestions[0],
+        };
+      }),
+    );
+
+    const paymentsWithSuggestions = await Promise.all(
+      unknownPayments.map(async (payment) => {
+        const suggestions = await this.findMatches(payment);
+        return {
+          paymentId: payment._id.toString(),
+          amount: payment.amount,
+          timestamp: payment.timestamp,
+          topSuggestion: suggestions[0],
+        };
+      }),
+    );
+
+    return {
+      unmatchedSales: salesWithSuggestions,
+      unknownPayments: paymentsWithSuggestions,
     };
   }
 

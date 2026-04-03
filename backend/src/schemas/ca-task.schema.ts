@@ -61,6 +61,9 @@ export class CaTask {
   @Prop()
   assignedTo?: string;
 
+  @Prop()
+  assignedToName?: string;
+
   @Prop({ type: Map, of: String })
   actionData?: Map<string, string>;
 
@@ -80,3 +83,4 @@ CaTaskSchema.index({ caUserId: 1, status: 1, priority: 1 });
 CaTaskSchema.index({ caUserId: 1, clientId: 1, status: 1 });
 CaTaskSchema.index({ caUserId: 1, dueDate: 1 });
 CaTaskSchema.index({ caUserId: 1, type: 1, status: 1 });
+CaTaskSchema.index({ caUserId: 1, assignedTo: 1, status: 1 });

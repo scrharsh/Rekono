@@ -22,7 +22,7 @@ export class AuditLog {
   @Prop({ required: true, type: Types.ObjectId })
   entityId: Types.ObjectId;
 
-  @Prop({ required: true, enum: ['create', 'update', 'delete', 'status_change', 'match', 'unmatch', 'verify'] })
+  @Prop({ required: true, enum: ['create', 'update', 'delete', 'status_change', 'match', 'unmatch', 'verify', 'assign', 'bulk_assign', 'reassign'] })
   action: string;
 
   @Prop({ type: [ChangeRecord], default: [] })

@@ -100,3 +100,68 @@
 - [x] Mobile tests: 4/4 suites passed, 8/8 tests passed (`--runInBand`)
 - [x] Backend build passed (`nest build`)
 - [x] Web build completed (`next build`) with non-blocking webpack cache path warnings on Windows casing
+
+## Task Assignment Feature (April 3, 2026)
+- [x] Added `assignedToName` field to `ca-task.schema.ts` for team member tracking
+- [x] Added database index for assignedTo queries: `{ caUserId: 1, assignedTo: 1, status: 1 }`
+- [x] Implemented `assignTask()` service method to assign tasks to team members
+- [x] Implemented `getAssignedTasks()` service method with SLA status calculation
+- [x] Added SLA status calculation utility (overdue/at_risk/on_track)
+- [x] Added `POST /ca/tasks/:id/assign` endpoint for task assignment
+- [x] Added `GET /ca/tasks/assigned-to-me` endpoint for viewing personal assignments
+- [x] Route ordering optimized: non-parameterized routes before `:id` routes
+
+## Task Team Operations and Audit Refinement (April 3, 2026)
+- [x] Expanded audit actions for task assignment flows: `assign`, `bulk_assign`, `reassign`
+- [x] Added explicit audit interceptor route inference for task assign/bulk-assign/reassign endpoints
+- [x] Added service-level audit logging for task create, update, delete, and assignment actions
+- [x] Added `bulkAssignTasks()` for assigning multiple tasks to one team member
+- [x] Added `POST /ca/tasks/bulk-assign` controller support for bulk assignment
+- [x] Added `getTeamOverview()` service method for assignee/unassigned workload summaries
+- [x] Added `GET /ca/tasks/team-overview` endpoint for team workload visibility
+- [x] Added focused CA task service/controller tests for bulk assignment and team overview behavior
+- [x] Verified backend build and CA task tests pass after fixing unrelated dashboard/matching imports
+
+## Phase 5: Mobile CA App, Notifications (April 3, 2026)
+- [x] Added mobile notification feed backed by backend audit recent activity
+- [x] Added unread count badge to the main mobile tab navigator
+- [x] Added dedicated mobile Notifications screen with read/unread handling
+- [x] Added home-screen shortcut to open notifications from the CA workspace
+- [x] Added settings-screen shortcut to the notifications feed
+- [x] Added notification feed service tests
+- [x] Verified mobile notification tests pass (`notification.service.spec.ts`)
+
+## Phase 2: Service Periods, Health, Aging, Docs, Command Center ✅ COMPLETE
+- [x] Service periods tracking: `updatePeriodStatus()` + period Mongoose schema
+- [x] Health score calculation: `calculateHealthScore()` with multi-factor analysis
+- [x] Health score factors: documents (5pts each), overdue payments (max 20pts), tasks (max 15pts), services (max 20pts)
+- [x] Document completeness tracking: `getCompleteness()` + required document mapping
+- [x] Command center data aggregation: `getCommandCenterData()` with task prioritization
+- [x] **AGING ANALYSIS** — New aging report features:
+  - [x] `GET /ca/payments/aging-analysis` — Receivables aged by 30/60/90/90+ days
+  - [x] Service method `getAgingAnalysis()` with bucket breakdown and client summary
+  - [x] Aging buckets: current (0-30d), thirtyToSixty (30-60d), sixtyToNinety (60-90d), ninetyPlus (90+d)
+  - [x] Average age calculation and percentage distribution per bucket
+  - [x] GroupBy client analysis: total amount, count, and max days overdue by client
+- [x] Enhanced stats endpoint: `GET /ca/clients/stats` now includes aging buckets
+- [x] **SERVICE PERIOD INSIGHTS** — New period tracking features:
+  - [x] `GET /ca/services/period-insights` — Period completion tracking across all clients
+  - [x] Service method `getPeriodInsights()` with status-based breakdown
+  - [x] Period summary: total/completed/pending/overdue/inProgress counts
+  - [x] Completion rate percentage and per-client aging
+  - [x] Grouped by status and client for targeting catch-up work
+- [x] All new code passes TypeScript strict mode compilation
+- [x] Backend build verified: clean compile of all ca-* modules
+
+  ## Phase 3: Scheduled Jobs, Alerts, Automation ✅ COMPLETE
+  - [x] Added dedicated alert automation module: `alert/alert.module.ts`
+  - [x] Added manual trigger endpoint: `POST /ca/alerts/jobs/run`
+  - [x] Added `AlertService` orchestration for periodic and morning sweeps
+  - [x] Implemented periodic automation loop (every 30 minutes)
+  - [x] Implemented daily morning sweep scheduling (8:00 AM local)
+  - [x] Added connection-scoped evaluation for CA-linked showrooms only
+  - [x] Added automated alert generation via `caosService.generateAlerts()`
+  - [x] Added knowledge-to-action task generation via `caosService.generateTasks()` + system task reconciliation
+  - [x] Added robust per-showroom error isolation in scheduler loop (one failure does not stop batch)
+  - [x] Added tests: `alert.service.spec.ts` and `alert.controller.spec.ts`
+  - [x] Verified related tests pass: 3/3 suites, 8/8 tests (`--runInBand`)

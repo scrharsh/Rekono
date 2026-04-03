@@ -12,32 +12,70 @@ function authHeaders() {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
+type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+type TaskPriority = 'high' | 'medium' | 'low';
+type TaskFilter = 'all' | 'pending' | 'in_progress' | 'completed';
+
+type ClientLite = {
+  _id: string;
+  name: string;
+};
+
+type TaskItem = {
+  _id: string;
+  type: string;
+  title: string;
+  description?: string;
+  clientId?: string | ClientLite;
+  priority: TaskPriority;
+  status: TaskStatus;
+  dueDate?: string;
+};
+
+type TaskCreateForm = {
+  type: string;
+  title: string;
+  description: string;
+  clientId: string;
+  priority: TaskPriority;
+  dueDate: string;
+};
+
+const DEFAULT_ADD_FORM: TaskCreateForm = {
+  type: 'custom',
+  title: '',
+  description: '',
+  clientId: '',
+  priority: 'medium',
+  dueDate: '',
+};
+
 export default function TasksPage() {
   const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
-  const [filter, setFilter] = useState('all');
-  const [addForm, setAddForm] = useState({ title: '', description: '', clientId: '', priority: 'medium', dueDate: '' });
+  const [filter, setFilter] = useState<TaskFilter>('all');
+  const [addForm, setAddForm] = useState<TaskCreateForm>(DEFAULT_ADD_FORM);
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: tasks = [], isLoading } = useQuery<TaskItem[]>({
     queryKey: ['ca-tasks'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/v1/ca/tasks`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return res.json() as Promise<TaskItem[]>;
     },
   });
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<ClientLite[]>({
     queryKey: ['ca-clients-list'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/v1/ca/clients`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return res.json() as Promise<ClientLite[]>;
     },
   });
 
   const addMutation = useMutation({
-    mutationFn: async (body: any) => {
+    mutationFn: async (body: TaskCreateForm) => {
       const res = await fetch(`${API_URL}/v1/ca/tasks`, {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify(body),
@@ -45,11 +83,11 @@ export default function TasksPage() {
       if (!res.ok) throw new Error('Failed');
       return res.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ca-tasks'] }); setShowAdd(false); setAddForm({ title: '', description: '', clientId: '', priority: 'medium', dueDate: '' }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['ca-tasks'] }); setShowAdd(false); setAddForm(DEFAULT_ADD_FORM); },
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status }: { id: string; status: TaskStatus }) => {
       const res = await fetch(`${API_URL}/v1/ca/tasks/${id}/status`, {
         method: 'PUT', headers: authHeaders(),
         body: JSON.stringify({ status }),
@@ -61,16 +99,29 @@ export default function TasksPage() {
   });
 
   const filtered = filter === 'all' ? tasks
-    : filter === 'pending' ? tasks.filter((t: any) => t.status === 'pending')
-    : filter === 'in_progress' ? tasks.filter((t: any) => t.status === 'in_progress')
-    : tasks.filter((t: any) => t.status === 'completed');
+    : filter === 'pending' ? tasks.filter((t) => t.status === 'pending')
+    : filter === 'in_progress' ? tasks.filter((t) => t.status === 'in_progress')
+    : tasks.filter((t) => t.status === 'completed');
 
   const counts = {
     all: tasks.length,
-    pending: tasks.filter((t: any) => t.status === 'pending').length,
-    in_progress: tasks.filter((t: any) => t.status === 'in_progress').length,
-    completed: tasks.filter((t: any) => t.status === 'completed').length,
+    pending: tasks.filter((t) => t.status === 'pending').length,
+    in_progress: tasks.filter((t) => t.status === 'in_progress').length,
+    completed: tasks.filter((t) => t.status === 'completed').length,
   };
+
+  const getClientName = (clientRef?: string | ClientLite) => {
+    if (!clientRef) return '';
+    const clientId = typeof clientRef === 'string' ? clientRef : clientRef._id;
+    return clients.find((c) => c._id === clientId)?.name || '';
+  };
+
+  const tabs: Array<{ id: TaskFilter; label: string }> = [
+    { id: 'all', label: `All (${counts.all})` },
+    { id: 'pending', label: `Pending (${counts.pending})` },
+    { id: 'in_progress', label: `In Progress (${counts.in_progress})` },
+    { id: 'completed', label: `Done (${counts.completed})` },
+  ];
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -86,12 +137,7 @@ export default function TasksPage() {
 
       {/* Filter tabs */}
       <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--surface-high)' }}>
-        {[
-          { id: 'all', label: `All (${counts.all})` },
-          { id: 'pending', label: `Pending (${counts.pending})` },
-          { id: 'in_progress', label: `In Progress (${counts.in_progress})` },
-          { id: 'completed', label: `Done (${counts.completed})` },
-        ].map(tab => (
+        {tabs.map((tab) => (
           <button key={tab.id}
             onClick={() => setFilter(tab.id)}
             className="flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all"
@@ -113,6 +159,26 @@ export default function TasksPage() {
             <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--on-surface)' }}>Create Task</h2>
             <form onSubmit={e => { e.preventDefault(); addMutation.mutate(addForm); }} className="space-y-4">
               <div>
+                <label className="input-label">Task Type *</label>
+                <select className="input" value={addForm.type} required
+                  onChange={e => setAddForm(p => ({ ...p, type: e.target.value }))}>
+                  <option value="review_unmatched">Review Unmatched</option>
+                  <option value="review_high_value">Review High Value</option>
+                  <option value="gstr1_filing">GSTR-1 Filing</option>
+                  <option value="gstr3b_filing">GSTR-3B Filing</option>
+                  <option value="income_tax_return">Income Tax Return</option>
+                  <option value="tds_return">TDS Return</option>
+                  <option value="gst_mismatch">GST Mismatch</option>
+                  <option value="missing_invoice">Missing Invoice</option>
+                  <option value="missing_document">Missing Document</option>
+                  <option value="payment_followup">Payment Follow-up</option>
+                  <option value="client_data_request">Client Data Request</option>
+                  <option value="compliance_check">Compliance Check</option>
+                  <option value="registration">Registration</option>
+                  <option value="custom">Custom Task</option>
+                </select>
+              </div>
+              <div>
                 <label className="input-label">Title *</label>
                 <input className="input" value={addForm.title} required
                   onChange={e => setAddForm(p => ({ ...p, title: e.target.value }))}
@@ -130,13 +196,13 @@ export default function TasksPage() {
                   <select className="input" value={addForm.clientId}
                     onChange={e => setAddForm(p => ({ ...p, clientId: e.target.value }))}>
                     <option value="">General task</option>
-                    {clients.map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                    {clients.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="input-label">Priority</label>
                   <select className="input" value={addForm.priority}
-                    onChange={e => setAddForm(p => ({ ...p, priority: e.target.value }))}>
+                    onChange={e => setAddForm(p => ({ ...p, priority: e.target.value as TaskPriority }))}>
                     <option value="high">High</option>
                     <option value="medium">Medium</option>
                     <option value="low">Low</option>
@@ -171,7 +237,7 @@ export default function TasksPage() {
         />
       ) : (
         <div className="space-y-2 stagger-children">
-          {filtered.map((task: any) => {
+          {filtered.map((task) => {
             const priorityClass = task.priority === 'high' ? 'focus-card-urgent' : task.priority === 'medium' ? 'focus-card-warning' : 'focus-card-normal';
             return (
               <div key={task._id} className={`focus-card ${priorityClass}`}>
@@ -206,7 +272,7 @@ export default function TasksPage() {
                       <div className="flex items-center gap-3 mt-1.5">
                         {task.clientId && (
                           <span className="text-xs" style={{ color: 'var(--on-surface-variant)' }}>
-                            {clients.find((c: any) => c._id === (task.clientId?._id || task.clientId))?.name || ''}
+                            {getClientName(task.clientId)}
                           </span>
                         )}
                         {task.dueDate && (

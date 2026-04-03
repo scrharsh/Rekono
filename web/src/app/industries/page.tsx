@@ -1,12 +1,9 @@
 import Link from 'next/link';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import BrandLogoLink from '@/components/BrandLogoLink';
-
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] });
 
 export default function IndustriesPage() {
   return (
-    <div className={`${jakarta.className} min-h-screen bg-[#f5f9ff] text-[#0f2347]`}>
+    <div className="min-h-screen bg-[#f5f9ff] text-[#0f2347]">
       {/* Announcement Bar */}
       <div className="bg-[#0b57d0] px-4 py-2.5 text-center text-xs text-white sm:text-sm font-medium">
         Rekono: Business reconciliation OS for Indian businesses and CAs
@@ -40,7 +37,7 @@ export default function IndustriesPage() {
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0b57d0]">Built for Indian Business</p>
           <h1 className="mt-4 text-4xl font-bold text-[#142b57] sm:text-5xl">Tailored for your industry</h1>
-          <p className="mt-6 max-w-2xl mx-auto text-lg text-[#4f71a5]">Rekono adapts to your business model. Retail, services, agencies, or CA practices—we've optimized every workflow.</p>
+          <p className="mt-6 max-w-2xl mx-auto text-lg text-[#4f71a5]">Rekono adapts to your business model. Retail, services, agencies, or CA practices-we&apos;ve optimized every workflow.</p>
         </div>
       </section>
 

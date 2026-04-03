@@ -8,6 +8,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { saveSale, LocalSaleEntry } from '../services/database.service';
 import uuid from 'react-native-uuid';
 import { CatalogItem, fetchCatalogItems } from '../services/businessProfile.service';
+import colors from '../constants/colors';
 
 type SaleMode = 'quick' | 'detailed' | 'session';
 type ValidGst = 0 | 5 | 12 | 18 | 28;
@@ -162,9 +163,9 @@ export default function SaleEntryScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
       <View style={s.header}>
-        <Text style={s.title}>New Sale Entry</Text>
+        <Text style={s.title}>Create Sale</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Catalog')}>
           <Text style={s.headerLink}>Catalog</Text>
         </TouchableOpacity>
@@ -319,51 +320,51 @@ export default function SaleEntryScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  container: { flex: 1, backgroundColor: colors.surface },
   header: { 
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#ffffff', padding: 20, paddingTop: 48,
+    backgroundColor: colors.surfaceContainer, padding: 20, paddingTop: 48,
   },
-  title: { fontSize: 20, fontWeight: '700', color: '#102135' },
-  headerLink: { fontSize: 15, color: '#1f5eff', fontWeight: '600' },
-  tabs: { flexDirection: 'row', backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#d7e1ee' },
+  title: { fontSize: 20, fontWeight: '700', color: colors.onSurface },
+  headerLink: { fontSize: 15, color: colors.primary, fontWeight: '600' },
+  tabs: { flexDirection: 'row', backgroundColor: colors.surfaceContainer, borderBottomWidth: 1, borderBottomColor: colors.outlineLighter },
   tab: { flex: 1, paddingVertical: 14, alignItems: 'center' },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: '#1f5eff' },
-  tabText: { fontSize: 14, color: '#5f6b7d', fontWeight: '500' },
-  tabTextActive: { color: '#102135', fontWeight: '700' },
+  tabActive: { borderBottomWidth: 2, borderBottomColor: colors.primary },
+  tabText: { fontSize: 14, color: colors.onSurfaceVariant, fontWeight: '500' },
+  tabTextActive: { color: colors.onSurface, fontWeight: '700' },
   scrollContent: { paddingBottom: 40 },
   form: { padding: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#102135', marginTop: 16, marginBottom: 12 },
-  label: { fontSize: 14, fontWeight: '600', color: '#5f6b7d', marginBottom: 8 },
-  hint: { fontSize: 13, color: '#94a3b8', marginBottom: 16 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: colors.onSurface, marginTop: 16, marginBottom: 12 },
+  label: { fontSize: 14, fontWeight: '600', color: colors.onSurfaceVariant, marginBottom: 8 },
+  hint: { fontSize: 13, color: colors.onSurfaceVariant, marginBottom: 16 },
   input: { 
-    backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#d7e1ee', 
-    borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 12, color: '#102135' 
+    backgroundColor: colors.surfaceContainer, borderWidth: 1, borderColor: colors.outlineLighter, 
+    borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 12, color: colors.onSurface 
   },
   inputBig: { 
-    backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#1f5eff', 
-    borderRadius: 16, padding: 20, fontSize: 32, fontWeight: '700', marginBottom: 20, color: '#102135',
+    backgroundColor: colors.surfaceContainer, borderWidth: 1, borderColor: colors.primary, 
+    borderRadius: 16, padding: 20, fontSize: 32, fontWeight: '700', marginBottom: 20, color: colors.onSurface,
     textAlign: 'center'
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#d7e1ee' },
-  chipSmall: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, backgroundColor: '#e9f0ff', borderWidth: 1, borderColor: '#d7e1ee' },
-  chipActive: { backgroundColor: '#1f5eff', borderColor: '#1f5eff' },
-  chipText: { fontSize: 14, color: '#5f6b7d', fontWeight: '500' },
-  chipTextActive: { color: '#ffffff', fontWeight: '700' },
-  btn: { backgroundColor: '#1f5eff', padding: 18, borderRadius: 14, alignItems: 'center', marginTop: 12 },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: colors.surfaceContainer, borderWidth: 1, borderColor: colors.outlineLighter },
+  chipSmall: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, backgroundColor: colors.surfaceHigh, borderWidth: 1, borderColor: colors.outlineLighter },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { fontSize: 14, color: colors.onSurfaceVariant, fontWeight: '500' },
+  chipTextActive: { color: colors.white, fontWeight: '700' },
+  btn: { backgroundColor: colors.primary, padding: 18, borderRadius: 14, alignItems: 'center', marginTop: 12 },
   btnDisabled: { opacity: 0.6 },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  outlineBtn: { borderWidth: 1, borderColor: '#d7e1ee', backgroundColor: '#f5f8fc', padding: 14, borderRadius: 12, alignItems: 'center', marginBottom: 16 },
-  outlineBtnText: { color: '#102135', fontSize: 15, fontWeight: '600' },
-  itemRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f8fc', padding: 16, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#d7e1ee' },
-  itemName: { fontSize: 15, fontWeight: '600', color: '#102135', marginBottom: 4 },
-  itemMeta: { fontSize: 13, color: '#5f6b7d' },
-  itemAmt: { fontSize: 18, fontWeight: '700', color: '#102135', marginLeft: 'auto' },
+  btnText: { color: colors.white, fontSize: 16, fontWeight: '700' },
+  outlineBtn: { borderWidth: 1, borderColor: colors.outlineLighter, backgroundColor: colors.surface, padding: 14, borderRadius: 12, alignItems: 'center', marginBottom: 16 },
+  outlineBtnText: { color: colors.onSurface, fontSize: 15, fontWeight: '600' },
+  itemRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, padding: 16, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: colors.outlineLighter },
+  itemName: { fontSize: 15, fontWeight: '600', color: colors.onSurface, marginBottom: 4 },
+  itemMeta: { fontSize: 13, color: colors.onSurfaceVariant },
+  itemAmt: { fontSize: 18, fontWeight: '700', color: colors.onSurface, marginLeft: 'auto' },
   removeBtn: { padding: 8, marginLeft: 4 },
-  addItemBox: { backgroundColor: 'rgba(31,94,255,0.05)', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#d7e1ee', marginBottom: 16 },
+  addItemBox: { backgroundColor: 'rgba(31,94,255,0.05)', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.outlineLighter, marginBottom: 16 },
   row: { flexDirection: 'row' },
-  summary: { backgroundColor: '#f5f8fc', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#1f5eff' },
-  summaryLabel: { fontSize: 14, color: '#5f6b7d', textAlign: 'center', marginBottom: 4 },
-  summaryText: { fontSize: 32, fontWeight: '800', color: '#102135', marginBottom: 16, textAlign: 'center', letterSpacing: -0.5 },
+  summary: { backgroundColor: colors.surface, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: colors.primary },
+  summaryLabel: { fontSize: 14, color: colors.onSurfaceVariant, textAlign: 'center', marginBottom: 4 },
+  summaryText: { fontSize: 32, fontWeight: '800', color: colors.onSurface, marginBottom: 16, textAlign: 'center', letterSpacing: -0.5 },
 });

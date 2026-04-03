@@ -1,13 +1,10 @@
 import Link from 'next/link';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import Icon from '@/components/Icon';
 import BrandLogoLink from '@/components/BrandLogoLink';
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] });
-
 export default function FeaturesPage() {
   return (
-    <div className={`${jakarta.className} min-h-screen bg-[#f5f9ff] text-[#0f2347]`}>
+    <div className="min-h-screen bg-[#f5f9ff] text-[#0f2347]">
       {/* Announcement Bar */}
       <div className="bg-[#0b57d0] px-4 py-2.5 text-center text-xs text-white sm:text-sm font-medium">
         Rekono: Business reconciliation OS for Indian businesses and CAs

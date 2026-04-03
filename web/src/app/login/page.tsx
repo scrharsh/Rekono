@@ -3,11 +3,8 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import { useAuth } from '@/contexts/AuthContext';
 import BrandLogoLink from '@/components/BrandLogoLink';
-
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] });
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -45,7 +42,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`${jakarta.className} h-screen overflow-hidden flex bg-[#f5f9ff] text-[#0f2347]`}>
+    <div className="h-screen overflow-hidden flex bg-[#f5f9ff] text-[#0f2347]">
       {/* Left Panel — Brand */}
       <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-10"
         style={{ background: 'linear-gradient(135deg, #0b57d0 0%, #0e7ef0 100%)' }}>

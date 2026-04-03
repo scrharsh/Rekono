@@ -15,10 +15,12 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import SplashScreen from './src/screens/SplashScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
 import SubscriptionGateScreen from './src/screens/SubscriptionGateScreen';
 import { smsReceiverService } from './src/services/smsReceiver.native';
 import { hydrateBusinessContextFromServer } from './src/services/businessProfile.service';
 import { getStoredUser } from './src/services/auth.service';
+import { getUnreadNotificationCount, subscribeToNotificationChanges } from './src/services/notification.service';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -44,6 +46,40 @@ function TabGlyph({ label, color }: { label: string; color: string }) {
 }
 
 function MainTabs() {
+  const [notificationCount, setNotificationCount] = React.useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    const refreshCount = async () => {
+      try {
+        const count = await getUnreadNotificationCount(40);
+        if (active) {
+          setNotificationCount(count);
+        }
+      } catch {
+        if (active) {
+          setNotificationCount(0);
+        }
+      }
+    };
+
+    void refreshCount();
+    const unsubscribe = subscribeToNotificationChanges(() => {
+      void refreshCount();
+    });
+
+    const timer = setInterval(() => {
+      void refreshCount();
+    }, 60000);
+
+    return () => {
+      active = false;
+      unsubscribe();
+      clearInterval(timer);
+    };
+  }, []);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -81,13 +117,17 @@ function MainTabs() {
         name="Home" 
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color }) => <TabGlyph label="HM" color={color} />,
+          title: 'Workspace',
+          tabBarLabel: 'Workspace',
+          tabBarIcon: ({ color }) => <TabGlyph label="WS" color={color} />,
         }}
       />
       <Tab.Screen 
         name="Sales" 
         component={SaleEntryScreen}
         options={{
+          title: 'New Sale',
+          tabBarLabel: 'New Sale',
           tabBarIcon: ({ color }) => <TabGlyph label="SL" color={color} />,
         }}
       />
@@ -95,28 +135,46 @@ function MainTabs() {
         name="Payments" 
         component={PaymentListScreen}
         options={{
-          tabBarIcon: ({ color }) => <TabGlyph label="PY" color={color} />,
+          title: 'Payment Inbox',
+          tabBarLabel: 'Inbox',
+          tabBarIcon: ({ color }) => <TabGlyph label="PI" color={color} />,
+        }}
+      />
+      <Tab.Screen 
+        name="Notifications" 
+        component={NotificationsScreen}
+        options={{
+          title: 'Notifications',
+          tabBarLabel: 'Alerts',
+          tabBarBadge: notificationCount > 0 ? notificationCount : undefined,
+          tabBarIcon: ({ color }) => <TabGlyph label="NT" color={color} />,
         }}
       />
       <Tab.Screen 
         name="Unmatched" 
         component={UnmatchedQueueScreen}
         options={{
-          tabBarIcon: ({ color }) => <TabGlyph label="UQ" color={color} />,
+          title: 'Pending Sales',
+          tabBarLabel: 'Pending',
+          tabBarIcon: ({ color }) => <TabGlyph label="PS" color={color} />,
         }}
       />
       <Tab.Screen 
         name="Unknown" 
         component={UnknownQueueScreen}
         options={{
-          tabBarIcon: ({ color }) => <TabGlyph label="IQ" color={color} />,
+          title: 'Auto Match',
+          tabBarLabel: 'Auto Match',
+          tabBarIcon: ({ color }) => <TabGlyph label="AM" color={color} />,
         }}
       />
       <Tab.Screen 
         name="Catalog" 
         component={CatalogScreen}
         options={{
-          tabBarIcon: ({ color }) => <TabGlyph label="CT" color={color} />,
+          title: 'Saved Items',
+          tabBarLabel: 'Items',
+          tabBarIcon: ({ color }) => <TabGlyph label="IT" color={color} />,
         }}
       />
     </Tab.Navigator>

@@ -202,7 +202,7 @@ export class CaClientsService {
   async getStats(caUserId: string): Promise<any> {
     const caObjId = new Types.ObjectId(caUserId);
 
-    const [totalClients, activeClients, totalPendingPayments, highPriorityTasks] = await Promise.all([
+    const [totalClients, activeClients, totalPendingPayments, highPriorityTasks, allPayments] = await Promise.all([
       this.clientModel.countDocuments({ caUserId: caObjId }),
       this.clientModel.countDocuments({ caUserId: caObjId, status: 'active' }),
       this.paymentModel.aggregate([
@@ -210,6 +210,7 @@ export class CaClientsService {
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       this.taskModel.countDocuments({ caUserId: caObjId, status: 'pending', priority: 'high' }),
+      this.paymentModel.find({ caUserId: caObjId, status: { $in: ['pending', 'overdue'] } }),
     ]);
 
     const pendingAmount = totalPendingPayments.length > 0 ? totalPendingPayments[0].total : 0;
@@ -221,12 +222,48 @@ export class CaClientsService {
       .limit(5)
       .select('name healthScore phone');
 
+    // Calculate aging buckets
+    const now = new Date();
+    const agingBuckets = {
+      current: { label: '0-30 days', count: 0, amount: 0 },
+      thirtyToSixty: { label: '30-60 days', count: 0, amount: 0 },
+      sixtyToNinety: { label: '60-90 days', count: 0, amount: 0 },
+      ninetyPlus: { label: '90+ days', count: 0, amount: 0 },
+    };
+
+    allPayments.forEach(p => {
+      if (p.dueDate) {
+        const daysOverdue = Math.ceil((now.getTime() - p.dueDate.getTime()) / (1000 * 60 * 60 * 24));
+        const days = Math.abs(daysOverdue);
+
+        if (days <= 30) {
+          agingBuckets.current.count += 1;
+          agingBuckets.current.amount += p.amount;
+        } else if (days <= 60) {
+          agingBuckets.thirtyToSixty.count += 1;
+          agingBuckets.thirtyToSixty.amount += p.amount;
+        } else if (days <= 90) {
+          agingBuckets.sixtyToNinety.count += 1;
+          agingBuckets.sixtyToNinety.amount += p.amount;
+        } else {
+          agingBuckets.ninetyPlus.count += 1;
+          agingBuckets.ninetyPlus.amount += p.amount;
+        }
+      }
+    });
+
     return {
       totalClients,
       activeClients,
       pendingAmount,
       highPriorityTasks,
       atRiskClients,
+      agingBuckets: [
+        agingBuckets.current,
+        agingBuckets.thirtyToSixty,
+        agingBuckets.sixtyToNinety,
+        agingBuckets.ninetyPlus,
+      ],
     };
   }
 }

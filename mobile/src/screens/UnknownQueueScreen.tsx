@@ -15,6 +15,7 @@ import {
   LocalSaleEntry,
 } from '../services/database.service';
 import uuid from 'react-native-uuid';
+import colors from '../constants/colors';
 
 function ageLabel(ts: string) {
   const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
@@ -189,9 +190,9 @@ export default function UnknownQueueScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
       <View style={s.header}>
-        <Text style={s.title}>Unknown Payments</Text>
+        <Text style={s.title}>Payments Awaiting Match</Text>
         <Text style={s.subtitle}>{payments.length} without matching sales</Text>
       </View>
       <FlatList
@@ -199,7 +200,7 @@ export default function UnknownQueueScreen() {
         renderItem={renderItem}
         keyExtractor={i => i.id}
         contentContainerStyle={s.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1f5eff" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         ListEmptyComponent={
           <View style={s.empty}>
             <View style={s.emptyGlyph}><Text style={s.emptyGlyphText}>OK</Text></View>
@@ -213,39 +214,39 @@ export default function UnknownQueueScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f8fc' },
-  header: { backgroundColor: '#ffffff', padding: 20, paddingTop: 48, borderBottomWidth: 1, borderBottomColor: '#d7e1ee' },
-  title: { fontSize: 20, fontWeight: '700', color: '#102135' },
-  subtitle: { fontSize: 13, color: '#5f6b7d', marginTop: 4 },
+  container: { flex: 1, backgroundColor: colors.surface },
+  header: { backgroundColor: colors.surfaceContainer, padding: 20, paddingTop: 48, borderBottomWidth: 1, borderBottomColor: colors.outlineLighter },
+  title: { fontSize: 20, fontWeight: '700', color: colors.onSurface },
+  subtitle: { fontSize: 13, color: colors.onSurfaceVariant, marginTop: 4 },
   list: { padding: 16 },
-  card: { backgroundColor: '#ffffff', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#d7e1ee', elevation: 1 },
+  card: { backgroundColor: colors.surfaceContainer, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: colors.outlineLighter, elevation: 1 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  methodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#e9f0ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  methodIcon: { fontSize: 10, fontWeight: '800', color: '#334155', letterSpacing: 0.5 },
-  methodText: { fontSize: 13, fontWeight: '600', color: '#102135' },
-  age: { fontSize: 12, color: '#f59e0b', fontWeight: '600', backgroundColor: 'rgba(245, 158, 11, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
-  ageOld: { color: '#ffb4ab', backgroundColor: 'rgba(255, 180, 171, 0.1)' },
-  amount: { fontSize: 28, fontWeight: '800', color: '#102135', marginBottom: 4, letterSpacing: -0.5 },
-  time: { fontSize: 12, color: '#94a3b8', marginBottom: 4 },
-  txn: { fontSize: 12, color: '#94a3b8', fontFamily: 'monospace', marginBottom: 6 },
-  meta: { fontSize: 14, color: '#5f6b7d', marginBottom: 16, fontWeight: '500' },
+  methodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.surfaceHigh, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  methodIcon: { fontSize: 10, fontWeight: '800', color: colors.onSurfaceVariant, letterSpacing: 0.5 },
+  methodText: { fontSize: 13, fontWeight: '600', color: colors.onSurface },
+  age: { fontSize: 12, color: colors.warning, fontWeight: '600', backgroundColor: 'rgba(245, 158, 11, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
+  ageOld: { color: colors.errorLight, backgroundColor: 'rgba(255, 180, 171, 0.1)' },
+  amount: { fontSize: 28, fontWeight: '800', color: colors.onSurface, marginBottom: 4, letterSpacing: -0.5 },
+  time: { fontSize: 12, color: colors.onSurfaceVariant, marginBottom: 4 },
+  txn: { fontSize: 12, color: colors.onSurfaceVariant, fontFamily: 'monospace', marginBottom: 6 },
+  meta: { fontSize: 14, color: colors.onSurfaceVariant, marginBottom: 16, fontWeight: '500' },
   actions: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  btnPrimary: { flex: 2, backgroundColor: '#1f5eff', padding: 14, borderRadius: 10, alignItems: 'center' },
+  btnPrimary: { flex: 2, backgroundColor: colors.primary, padding: 14, borderRadius: 10, alignItems: 'center' },
   btnDisabled: { opacity: 0.65 },
-  btnPrimaryText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-  btnOutline: { flex: 1, borderWidth: 1, borderColor: '#d7e1ee', backgroundColor: '#f5f8fc', padding: 14, borderRadius: 10, alignItems: 'center' },
-  btnOutlineText: { color: '#5f6b7d', fontSize: 14, fontWeight: '600' },
+  btnPrimaryText: { color: colors.white, fontSize: 14, fontWeight: '600' },
+  btnOutline: { flex: 1, borderWidth: 1, borderColor: colors.outlineLighter, backgroundColor: colors.surface, padding: 14, borderRadius: 10, alignItems: 'center' },
+  btnOutlineText: { color: colors.onSurfaceVariant, fontSize: 14, fontWeight: '600' },
   empty: { padding: 48, paddingTop: 64, alignItems: 'center' },
   emptyGlyph: {
     width: 64,
     height: 64,
     borderRadius: 20,
     marginBottom: 16,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: colors.surfaceHigh,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyGlyphText: { fontSize: 16, fontWeight: '800', color: '#334155', letterSpacing: 0.7 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#102135', marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#5f6b7d' },
+  emptyGlyphText: { fontSize: 16, fontWeight: '800', color: colors.onSurfaceVariant, letterSpacing: 0.7 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.onSurface, marginBottom: 4 },
+  emptyText: { fontSize: 14, color: colors.onSurfaceVariant },
 });

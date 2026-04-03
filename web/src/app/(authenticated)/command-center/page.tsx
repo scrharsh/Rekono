@@ -18,7 +18,7 @@ export default function CommandCenterPage() {
   const { data: commandCenter, isLoading } = useQuery({
     queryKey: ['command-center'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/v1/ca-tasks/command-center`, { headers: authHeaders() });
+      const res = await fetch(`${API_URL}/v1/ca/tasks/command-center`, { headers: authHeaders() });
       if (!res.ok) return null;
       return res.json();
     },

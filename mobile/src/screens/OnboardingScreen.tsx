@@ -11,6 +11,7 @@ import {
   refreshAccessToken,
   upsertBusinessProfile,
 } from '../services/businessProfile.service';
+import colors from '../constants/colors';
 
 const MODES = [
   { id: 'retail', label: 'Retail Store', desc: 'Fast billing, standard items' },
@@ -67,7 +68,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f8fc" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
       <View style={s.topGlow} />
       <View style={s.progressWrap}>
         <View style={s.progressTrack}>
@@ -88,7 +89,7 @@ export default function OnboardingScreen() {
             <TextInput
               style={s.input}
               placeholder="e.g. Sharma Electronics"
-              placeholderTextColor="#d7e1ee"
+              placeholderTextColor={colors.outlineLighter}
               value={businessName}
               onChangeText={setBusinessName}
             />
@@ -146,7 +147,7 @@ export default function OnboardingScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f8fc' },
+  container: { flex: 1, backgroundColor: colors.surface },
   topGlow: {
     position: 'absolute',
     top: 20,
@@ -160,73 +161,73 @@ const s = StyleSheet.create({
   progressTrack: {
     height: 8,
     borderRadius: 999,
-    backgroundColor: '#d7e1ee',
+    backgroundColor: colors.outlineLighter,
     overflow: 'hidden',
   },
   progressFill: {
     height: 8,
     borderRadius: 999,
-    backgroundColor: '#1f5eff',
+    backgroundColor: colors.primary,
   },
-  progressText: { color: '#5f6b7d', fontSize: 12, fontWeight: '700', marginTop: 8 },
+  progressText: { color: colors.onSurfaceVariant, fontSize: 12, fontWeight: '700', marginTop: 8 },
   content: { flex: 1, padding: 24, paddingTop: 14 },
   heroCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surfaceContainer,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
     padding: 16,
     marginBottom: 18,
   },
-  title: { fontSize: 28, fontWeight: '700', color: '#102135', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#5f6b7d', lineHeight: 22 },
-  inputContainer: { marginBottom: 24, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#d7e1ee', borderRadius: 16, padding: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#102135', marginBottom: 12 },
+  title: { fontSize: 28, fontWeight: '700', color: colors.onSurface, marginBottom: 8 },
+  subtitle: { fontSize: 15, color: colors.onSurfaceVariant, lineHeight: 22 },
+  inputContainer: { marginBottom: 24, backgroundColor: colors.surfaceContainer, borderWidth: 1, borderColor: colors.outlineLighter, borderRadius: 16, padding: 16 },
+  label: { fontSize: 14, fontWeight: '600', color: colors.onSurface, marginBottom: 12 },
   input: {
-    backgroundColor: '#f7f9fc',
+    backgroundColor: colors.surfaceLow,
     borderRadius: 12,
     padding: 16,
-    color: '#102135',
+    color: colors.onSurface,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
   },
   modesList: { flex: 1 },
   modeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.surfaceContainer,
     padding: 16,
     borderRadius: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#d7e1ee',
+    borderColor: colors.outlineLighter,
   },
   modeCardSelected: {
-    backgroundColor: '#eef4ff',
-    borderColor: '#1f5eff',
+    backgroundColor: colors.surfaceHighest,
+    borderColor: colors.primary,
   },
   modeInfo: { flex: 1 },
-  modeLabel: { fontSize: 16, fontWeight: '600', color: '#102135', marginBottom: 4 },
-  modeDesc: { fontSize: 13, color: '#5f6b7d' },
+  modeLabel: { fontSize: 16, fontWeight: '600', color: colors.onSurface, marginBottom: 4 },
+  modeDesc: { fontSize: 13, color: colors.onSurfaceVariant },
   radio: {
     width: 24, height: 24, borderRadius: 12,
-    borderWidth: 2, borderColor: '#c8d3e0',
+    borderWidth: 2, borderColor: colors.outlineLighter,
     alignItems: 'center', justifyContent: 'center'
   },
-  radioSelected: { borderColor: '#1f5eff' },
-  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#1f5eff' },
+  radioSelected: { borderColor: colors.primary },
+  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary },
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#f5f8fc', padding: 24,
-    borderTopWidth: 1, borderTopColor: '#d7e1ee'
+    backgroundColor: colors.surface, padding: 24,
+    borderTopWidth: 1, borderTopColor: colors.outlineLighter
   },
   primaryBtn: {
-    backgroundColor: '#1f5eff',
+    backgroundColor: colors.primary,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
   },
-  disabledBtn: { backgroundColor: '#d7e1ee', opacity: 0.7 },
-  primaryBtnText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
+  disabledBtn: { backgroundColor: colors.outlineLighter, opacity: 0.7 },
+  primaryBtnText: { color: colors.white, fontSize: 16, fontWeight: '600' },
 });

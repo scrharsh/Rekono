@@ -71,6 +71,9 @@ export class AuditInterceptor implements NestInterceptor {
   }
 
   private inferAction(method: string, routePath: string): string {
+    if (routePath.includes('/tasks') && routePath.includes('/assign') && method === 'POST') return 'assign';
+    if (routePath.includes('/tasks') && routePath.includes('/bulk-assign') && method === 'POST') return 'bulk_assign';
+    if (routePath.includes('/tasks') && routePath.includes('/reassign') && method === 'POST') return 'reassign';
     if (routePath.includes('/matches') && method === 'POST') return 'match';
     if (routePath.includes('/matches') && method === 'DELETE') return 'unmatch';
     if (routePath.includes('/status') && (method === 'PUT' || method === 'PATCH')) {
