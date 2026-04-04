@@ -3,5 +3,13 @@
   "compilerOptions": {
     "types": ["node", "multer"]
   },
-  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts", "**/*.test.ts", "src/test-globals.d.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "src/test-utils/**/*",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "src/test-globals.d.ts"
+  ]
 }
