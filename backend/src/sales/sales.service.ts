@@ -20,7 +20,7 @@ export class SalesService {
       ...createSaleDto,
       showroomId,
       createdBy: userId,
-      status: 'pending',
+      status: 'unmatched',
       matchedPaymentIds: [],
     });
     return sale.save();

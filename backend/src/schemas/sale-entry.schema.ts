@@ -64,6 +64,7 @@ export class SaleEntry {
   @Prop({
     default: 'unmatched',
     enum: ['unmatched', 'matched', 'partial', 'verified', 'discrepancy'],
+    set: (value: string) => (value === 'pending' ? 'unmatched' : value),
   })
   status: string;
 
