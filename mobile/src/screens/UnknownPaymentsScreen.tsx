@@ -82,7 +82,7 @@ export default function UnknownPaymentsScreen() {
       <FlatList
         data={payments}
         renderItem={renderItem}
-        keyExtractor={i => i.id}
+        keyExtractor={(item: LocalPaymentRecord) => item.id}
         contentContainerStyle={s.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         ListEmptyComponent={

@@ -11,7 +11,7 @@
     "test:cov": "jest --coverage --passWithNoTests"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.20.0",
+    "@tanstack/react-query": "^5.96.2",
     "date-fns": "^3.3.0",
     "next": "^14.2.0",
     "react": "^18.2.0",
