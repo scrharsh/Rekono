@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
+  View, Text, StyleSheet, FlatList,
   RefreshControl, Alert, StatusBar
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';

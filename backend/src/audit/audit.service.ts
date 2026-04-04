@@ -5,9 +5,7 @@ import { AuditLog, AuditLogDocument } from '../schemas/audit-log.schema';
 
 @Injectable()
 export class AuditService {
-  constructor(
-    @InjectModel(AuditLog.name) private auditModel: Model<AuditLogDocument>,
-  ) {}
+  constructor(@InjectModel(AuditLog.name) private auditModel: Model<AuditLogDocument>) {}
 
   async log(params: {
     entityType: string;

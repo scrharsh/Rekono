@@ -23,15 +23,12 @@ describe('CaTasksController', () => {
   it('forwards bulk assignment requests to the service', async () => {
     service.bulkAssignTasks.mockResolvedValue(['task-1']);
 
-    const result = await controller.bulkAssignTasks(
-      { user: { userId: 'ca-1' } } as any,
-      {
-        taskIds: ['task-1'],
-        assignedToUserId: 'user-1',
-        assignedToName: 'Team Member',
-        dueDate: '2025-01-01T00:00:00.000Z',
-      },
-    );
+    const result = await controller.bulkAssignTasks({ user: { userId: 'ca-1' } } as any, {
+      taskIds: ['task-1'],
+      assignedToUserId: 'user-1',
+      assignedToName: 'Team Member',
+      dueDate: '2025-01-01T00:00:00.000Z',
+    });
 
     expect(result).toEqual(['task-1']);
     expect(service.bulkAssignTasks).toHaveBeenCalledWith(

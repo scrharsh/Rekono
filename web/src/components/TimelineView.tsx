@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { API_URL } from '@/lib/api';
 import MotionEmptyState from './MotionEmptyState';
 
 interface TimelineEvent {
@@ -14,8 +15,6 @@ interface TimelineEvent {
 }
 
 interface TimelineViewProps { showroomId: string; }
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 const STATUS_CONFIG = {
   completed: { dot: 'bg-success', badge: 'badge-green',  label: 'Completed' },

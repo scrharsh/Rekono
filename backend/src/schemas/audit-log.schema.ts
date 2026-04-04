@@ -16,13 +16,42 @@ class ChangeRecord {
 
 @Schema({ timestamps: true, collection: 'audit_logs' })
 export class AuditLog {
-  @Prop({ required: true, enum: ['match', 'sale_entry', 'payment_record', 'invoice', 'catalog_item', 'ca_client', 'ca_service', 'ca_payment', 'ca_document', 'ca_task', 'business_profile'] })
+  @Prop({
+    required: true,
+    enum: [
+      'match',
+      'sale_entry',
+      'payment_record',
+      'invoice',
+      'catalog_item',
+      'ca_client',
+      'ca_service',
+      'ca_payment',
+      'ca_document',
+      'ca_task',
+      'business_profile',
+    ],
+  })
   entityType: string;
 
   @Prop({ required: true, type: Types.ObjectId })
   entityId: Types.ObjectId;
 
-  @Prop({ required: true, enum: ['create', 'update', 'delete', 'status_change', 'match', 'unmatch', 'verify', 'assign', 'bulk_assign', 'reassign'] })
+  @Prop({
+    required: true,
+    enum: [
+      'create',
+      'update',
+      'delete',
+      'status_change',
+      'match',
+      'unmatch',
+      'verify',
+      'assign',
+      'bulk_assign',
+      'reassign',
+    ],
+  })
   action: string;
 
   @Prop({ type: [ChangeRecord], default: [] })

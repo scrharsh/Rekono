@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import MotionEmptyState from '@/components/MotionEmptyState';
 import LottieLoader from '@/components/LottieLoader';
 import Icon from '@/components/Icon';
+import { API_URL } from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };

@@ -32,7 +32,9 @@ describe('PaymentsController', () => {
     const payment = { _id: 'payment-1' };
     paymentsService.create.mockResolvedValue(payment);
     matchingService.autoMatch.mockResolvedValue(true);
-    matchingService.findMatches.mockResolvedValue([{ saleEntry: { _id: 'sale-1' }, confidence: 95 }]);
+    matchingService.findMatches.mockResolvedValue([
+      { saleEntry: { _id: 'sale-1' }, confidence: 95 },
+    ]);
 
     const result = await controller.create(
       'showroom-1',
@@ -51,7 +53,10 @@ describe('PaymentsController', () => {
     );
     expect(matchingService.autoMatch).toHaveBeenCalledWith(payment);
     expect(matchingService.findMatches).toHaveBeenCalledWith(payment);
-    expect(result).toEqual({ payment, matches: [{ saleEntry: { _id: 'sale-1' }, confidence: 95 }] });
+    expect(result).toEqual({
+      payment,
+      matches: [{ saleEntry: { _id: 'sale-1' }, confidence: 95 }],
+    });
   });
 
   it('parses SMS and creates a payment record from the parsed payload', async () => {

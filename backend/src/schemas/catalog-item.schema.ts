@@ -19,6 +19,9 @@ class ItemAttributes {
   @Prop()
   unit?: string;
 
+  @Prop()
+  serialNumber?: string;
+
   @Prop({ type: Map, of: String })
   custom?: Map<string, string>;
 }

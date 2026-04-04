@@ -38,7 +38,9 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const ttl = Number(configService.get('THROTTLE_TTL_MS') ?? configService.get('THROTTLE_TTL') ?? 60000);
+        const ttl = Number(
+          configService.get('THROTTLE_TTL_MS') ?? configService.get('THROTTLE_TTL') ?? 60000,
+        );
         const limit = Number(configService.get('THROTTLE_LIMIT') ?? 100);
 
         return [

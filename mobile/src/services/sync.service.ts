@@ -8,8 +8,7 @@ import {
   LocalPaymentRecord,
 } from './database.service';
 import { selectClosestByAmountAndTime } from './reconciliation.util';
-
-const API_URL = 'http://10.0.2.2:3000/v1'; // Android emulator → localhost
+import { API_URL } from '../constants/api';
 
 let syncInterval: ReturnType<typeof setInterval> | null = null;
 let retryCount = 0;

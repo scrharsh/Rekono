@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://10.0.2.2:3000/v1';
+import { API_URL } from '../constants/api';
 
 export type BusinessMode = 'retail' | 'wholesale' | 'services' | 'agency' | 'workshop' | 'mixed';
 

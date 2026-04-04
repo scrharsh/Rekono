@@ -2,11 +2,12 @@ import { Controller, Get, Param, UseGuards, HttpStatus, HttpException } from '@n
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { QueuesService } from './queues.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ShowroomAccessGuard } from '../auth/guards/showroom-access.guard';
 
 @ApiTags('queues')
 @ApiBearerAuth()
 @Controller('showrooms')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ShowroomAccessGuard)
 export class QueuesController {
   constructor(private readonly queuesService: QueuesService) {}
 

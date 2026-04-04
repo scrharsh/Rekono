@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CaServicesService } from './ca-services.service';
@@ -61,7 +72,13 @@ export class CaServicesController {
     @Param('id') id: string,
     @Body() body: { period: string; status: string; notes?: string },
   ) {
-    return this.caServicesService.updatePeriodStatus(req.user.userId, id, body.period, body.status, body.notes);
+    return this.caServicesService.updatePeriodStatus(
+      req.user.userId,
+      id,
+      body.period,
+      body.status,
+      body.notes,
+    );
   }
 
   @Delete(':id')

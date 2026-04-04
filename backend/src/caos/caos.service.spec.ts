@@ -42,7 +42,11 @@ describe('CaosService', () => {
   it('acknowledges only within allowed showroom scope', async () => {
     alertModel.updateOne.mockResolvedValue({ modifiedCount: 1, upsertedCount: 0 });
 
-    const result = await service.acknowledgeAlert('alert-1', ['showroom-1', 'showroom-2'], 'resolved');
+    const result = await service.acknowledgeAlert(
+      'alert-1',
+      ['showroom-1', 'showroom-2'],
+      'resolved',
+    );
 
     expect(alertModel.updateOne).toHaveBeenCalledWith(
       {

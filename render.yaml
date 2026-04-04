@@ -31,3 +31,7 @@ services:
         value: false
       - key: PAYMENT_WEBHOOK_SECRET
         sync: false
+      - key: RAZORPAY_PAYMENT_WEBHOOK_SECRET
+        sync: false
+      - key: PHONEPE_WEBHOOK_SECRET
+        sync: false

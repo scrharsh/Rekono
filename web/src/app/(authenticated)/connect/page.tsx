@@ -3,9 +3,8 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { API_URL } from '@/lib/api';
 import MotionEmptyState from '@/components/MotionEmptyState';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 function authHeaders(token: string | null) {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -99,19 +98,19 @@ export default function ConnectCAPage() {
     <div className="animate-fade-in">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Connect to CA</h1>
-          <p className="page-subtitle">Link your showroom with your Chartered Accountant on Rekono</p>
+          <h1 className="page-title">Connect your business</h1>
+          <p className="page-subtitle">Link your store, agency, or business with your Chartered Accountant on Rekono</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Search & Connect */}
         <div className="card card-body space-y-5">
-          <h3 className="card-title">Find your CA</h3>
+          <h3 className="card-title">Find your CA partner</h3>
 
           <div className="input-group">
-            <label className="input-label">Your Showroom ID</label>
-            <input className="input" placeholder="Enter your showroom ID"
+            <label className="input-label">Your Business ID</label>
+            <input className="input" placeholder="Enter your business ID"
               value={showroomId} onChange={e => setShowroomId(e.target.value)} />
           </div>
 
@@ -146,13 +145,13 @@ export default function ConnectCAPage() {
                     <p className="font-bold text-slate-800 text-base tracking-tight">{searchResult.username}</p>
                     <span className="badge-green shadow-sm">Verified CA</span>
                   </div>
-                  <p className="text-sm text-slate-500 mt-0.5">Ready to connect on Rekono</p>
+                    <p className="text-sm text-slate-500 mt-0.5">Ready to connect your business workspace on Rekono</p>
                 </div>
               </div>
 
               <div className="input-group mb-5">
                 <label className="input-label text-slate-600">Message to CA (optional)</label>
-                <input className="input bg-surface-50" placeholder="Hi, I'd like to connect my showroom for GST filing..."
+                <input className="input bg-surface-50" placeholder="Hi, I'd like to connect my business for GST filing..."
                   value={message} onChange={e => setMessage(e.target.value)} />
               </div>
 
@@ -163,18 +162,18 @@ export default function ConnectCAPage() {
               <button onClick={() => requestMutation.mutate()}
                 disabled={requestMutation.isPending || !showroomId}
                 className="btn-primary w-full shadow-md text-base py-2.5 disabled:opacity-50 transition-all font-semibold">
-                {requestMutation.isPending ? 'Sending request securely...' : 'Send Connection Request'}
+                {requestMutation.isPending ? 'Sending request securely...' : 'Send Business Connection Request'}
               </button>
             </div>
           )}
 
           <div className="bg-brand-50 rounded-xl p-4 text-sm text-brand-700">
-            <p className="font-semibold mb-1">How it works</p>
+              <p className="font-semibold mb-1">How it works</p>
             <ol className="list-decimal list-inside space-y-1 text-xs text-brand-600">
               <li>Search for your CA by their Rekono username</li>
-              <li>Send a connection request</li>
+              <li>Send a connection request from your business workspace</li>
               <li>Once they accept, you can send them reports</li>
-              <li>Your CA uses those reports for GST filing</li>
+              <li>Your CA uses those reports for GST filing and compliance</li>
             </ol>
           </div>
         </div>
@@ -187,7 +186,7 @@ export default function ConnectCAPage() {
           </div>
           <div className="card-body">
             {!showroomId ? (
-              <p className="text-sm text-slate-400 text-center py-8">Enter your showroom ID to see connections</p>
+              <p className="text-sm text-slate-400 text-center py-8">Enter your business ID to see connections</p>
             ) : connections.length === 0 ? (
               <MotionEmptyState
                 title="No connections yet"

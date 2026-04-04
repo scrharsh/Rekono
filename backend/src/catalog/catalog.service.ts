@@ -5,9 +5,7 @@ import { CatalogItem, CatalogItemDocument } from '../schemas/catalog-item.schema
 
 @Injectable()
 export class CatalogService {
-  constructor(
-    @InjectModel(CatalogItem.name) private catalogModel: Model<CatalogItemDocument>,
-  ) {}
+  constructor(@InjectModel(CatalogItem.name) private catalogModel: Model<CatalogItemDocument>) {}
 
   async create(businessId: string, dto: any): Promise<CatalogItemDocument> {
     return this.catalogModel.create({
@@ -16,8 +14,30 @@ export class CatalogService {
     });
   }
 
-  async findAll(businessId: string, filters?: { category?: string; search?: string; favoritesOnly?: boolean }): Promise<CatalogItemDocument[]> {
-    const query: Record<string, any> = { businessId: new Types.ObjectId(businessId), isActive: true };
+  async update(businessId: string, itemId: string, dto: any): Promise<CatalogItemDocument> {
+    const item = await this.catalogModel.findOneAndUpdate(
+      { _id: new Types.ObjectId(itemId), businessId: new Types.ObjectId(businessId) },
+      {
+        $set: {
+          ...dto,
+          businessId: new Types.ObjectId(businessId),
+        },
+      },
+      { new: true },
+    );
+
+    if (!item) throw new NotFoundException('Catalog item not found');
+    return item;
+  }
+
+  async findAll(
+    businessId: string,
+    filters?: { category?: string; search?: string; favoritesOnly?: boolean },
+  ): Promise<CatalogItemDocument[]> {
+    const query: Record<string, any> = {
+      businessId: new Types.ObjectId(businessId),
+      isActive: true,
+    };
     if (filters?.category) query.category = filters.category;
     if (filters?.favoritesOnly) query.isFavorite = true;
     if (filters?.search) {
@@ -40,7 +60,11 @@ export class CatalogService {
 
   async getRecentItems(businessId: string, limit = 10): Promise<CatalogItemDocument[]> {
     return this.catalogModel
-      .find({ businessId: new Types.ObjectId(businessId), isActive: true, lastUsedAt: { $exists: true } })
+      .find({
+        businessId: new Types.ObjectId(businessId),
+        isActive: true,
+        lastUsedAt: { $exists: true },
+      })
       .sort({ lastUsedAt: -1 })
       .limit(limit);
   }
@@ -52,7 +76,12 @@ export class CatalogService {
     );
   }
 
-  async autoCreateFromTransaction(businessId: string, category: string, amount: number, type?: string): Promise<CatalogItemDocument> {
+  async autoCreateFromTransaction(
+    businessId: string,
+    category: string,
+    amount: number,
+    type?: string,
+  ): Promise<CatalogItemDocument> {
     const existing = await this.catalogModel.findOne({
       businessId: new Types.ObjectId(businessId),
       category,

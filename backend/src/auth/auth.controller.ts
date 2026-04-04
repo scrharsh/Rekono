@@ -99,10 +99,7 @@ export class AuthController {
   @SkipSubscriptionCheck()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Activate current user subscription (CA remains free)' })
-  async activateSubscription(
-    @Request() req: any,
-    @Body() dto: ActivateSubscriptionDto,
-  ) {
+  async activateSubscription(@Request() req: any, @Body() dto: ActivateSubscriptionDto) {
     return this.authService.activateBusinessSubscription(
       req.user.userId,
       dto.plan || SubscriptionPlan.BUSINESS_MONTHLY,
@@ -115,10 +112,7 @@ export class AuthController {
   @SkipSubscriptionCheck()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create Razorpay payment link for business subscription' })
-  async createSubscriptionPaymentLink(
-    @Request() req: any,
-    @Body() dto: ActivateSubscriptionDto,
-  ) {
+  async createSubscriptionPaymentLink(@Request() req: any, @Body() dto: ActivateSubscriptionDto) {
     return this.authService.createBusinessSubscriptionPaymentLink(
       req.user.userId,
       dto.plan || SubscriptionPlan.BUSINESS_MONTHLY,
@@ -129,10 +123,7 @@ export class AuthController {
   @Post('subscription/webhook/razorpay')
   @HttpCode(200)
   @ApiOperation({ summary: 'Razorpay webhook handler for subscription activation' })
-  async razorpayWebhook(
-    @Req() req: any,
-    @Headers('x-razorpay-signature') signature?: string,
-  ) {
+  async razorpayWebhook(@Req() req: any, @Headers('x-razorpay-signature') signature?: string) {
     const rawBody = Buffer.isBuffer(req.body)
       ? req.body
       : Buffer.from(JSON.stringify(req.body || {}), 'utf8');

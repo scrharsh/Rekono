@@ -45,11 +45,9 @@ describe('AlertService', () => {
     expect(caosService.generateAlerts).toHaveBeenCalledTimes(2);
     expect(caosService.generateTasks).toHaveBeenCalledTimes(4);
     expect(caTasksService.createSystemTask).toHaveBeenCalled();
-    expect(caTasksService.reconcileSystemTasks).toHaveBeenCalledWith(
-      'ca-1',
-      'showroom-1',
-      ['review_unmatched'],
-    );
+    expect(caTasksService.reconcileSystemTasks).toHaveBeenCalledWith('ca-1', 'showroom-1', [
+      'review_unmatched',
+    ]);
     expect(result.evaluated).toBe(2);
     expect(result.alertsGenerated).toBe(2);
     expect(result.tasksGenerated).toBe(2);

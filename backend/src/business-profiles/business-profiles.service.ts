@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { BusinessProfile, BusinessProfileDocument, BusinessMode } from '../schemas/business-profile.schema';
+import {
+  BusinessProfile,
+  BusinessProfileDocument,
+  BusinessMode,
+} from '../schemas/business-profile.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { UpsertBusinessProfileDto } from './dto/business-profile.dto';
 import { Showroom, ShowroomDocument } from '../schemas/showroom.schema';
@@ -15,7 +19,10 @@ export class BusinessProfilesService {
   ) {}
 
   async getMyProfile(ownerId: string): Promise<BusinessProfileDocument> {
-    const profile = await this.profileModel.findOne({ ownerId: new Types.ObjectId(ownerId), isActive: true });
+    const profile = await this.profileModel.findOne({
+      ownerId: new Types.ObjectId(ownerId),
+      isActive: true,
+    });
     if (!profile) {
       throw new NotFoundException('Business profile not found');
     }
@@ -40,7 +47,10 @@ export class BusinessProfilesService {
     };
   }
 
-  async upsertMyProfile(ownerId: string, dto: UpsertBusinessProfileDto): Promise<BusinessProfileDocument> {
+  async upsertMyProfile(
+    ownerId: string,
+    dto: UpsertBusinessProfileDto,
+  ): Promise<BusinessProfileDocument> {
     const ownerObjectId = new Types.ObjectId(ownerId);
     const existing = await this.profileModel.findOne({ ownerId: ownerObjectId, isActive: true });
     const owner = await this.userModel.findById(ownerObjectId);

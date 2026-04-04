@@ -47,7 +47,7 @@ export class CaosController {
 
   private async ensureSystemTasksForShowroom(caUserId: string, showroomId: string): Promise<any[]> {
     const generatedTasks = await this.caosService.generateTasks(showroomId);
-    const persisted = await Promise.all(
+    await Promise.all(
       generatedTasks.map((task: any) =>
         this.caTasksService.createSystemTask(caUserId, {
           type: task.type,
@@ -193,8 +193,16 @@ export class CaosController {
         .filter(Boolean)
         .map((x: any) => String(x));
 
-      const acknowledged = await this.caosService.acknowledgeAlert(alertId, showroomIds, body.notes);
-      return { message: acknowledged ? 'Alert acknowledged' : 'Alert not found', alertId, notes: body.notes };
+      const acknowledged = await this.caosService.acknowledgeAlert(
+        alertId,
+        showroomIds,
+        body.notes,
+      );
+      return {
+        message: acknowledged ? 'Alert acknowledged' : 'Alert not found',
+        alertId,
+        notes: body.notes,
+      };
     } catch (error: any) {
       throw new HttpException(
         { error: 'Failed to acknowledge alert' },
@@ -324,7 +332,9 @@ export class CaosController {
       }));
 
     const urgentClients = perClient.filter(
-      (x: any) => x.tasks.some((t: any) => t.priority === 'high') || x.alerts.some((a: any) => a.severity !== 'medium'),
+      (x: any) =>
+        x.tasks.some((t: any) => t.priority === 'high') ||
+        x.alerts.some((a: any) => a.severity !== 'medium'),
     ).length;
 
     return {

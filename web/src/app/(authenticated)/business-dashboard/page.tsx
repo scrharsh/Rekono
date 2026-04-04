@@ -6,9 +6,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { SmartSummary } from '@/components/SmartSummary';
 import Icon from '@/components/Icon';
+import { API_URL } from '@/lib/api';
 
 import { BulkResolveModal } from '@/components/BulkResolveModal';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 function authHeaders(token?: string | null) {
   return { Authorization: `Bearer ${token || localStorage.getItem('token')}` };
@@ -25,8 +25,8 @@ interface DashboardStats {
 }
 
 export default function BusinessDashboardPage() {
-  const { user, token } = useAuth();
-  const showroomId = useMemo(() => user?.showroomIds?.[0] ?? '', [user?.showroomIds]);
+  const { user, token, businessShowroomId, isBusinessWorkspaceReady } = useAuth();
+  const showroomId = useMemo(() => businessShowroomId ?? user?.showroomIds?.[0] ?? '', [businessShowroomId, user?.showroomIds]);
   const defaultStats: DashboardStats = {
     totalSales: 0,
     matchedSales: 0,
@@ -67,13 +67,14 @@ export default function BusinessDashboardPage() {
 
   const quickActions = showroomId
     ? [
-        { label: 'Open Showroom', href: `/showrooms/${showroomId}`, icon: 'M3 21h18M4.5 21V5.25L12 3l7.5 2.25V21M9 21v-8.25h6V21' },
+        { label: 'Open Business', href: `/showrooms/${showroomId}`, icon: 'M3 21h18M4.5 21V5.25L12 3l7.5 2.25V21M9 21v-8.25h6V21' },
+        { label: 'Manage Items', href: '/items', icon: 'M4 6h16M4 12h16M4 18h16' },
         { label: 'New Sale', href: `/showrooms/${showroomId}/transactions?action=new-sale`, icon: 'M12 4.5v15m7.5-7.5h-15' },
         { label: 'New Payment', href: `/showrooms/${showroomId}/transactions?action=new-payment`, icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h.008v.008h-.008v-.008zm0 2h.008v.008h-.008v-.008zm0 2h.008v.008h-.008v-.008zm0 2h.008v.008h-.008v-.008zm4-8.5h.008v.008H5.75v-.008zm0 2h.008v.008H5.75v-.008zm0 2h.008v.008H5.75v-.008zm0 2h.008v.008H5.75v-.008zm4-8.5h.008v.008h-.008v-.008zm0 2h.008v.008h-.008v-.008zm0 2h.008v.008h-.008v-.008zm0 2h.008v.008h-.008v-.008z' },
         { label: 'Export', href: `/showrooms/${showroomId}/export`, icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' },
       ]
     : [
-        { label: 'Connect CA', href: '/connect', icon: 'M17 20h5v-2a3 3 0 00-4-2.83M9 20H4v-2a3 3 0 014-2.83m10-4.34a3 3 0 11-6 0 3 3 0 016 0zm-10 0a3 3 0 11-6 0 3 3 0 016 0z' },
+        { label: 'Connect Business', href: '/connect', icon: 'M3 7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9A2.25 2.25 0 0118.75 18.75H5.25A2.25 2.25 0 013 16.5v-9zM7.5 15h9' },
         { label: 'Help', href: '/help-requests', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
       ];
 
@@ -114,16 +115,26 @@ export default function BusinessDashboardPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
+      {!isBusinessWorkspaceReady ? (
+        <div className="card card-body py-16 text-center">
+          <div className="h-56 flex items-center justify-center">
+            <div className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
+              Resolving your business workspace...
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="page-header">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0b57d0]">Business OS</p>
           <h1 className="page-title">Dashboard</h1>
-          <p className="page-subtitle">Real-time reconciliation and transaction activity</p>
+          <p className="page-subtitle">Real-time business reconciliation and transaction activity</p>
         </div>
-        {showroomId && <span className="badge-blue">Active Showroom</span>}
+        {showroomId && <span className="badge-blue">Active Business</span>}
       </div>
 
-      {showroomId ? (
+      {showroomId && isBusinessWorkspaceReady ? (
         <>
           {/* Stats Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -264,23 +275,24 @@ export default function BusinessDashboardPage() {
             </div>
           </div>
         </>
-      ) : (
+      ) : isBusinessWorkspaceReady ? (
         <div className="card card-body text-center py-16">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-[#ebf3ff] flex items-center justify-center text-[#0b57d0] mb-4">
-            <Icon d="M17 20h5v-2a3 3 0 00-4-2.83M9 20H4v-2a3 3 0 014-2.83m10-4.34a3 3 0 11-6 0 3 3 0 016 0zm-10 0a3 3 0 11-6 0 3 3 0 016 0z" className="w-8 h-8" />
+            <Icon d="M3 7.5A2.25 2.25 0 015.25 5.25h13.5A2.25 2.25 0 0121 7.5v9A2.25 2.25 0 0118.75 18.75H5.25A2.25 2.25 0 013 16.5v-9zM7.5 15h9" className="w-8 h-8" />
           </div>
-          <h2 className="card-title justify-center text-lg">No showroom connected</h2>
+          <h2 className="card-title justify-center text-lg">Workspace sync in progress</h2>
           <p className="text-sm text-[#4f71a5] mt-3 max-w-md mx-auto">
-            To start reconciling, you need to create or connect a showroom. Connect with your CA to get started.
+            We are resolving your business workspace and preparing your report view. If this persists,
+            refresh once more or complete the business profile bootstrap.
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
-            <Link href="/connect" className="btn-primary">
-              <Icon d="M12 4v16m8-8H4" className="w-4 h-4" />
-              Connect CA
+            <Link href="/business-dashboard" className="btn-primary">
+              <Icon d="M12 4.5v4.5m0 6v4.5M7.5 12H3m18 0h-4.5M6.343 6.343l3.182 3.182m4.95 4.95 3.182 3.182m0-11.314-3.182 3.182m-4.95 4.95-3.182 3.182" className="w-4 h-4" />
+              Refresh Workspace
             </Link>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

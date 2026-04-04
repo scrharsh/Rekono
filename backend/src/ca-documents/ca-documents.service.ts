@@ -10,15 +10,19 @@ import { v4 as uuidv4 } from 'uuid';
 export class CaDocumentsService {
   private readonly uploadDir = path.join(process.cwd(), 'uploads', 'documents');
 
-  constructor(
-    @InjectModel(CaDocument.name) private documentModel: Model<CaDocumentDocument>,
-  ) {
+  constructor(@InjectModel(CaDocument.name) private documentModel: Model<CaDocumentDocument>) {
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
     }
   }
 
-  async upload(caUserId: string, clientId: string, file: Express.Multer.File, documentType: string, notes?: string): Promise<CaDocumentDocument> {
+  async upload(
+    caUserId: string,
+    clientId: string,
+    file: Express.Multer.File,
+    documentType: string,
+    notes?: string,
+  ): Promise<CaDocumentDocument> {
     const fileName = `${uuidv4()}-${file.originalname}`;
     const filePath = path.join(this.uploadDir, fileName);
     fs.writeFileSync(filePath, file.buffer);
@@ -39,25 +43,30 @@ export class CaDocumentsService {
   async findAll(caUserId: string, clientId?: string): Promise<CaDocumentDocument[]> {
     const query: Record<string, any> = { caUserId: new Types.ObjectId(caUserId) };
     if (clientId) query.clientId = new Types.ObjectId(clientId);
-    return this.documentModel.find(query).populate('clientId', 'name phone').sort({ createdAt: -1 });
+    return this.documentModel
+      .find(query)
+      .populate('clientId', 'name phone')
+      .sort({ createdAt: -1 });
   }
 
   async getCompleteness(caUserId: string, clientId: string): Promise<any> {
-    const required = Object.values(DocumentType).filter(t => ['pan', 'aadhaar', 'gst_certificate', 'bank_details'].includes(t));
+    const required = Object.values(DocumentType).filter((t) =>
+      ['pan', 'aadhaar', 'gst_certificate', 'bank_details'].includes(t),
+    );
     const documents = await this.documentModel.find({
       caUserId: new Types.ObjectId(caUserId),
       clientId: new Types.ObjectId(clientId),
     });
 
-    const uploadedDocs = documents.map(d => ({ 
-      type: d.documentType, 
-      name: d.originalName, 
-      status: d.status, 
+    const uploadedDocs = documents.map((d) => ({
+      type: d.documentType,
+      name: d.originalName,
+      status: d.status,
       uploadedAt: d.createdAt,
       uploaded: d.status === 'verified' || d.status === 'uploaded',
     }));
-    const uploaded = documents.map(d => d.documentType);
-    const missing = required.filter(r => !uploaded.includes(r));
+    const uploaded = documents.map((d) => d.documentType);
+    const missing = required.filter((r) => !uploaded.includes(r));
     const completeness = Math.round(((required.length - missing.length) / required.length) * 100);
 
     return {
@@ -74,7 +83,13 @@ export class CaDocumentsService {
   async verify(caUserId: string, documentId: string): Promise<CaDocumentDocument> {
     const doc = await this.documentModel.findOneAndUpdate(
       { _id: new Types.ObjectId(documentId), caUserId: new Types.ObjectId(caUserId) },
-      { $set: { status: 'verified', verifiedAt: new Date(), verifiedBy: new Types.ObjectId(caUserId) } },
+      {
+        $set: {
+          status: 'verified',
+          verifiedAt: new Date(),
+          verifiedBy: new Types.ObjectId(caUserId),
+        },
+      },
       { new: true },
     );
     if (!doc) throw new NotFoundException('Document not found');

@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   Request,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,10 +23,19 @@ import { CreateCaClientDto, UpdateCaClientDto } from './dto/ca-client.dto';
 export class CaClientsController {
   constructor(private readonly caClientsService: CaClientsService) {}
 
+  private requireUserId(req: any): string {
+    const userId = req?.user?.userId;
+    if (!userId) {
+      throw new UnauthorizedException('Authenticated user is required');
+    }
+
+    return userId;
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a new client' })
   async create(@Request() req: any, @Body() dto: CreateCaClientDto) {
-    return this.caClientsService.create(req.user.userId, dto);
+    return this.caClientsService.create(this.requireUserId(req), dto);
   }
 
   @Get()
@@ -41,42 +51,47 @@ export class CaClientsController {
     @Query('sortBy') sortBy?: string,
     @Query('order') order?: 'asc' | 'desc',
   ) {
-    return this.caClientsService.findAll(req.user.userId, { status, search, sortBy, order });
+    return this.caClientsService.findAll(this.requireUserId(req), {
+      status,
+      search,
+      sortBy,
+      order,
+    });
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get CA dashboard stats' })
   async getStats(@Request() req: any) {
-    return this.caClientsService.getStats(req.user.userId);
+    return this.caClientsService.getStats(this.requireUserId(req));
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get client by ID' })
   async findById(@Request() req: any, @Param('id') id: string) {
-    return this.caClientsService.findById(req.user.userId, id);
+    return this.caClientsService.findById(this.requireUserId(req), id);
   }
 
   @Get(':id/workspace')
   @ApiOperation({ summary: 'Get full client workspace' })
   async getWorkspace(@Request() req: any, @Param('id') id: string) {
-    return this.caClientsService.getWorkspace(req.user.userId, id);
+    return this.caClientsService.getWorkspace(this.requireUserId(req), id);
   }
 
   @Get(':id/health')
   @ApiOperation({ summary: 'Calculate client health score' })
   async getHealthScore(@Request() req: any, @Param('id') id: string) {
-    return this.caClientsService.calculateHealthScore(req.user.userId, id);
+    return this.caClientsService.calculateHealthScore(this.requireUserId(req), id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update client' })
   async update(@Request() req: any, @Param('id') id: string, @Body() dto: UpdateCaClientDto) {
-    return this.caClientsService.update(req.user.userId, id, dto);
+    return this.caClientsService.update(this.requireUserId(req), id, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete client' })
   async delete(@Request() req: any, @Param('id') id: string) {
-    return this.caClientsService.delete(req.user.userId, id);
+    return this.caClientsService.delete(this.requireUserId(req), id);
   }
 }

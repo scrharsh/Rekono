@@ -48,3 +48,4 @@ mobile/ios/build/
 # Temporary files
 *.tmp
 .cache/
+.vercel

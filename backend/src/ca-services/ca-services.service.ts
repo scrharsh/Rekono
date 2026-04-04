@@ -5,9 +5,7 @@ import { CaService, CaServiceDocument } from '../schemas/ca-service.schema';
 
 @Injectable()
 export class CaServicesService {
-  constructor(
-    @InjectModel(CaService.name) private serviceModel: Model<CaServiceDocument>,
-  ) {}
+  constructor(@InjectModel(CaService.name) private serviceModel: Model<CaServiceDocument>) {}
 
   async create(caUserId: string, dto: any): Promise<CaServiceDocument> {
     return this.serviceModel.create({
@@ -17,7 +15,10 @@ export class CaServicesService {
     });
   }
 
-  async findAll(caUserId: string, filters?: { clientId?: string; status?: string; serviceType?: string }): Promise<CaServiceDocument[]> {
+  async findAll(
+    caUserId: string,
+    filters?: { clientId?: string; status?: string; serviceType?: string },
+  ): Promise<CaServiceDocument[]> {
     const query: Record<string, any> = { caUserId: new Types.ObjectId(caUserId) };
     if (filters?.clientId) query.clientId = new Types.ObjectId(filters.clientId);
     if (filters?.status) query.status = filters.status;
@@ -26,10 +27,12 @@ export class CaServicesService {
   }
 
   async findById(caUserId: string, serviceId: string): Promise<CaServiceDocument> {
-    const service = await this.serviceModel.findOne({
-      _id: new Types.ObjectId(serviceId),
-      caUserId: new Types.ObjectId(caUserId),
-    }).populate('clientId', 'name phone');
+    const service = await this.serviceModel
+      .findOne({
+        _id: new Types.ObjectId(serviceId),
+        caUserId: new Types.ObjectId(caUserId),
+      })
+      .populate('clientId', 'name phone');
     if (!service) throw new NotFoundException('Service not found');
     return service;
   }
@@ -44,9 +47,15 @@ export class CaServicesService {
     return service;
   }
 
-  async updatePeriodStatus(caUserId: string, serviceId: string, period: string, status: string, notes?: string): Promise<CaServiceDocument> {
+  async updatePeriodStatus(
+    caUserId: string,
+    serviceId: string,
+    period: string,
+    status: string,
+    notes?: string,
+  ): Promise<CaServiceDocument> {
     const service = await this.findById(caUserId, serviceId);
-    const existingIdx = service.periodStatuses.findIndex(p => p.period === period);
+    const existingIdx = service.periodStatuses.findIndex((p) => p.period === period);
 
     if (existingIdx >= 0) {
       service.periodStatuses[existingIdx].status = status;
@@ -98,7 +107,9 @@ export class CaServicesService {
 
   async getPeriodInsights(caUserId: string): Promise<any> {
     const caObjId = new Types.ObjectId(caUserId);
-    const services = await this.serviceModel.find({ caUserId: caObjId, status: 'active' }).populate('clientId', 'name phone');
+    const services = await this.serviceModel
+      .find({ caUserId: caObjId, status: 'active' })
+      .populate('clientId', 'name phone');
 
     const insights: any = {
       totalPeriods: 0,
@@ -110,7 +121,7 @@ export class CaServicesService {
       byClient: new Map<string, any>(),
     };
 
-    services.forEach(service => {
+    services.forEach((service) => {
       const populatedClient = service.clientId as any;
       const clientName = populatedClient?.name || 'Unknown';
       const clientInfo = {
@@ -118,7 +129,7 @@ export class CaServicesService {
         clientName,
       };
 
-      service.periodStatuses.forEach(period => {
+      service.periodStatuses.forEach((period) => {
         insights.totalPeriods += 1;
 
         const entry = {
@@ -177,10 +188,15 @@ export class CaServicesService {
         pendingPeriods: insights.pendingPeriods,
         overduePeriods: insights.overduePeriods,
         inProgressPeriods: insights.inProgressPeriods,
-        completionRate: insights.totalPeriods > 0 ? Math.round((insights.completedPeriods / insights.totalPeriods) * 100) : 0,
+        completionRate:
+          insights.totalPeriods > 0
+            ? Math.round((insights.completedPeriods / insights.totalPeriods) * 100)
+            : 0,
       },
       byStatus: insights.byStatus,
-      byClient: Array.from(insights.byClient.values()).sort((a: any, b: any) => b.overdue - a.overdue),
+      byClient: Array.from(insights.byClient.values()).sort(
+        (a: any, b: any) => b.overdue - a.overdue,
+      ),
     };
   }
 }

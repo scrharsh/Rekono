@@ -6,11 +6,8 @@
 
 import {
   getSalesByShowroom,
-  getPaymentsByShowroom,
   getPaymentById,
   saveMatch,
-  LocalSaleEntry,
-  LocalPaymentRecord,
   LocalMatch,
 } from './database.service';
 import { selectClosestByAmountAndTime } from './reconciliation.util';

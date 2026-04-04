@@ -12,11 +12,12 @@ import { Response } from 'express';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { ExportsService } from './exports.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ShowroomAccessGuard } from '../auth/guards/showroom-access.guard';
 
 @ApiTags('exports')
 @ApiBearerAuth()
 @Controller('showrooms')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ShowroomAccessGuard)
 export class ExportsController {
   constructor(private readonly exportsService: ExportsService) {}
 

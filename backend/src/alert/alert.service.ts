@@ -18,11 +18,14 @@ export class AlertService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit(): void {
-    this.periodicTimer = setInterval(() => {
-      this.runPeriodicAutomation().catch(() => {
-        this.logger.warn('Periodic automation tick failed');
-      });
-    }, 30 * 60 * 1000);
+    this.periodicTimer = setInterval(
+      () => {
+        this.runPeriodicAutomation().catch(() => {
+          this.logger.warn('Periodic automation tick failed');
+        });
+      },
+      30 * 60 * 1000,
+    );
 
     this.scheduleMorningSweep();
   }
@@ -67,7 +70,9 @@ export class AlertService implements OnModuleInit, OnModuleDestroy {
     await this.caTasksService.reconcileSystemTasks(caUserId, showroomId, activeTypes);
   }
 
-  private async evaluateConnection(connection: ConnectionDocument): Promise<{ alerts: number; tasks: number }> {
+  private async evaluateConnection(
+    connection: ConnectionDocument,
+  ): Promise<{ alerts: number; tasks: number }> {
     const showroomId = connection.showroomId?.toString();
     const caUserId = connection.caUserId?.toString();
     if (!showroomId || !caUserId) return { alerts: 0, tasks: 0 };
@@ -97,7 +102,9 @@ export class AlertService implements OnModuleInit, OnModuleDestroy {
     await this.runPeriodicAutomation();
   }
 
-  async triggerForCA(caUserId: string): Promise<{ evaluated: number; alertsGenerated: number; tasksGenerated: number }> {
+  async triggerForCA(
+    caUserId: string,
+  ): Promise<{ evaluated: number; alertsGenerated: number; tasksGenerated: number }> {
     const activeConnections = await this.connectionModel.find({
       status: 'active',
       caUserId,

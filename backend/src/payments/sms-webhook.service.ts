@@ -43,6 +43,10 @@ export class SmsWebhookService {
    */
   async parseSmsBody(body: string, provider?: string): Promise<ParsedSms | null> {
     try {
+      if (provider) {
+        this.logger.debug(`Parsing SMS with provider hint: ${provider}`);
+      }
+
       // Map of common SMS patterns from Indian payment systems
       const patterns = [
         // PhonePe UPI: "PhonePe: You have sent Rs. 5,000.00 via UPI to...TxnRef: XXXXXXXXX"
@@ -97,16 +101,7 @@ export class SmsWebhookService {
    * Create or update payment from SMS data
    */
   async upsertPaymentFromSms(data: SmsPaymentData): Promise<PaymentRecordDocument> {
-    const {
-      showroomId,
-      smsId,
-      amount,
-      transactionId,
-      paymentMethod,
-      description,
-      senderPhone,
-      receivedAt,
-    } = data;
+    const { showroomId, amount, transactionId, paymentMethod, senderPhone, receivedAt } = data;
 
     // Check if payment already exists (by transactionId)
     let payment = await this.paymentModel.findOne({
@@ -152,7 +147,10 @@ export class SmsWebhookService {
   /**
    * Get payment by SMS transaction ID
    */
-  async getPaymentByTransactionId(showroomId: string, transactionId: string): Promise<PaymentRecordDocument | null> {
+  async getPaymentByTransactionId(
+    showroomId: string,
+    transactionId: string,
+  ): Promise<PaymentRecordDocument | null> {
     return this.paymentModel.findOne({
       showroomId,
       transactionId,

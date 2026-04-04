@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CatalogService } from './catalog.service';
@@ -16,10 +16,29 @@ export class CatalogController {
     return this.catalogService.create(businessId, dto);
   }
 
+  @Put(':businessId/:itemId')
+  @ApiOperation({ summary: 'Update catalog item' })
+  async update(
+    @Param('businessId') businessId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: any,
+  ) {
+    return this.catalogService.update(businessId, itemId, dto);
+  }
+
   @Get(':businessId')
   @ApiOperation({ summary: 'List catalog items' })
-  async findAll(@Param('businessId') businessId: string, @Query('category') category?: string, @Query('search') search?: string, @Query('favoritesOnly') favoritesOnly?: string) {
-    return this.catalogService.findAll(businessId, { category, search, favoritesOnly: favoritesOnly === 'true' });
+  async findAll(
+    @Param('businessId') businessId: string,
+    @Query('category') category?: string,
+    @Query('search') search?: string,
+    @Query('favoritesOnly') favoritesOnly?: string,
+  ) {
+    return this.catalogService.findAll(businessId, {
+      category,
+      search,
+      favoritesOnly: favoritesOnly === 'true',
+    });
   }
 
   @Get(':businessId/top')

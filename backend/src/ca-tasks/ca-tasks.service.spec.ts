@@ -4,6 +4,8 @@ import { CaTasksService } from './ca-tasks.service';
 describe('CaTasksService', () => {
   const chain = {
     populate: jest.fn(),
+    skip: jest.fn(),
+    limit: jest.fn(),
     sort: jest.fn(),
   };
 
@@ -27,6 +29,8 @@ describe('CaTasksService', () => {
     jest.clearAllMocks();
 
     chain.populate.mockReturnValue(chain);
+    chain.skip.mockReturnValue(chain);
+    chain.limit.mockResolvedValue([]);
     chain.sort.mockResolvedValue([]);
     taskModel.find.mockReturnValue(chain);
 
@@ -70,7 +74,9 @@ describe('CaTasksService', () => {
   });
 
   it('reconciles stale system tasks by auto-cancelling non-active types', async () => {
-    await service.reconcileSystemTasks('507f1f77bcf86cd799439011', 'showroom-1', ['review_unmatched']);
+    await service.reconcileSystemTasks('507f1f77bcf86cd799439011', 'showroom-1', [
+      'review_unmatched',
+    ]);
 
     expect(taskModel.updateMany).toHaveBeenCalledWith(
       {
@@ -125,7 +131,9 @@ describe('CaTasksService', () => {
   });
 
   it('bulk assigns each task and records a batch audit entry', async () => {
-    taskModel.findOneAndUpdate.mockResolvedValueOnce({ _id: 'task-1' }).mockResolvedValueOnce({ _id: 'task-2' });
+    taskModel.findOneAndUpdate
+      .mockResolvedValueOnce({ _id: 'task-1' })
+      .mockResolvedValueOnce({ _id: 'task-2' });
 
     await service.bulkAssignTasks(
       '507f1f77bcf86cd799439011',
@@ -148,7 +156,8 @@ describe('CaTasksService', () => {
   it('groups team tasks by assignee in the overview', async () => {
     taskModel.find.mockReturnValueOnce({
       populate: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockResolvedValue([
+      sort: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockResolvedValue([
         {
           _id: 'task-1',
           assignedTo: 'user-1',
@@ -156,14 +165,26 @@ describe('CaTasksService', () => {
           status: 'pending',
           dueDate: new Date('2025-01-02T00:00:00.000Z'),
           priority: 'high',
-          toObject: () => ({ _id: 'task-1', assignedTo: 'user-1', assignedToName: 'Team Member', status: 'pending', dueDate: new Date('2025-01-02T00:00:00.000Z'), priority: 'high' }),
+          toObject: () => ({
+            _id: 'task-1',
+            assignedTo: 'user-1',
+            assignedToName: 'Team Member',
+            status: 'pending',
+            dueDate: new Date('2025-01-02T00:00:00.000Z'),
+            priority: 'high',
+          }),
         },
         {
           _id: 'task-2',
           status: 'in_progress',
           dueDate: new Date('2025-01-03T00:00:00.000Z'),
           priority: 'medium',
-          toObject: () => ({ _id: 'task-2', status: 'in_progress', dueDate: new Date('2025-01-03T00:00:00.000Z'), priority: 'medium' }),
+          toObject: () => ({
+            _id: 'task-2',
+            status: 'in_progress',
+            dueDate: new Date('2025-01-03T00:00:00.000Z'),
+            priority: 'medium',
+          }),
         },
       ]),
     } as any);

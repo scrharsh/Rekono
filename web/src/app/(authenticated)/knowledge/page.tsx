@@ -5,38 +5,66 @@ import { useQuery } from '@tanstack/react-query';
 import MotionEmptyState from '@/components/MotionEmptyState';
 import LottieLoader from '@/components/LottieLoader';
 import Icon from '@/components/Icon';
+import { API_URL } from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   return { Authorization: `Bearer ${token}` };
+}
+
+interface KnowledgeGuide {
+  _id?: string;
+  id?: string;
+  title?: string;
+  category?: string;
+  estimatedTime?: string;
+}
+
+interface KnowledgeStep {
+  title?: string;
+  description?: string;
+}
+
+interface KnowledgeDetail {
+  _id?: string;
+  id?: string;
+  title?: string;
+  category?: string;
+  description?: string;
+  estimatedTime?: string;
+  estimatedCost?: string;
+  difficulty?: string;
+  steps?: Array<string | KnowledgeStep>;
+  requiredDocuments?: string[];
+  suggestedCharges?: string;
+  chargesNote?: string;
 }
 
 export default function KnowledgePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
-  const { data: guides = [], isLoading } = useQuery({
+  const { data: guides = [], isLoading } = useQuery<KnowledgeGuide[]>({
     queryKey: ['knowledge-guides'],
-    queryFn: async () => {
+    queryFn: async (): Promise<KnowledgeGuide[]> => {
       const res = await fetch(`${API_URL}/v1/ca/knowledge`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return (await res.json()) as KnowledgeGuide[];
     },
   });
 
-  const { data: selected } = useQuery({
+  const { data: selected } = useQuery<KnowledgeDetail | null>({
     queryKey: ['knowledge-detail', selectedId],
-    queryFn: async () => {
+    queryFn: async (): Promise<KnowledgeDetail | null> => {
       if (!selectedId) return null;
       const res = await fetch(`${API_URL}/v1/ca/knowledge/${selectedId}`, { headers: authHeaders() });
       if (!res.ok) return null;
-      return res.json();
+      return (await res.json()) as KnowledgeDetail;
     },
     enabled: !!selectedId,
   });
 
-  const filtered = guides.filter((g: any) =>
+  const filtered = guides.filter((g) =>
     g.title?.toLowerCase().includes(search.toLowerCase()) ||
     g.category?.toLowerCase().includes(search.toLowerCase())
   );
@@ -82,20 +110,25 @@ export default function KnowledgePage() {
               description="Try a different search term or category."
             />
           ) : (
-            filtered.map((guide: any) => (
+            filtered.map((guide) => {
+              const guideId = guide._id ?? guide.id ?? '';
+              const categoryKey = guide.category ?? 'registration';
+              return (
               <button
-                key={guide._id || guide.id}
-                onClick={() => setSelectedId(guide._id || guide.id)}
+                key={guideId}
+                onClick={() => setSelectedId(guideId || null)}
+                disabled={!guideId}
                 className="w-full text-left p-4 rounded-xl transition-all duration-200"
                 style={{
-                  background: selectedId === (guide._id || guide.id) ? 'rgba(79,70,229,0.12)' : 'var(--surface-container)',
-                  border: selectedId === (guide._id || guide.id) ? '1px solid var(--primary-container)' : '1px solid rgba(70,69,85,0.15)',
+                  background: selectedId === guideId ? 'rgba(79,70,229,0.12)' : 'var(--surface-container)',
+                  border: selectedId === guideId ? '1px solid var(--primary-container)' : '1px solid rgba(70,69,85,0.15)',
+                  opacity: guideId ? 1 : 0.6,
                 }}
               >
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
                     style={{ background: 'rgba(79,70,229,0.1)' }}>
-                    <Icon d={categoryIcons[guide.category] || categoryIcons.registration} className="w-4 h-4" />
+                    <Icon d={categoryIcons[categoryKey] || categoryIcons.registration} className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="font-semibold text-sm" style={{ color: 'var(--on-surface)' }}>{guide.title}</p>
@@ -105,7 +138,8 @@ export default function KnowledgePage() {
                   </div>
                 </div>
               </button>
-            ))
+            );
+            })
           )}
         </div>
 
@@ -163,7 +197,7 @@ export default function KnowledgePage() {
                   <div>
                     <h3 className="font-semibold text-sm mb-3" style={{ color: 'var(--on-surface)' }}>Steps</h3>
                     <div className="space-y-2">
-                      {selected.steps.map((step: any, i: number) => (
+                      {selected.steps.map((step, i: number) => (
                         <div key={i} className="flex gap-3 p-3 rounded-xl" style={{ background: 'var(--surface-high)' }}>
                           <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                             style={{ background: 'var(--primary-container)', color: '#fff' }}>
@@ -173,7 +207,7 @@ export default function KnowledgePage() {
                             <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
                               {typeof step === 'string' ? step : step.title}
                             </p>
-                            {step.description && (
+                            {typeof step !== 'string' && step.description && (
                               <p className="text-xs mt-0.5" style={{ color: 'var(--on-surface-variant)' }}>{step.description}</p>
                             )}
                           </div>

@@ -4,12 +4,23 @@ import { Model } from 'mongoose';
 import { SharedReport, SharedReportDocument } from '../schemas/shared-report.schema';
 import { Connection, ConnectionDocument } from '../schemas/connection.schema';
 
+const DEFAULT_LIST_LIMIT = 100;
+const MAX_LIST_LIMIT = 500;
+
 @Injectable()
 export class ReportsService {
   constructor(
     @InjectModel(SharedReport.name) private reportModel: Model<SharedReportDocument>,
     @InjectModel(Connection.name) private connectionModel: Model<ConnectionDocument>,
   ) {}
+
+  private normalizeLimit(value: number | undefined, fallback: number): number {
+    if (!Number.isFinite(value ?? NaN)) {
+      return fallback;
+    }
+
+    return Math.min(Math.max(Math.trunc(value as number), 1), MAX_LIST_LIMIT);
+  }
 
   /** Showroom sends a report to their connected CA */
   async sendReport(
@@ -38,11 +49,16 @@ export class ReportsService {
   }
 
   /** CA gets all reports sent to them */
-  async getCAReports(caUserId: string): Promise<any[]> {
+  async getCAReports(caUserId: string, limit?: number, offset?: number): Promise<any[]> {
+    const safeLimit = this.normalizeLimit(limit, DEFAULT_LIST_LIMIT);
+    const safeOffset = Math.max(Math.trunc(offset ?? 0), 0);
+
     return this.reportModel
       .find({ caUserId })
       .populate('showroomId', 'name gstin')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(safeOffset)
+      .limit(safeLimit);
   }
 
   /** CA marks a report as read */
@@ -57,10 +73,15 @@ export class ReportsService {
   }
 
   /** Showroom gets reports they've sent */
-  async getShowroomReports(showroomId: string): Promise<any[]> {
+  async getShowroomReports(showroomId: string, limit?: number, offset?: number): Promise<any[]> {
+    const safeLimit = this.normalizeLimit(limit, DEFAULT_LIST_LIMIT);
+    const safeOffset = Math.max(Math.trunc(offset ?? 0), 0);
+
     return this.reportModel
       .find({ showroomId })
       .populate('caUserId', 'username')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(safeOffset)
+      .limit(safeLimit);
   }
 }

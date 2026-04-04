@@ -10,6 +10,9 @@ import { Connection, ConnectionDocument } from '../schemas/connection.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Showroom, ShowroomDocument } from '../schemas/showroom.schema';
 
+const DEFAULT_LIST_LIMIT = 100;
+const MAX_LIST_LIMIT = 500;
+
 @Injectable()
 export class ConnectionsService {
   constructor(
@@ -17,6 +20,14 @@ export class ConnectionsService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Showroom.name) private showroomModel: Model<ShowroomDocument>,
   ) {}
+
+  private normalizeLimit(value: number | undefined, fallback: number): number {
+    if (!Number.isFinite(value ?? NaN)) {
+      return fallback;
+    }
+
+    return Math.min(Math.max(Math.trunc(value as number), 1), MAX_LIST_LIMIT);
+  }
 
   /** Showroom searches for a CA by username */
   async findCA(username: string): Promise<any> {
@@ -95,11 +106,20 @@ export class ConnectionsService {
   }
 
   /** Get all connections for a showroom */
-  async getShowroomConnections(showroomId: string): Promise<any[]> {
+  async getShowroomConnections(
+    showroomId: string,
+    limit?: number,
+    offset?: number,
+  ): Promise<any[]> {
+    const safeLimit = this.normalizeLimit(limit, DEFAULT_LIST_LIMIT);
+    const safeOffset = Math.max(Math.trunc(offset ?? 0), 0);
+
     const conns = await this.connectionModel
       .find({ showroomId })
       .populate('caUserId', 'username')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(safeOffset)
+      .limit(safeLimit);
 
     return conns.map((c) => ({
       id: c._id,
@@ -112,11 +132,16 @@ export class ConnectionsService {
   }
 
   /** Get all connection requests for a CA */
-  async getCAConnections(caUserId: string): Promise<any[]> {
+  async getCAConnections(caUserId: string, limit?: number, offset?: number): Promise<any[]> {
+    const safeLimit = this.normalizeLimit(limit, DEFAULT_LIST_LIMIT);
+    const safeOffset = Math.max(Math.trunc(offset ?? 0), 0);
+
     const conns = await this.connectionModel
       .find({ caUserId })
       .populate('showroomId', 'name gstin phone')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(safeOffset)
+      .limit(safeLimit);
 
     return conns.map((c) => ({
       id: c._id,

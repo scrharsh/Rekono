@@ -7,8 +7,7 @@ import TimelineView from '@/components/TimelineView';
 import { SmartSummary } from '@/components/SmartSummary';
 import MotionEmptyState from '@/components/MotionEmptyState';
 import LottieLoader from '@/components/LottieLoader';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL } from '@/lib/api';
 
 interface Showroom { _id: string; name: string; gstin: string; address: string; phone: string; }
 interface HealthScore {
@@ -55,7 +54,7 @@ export default function ShowroomDetailPage() {
   if (loading) {
     return (
       <div className="animate-fade-in h-72 flex items-center justify-center">
-        <LottieLoader label="Loading showroom intelligence..." size={48} />
+        <LottieLoader label="Loading business intelligence..." size={48} />
       </div>
     );
   }
@@ -63,8 +62,8 @@ export default function ShowroomDetailPage() {
   if (!showroom) {
     return (
       <MotionEmptyState
-        title="Showroom not found"
-        description="This showroom may be unavailable or you might not have access."
+        title="Business not found"
+        description="This business may be unavailable or you might not have access."
       />
     );
   }
@@ -129,7 +128,7 @@ export default function ShowroomDetailPage() {
 
         {/* Address card */}
         <div className="card card-body lg:col-span-3">
-          <p className="stat-label mb-2">Showroom Details</p>
+          <p className="stat-label mb-2">Business Details</p>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
             <div>
               <span className="text-slate-400 text-xs">Address</span>

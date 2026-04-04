@@ -12,11 +12,12 @@ import {
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { InvoicesService } from './invoices.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ShowroomAccessGuard } from '../auth/guards/showroom-access.guard';
 
 @ApiTags('invoices')
 @ApiBearerAuth()
 @Controller('showrooms')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ShowroomAccessGuard)
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 

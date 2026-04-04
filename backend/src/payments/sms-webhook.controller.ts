@@ -8,7 +8,6 @@ import {
   Param,
   Post,
   Query,
-  Request,
   ServiceUnavailableException,
   UnauthorizedException,
   UseGuards,
@@ -18,6 +17,7 @@ import { ApiTags, ApiOperation, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { timingSafeEqual } from 'crypto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ShowroomAccessGuard } from '../auth/guards/showroom-access.guard';
 import { SmsWebhookService } from './index';
 
 interface SmsWebhookPayload {
@@ -56,9 +56,11 @@ export class SmsWebhookController {
   ) {}
 
   private assertWebhookSecret(provider: 'razorpay' | 'phonepe', incomingSecret?: string) {
-    const providerKey = provider === 'razorpay' ? 'RAZORPAY_PAYMENT_WEBHOOK_SECRET' : 'PHONEPE_WEBHOOK_SECRET';
+    const providerKey =
+      provider === 'razorpay' ? 'RAZORPAY_PAYMENT_WEBHOOK_SECRET' : 'PHONEPE_WEBHOOK_SECRET';
     const expectedSecret =
-      this.configService.get<string>(providerKey) || this.configService.get<string>('PAYMENT_WEBHOOK_SECRET');
+      this.configService.get<string>(providerKey) ||
+      this.configService.get<string>('PAYMENT_WEBHOOK_SECRET');
 
     if (!expectedSecret) {
       if (this.configService.get<string>('NODE_ENV') === 'production') {
@@ -86,17 +88,13 @@ export class SmsWebhookController {
    * This requires authentication to route payment to correct showroom
    */
   @Post(':showroomId/receive')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ShowroomAccessGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Receive SMS notification for payment from Twilio or SMS gateway (authenticated)',
   })
   @ApiBody({ type: Object })
-  async receiveSms(
-    @Param('showroomId') showroomId: string,
-    @Body() payload: SmsWebhookPayload,
-    @Request() req: any,
-  ) {
+  async receiveSms(@Param('showroomId') showroomId: string, @Body() payload: SmsWebhookPayload) {
     try {
       const { smsId, timestamp, FROM, TO, body, provider } = payload;
 

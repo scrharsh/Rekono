@@ -8,6 +8,35 @@ import { CaDocument, CaDocumentDocument } from '../schemas/ca-document.schema';
 import { CaTask, CaTaskDocument } from '../schemas/ca-task.schema';
 import { CreateCaClientDto, UpdateCaClientDto } from './dto/ca-client.dto';
 
+type WorkspaceSection<T> = {
+  items: T[];
+  error?: string;
+};
+
+export interface ClientWorkspace {
+  client: CaClientDocument;
+  services: WorkspaceSection<CaServiceDocument> & {
+    activeCount: number;
+    totalCount: number;
+  };
+  payments: WorkspaceSection<CaPaymentDocument> & {
+    totalFees: number;
+    paidAmount: number;
+    pendingAmount: number;
+    overdueCount: number;
+  };
+  documents: WorkspaceSection<CaDocumentDocument> & {
+    uploadedCount: number;
+    missingDocuments: string[];
+    completeness: number;
+  };
+  tasks: WorkspaceSection<CaTaskDocument> & {
+    highPriorityCount: number;
+    totalPending: number;
+  };
+  warnings: string[];
+}
+
 @Injectable()
 export class CaClientsService {
   constructor(
@@ -72,7 +101,11 @@ export class CaClientsService {
     return client;
   }
 
-  async update(caUserId: string, clientId: string, dto: UpdateCaClientDto): Promise<CaClientDocument> {
+  async update(
+    caUserId: string,
+    clientId: string,
+    dto: UpdateCaClientDto,
+  ): Promise<CaClientDocument> {
     const client = await this.clientModel.findOneAndUpdate(
       { _id: new Types.ObjectId(clientId), caUserId: new Types.ObjectId(caUserId) },
       { $set: dto },
@@ -94,27 +127,50 @@ export class CaClientsService {
     }
   }
 
-  async getWorkspace(caUserId: string, clientId: string): Promise<any> {
+  async getWorkspace(caUserId: string, clientId: string): Promise<ClientWorkspace> {
     const client = await this.findById(caUserId, clientId);
     const clientObjId = new Types.ObjectId(clientId);
+    const caObjId = new Types.ObjectId(caUserId);
 
-    const [services, payments, documents, tasks] = await Promise.all([
-      this.serviceModel.find({ clientId: clientObjId, caUserId: new Types.ObjectId(caUserId) }).sort({ createdAt: -1 }),
-      this.paymentModel.find({ clientId: clientObjId, caUserId: new Types.ObjectId(caUserId) }).sort({ dueDate: -1 }),
-      this.documentModel.find({ clientId: clientObjId, caUserId: new Types.ObjectId(caUserId) }).sort({ createdAt: -1 }),
-      this.taskModel.find({ clientId: clientObjId, caUserId: new Types.ObjectId(caUserId), status: { $ne: 'completed' } }).sort({ priority: 1, dueDate: 1 }),
-    ]);
+    const warnings: string[] = [];
+
+    const [servicesResult, paymentsResult, documentsResult, tasksResult] = await Promise.allSettled(
+      [
+        this.serviceModel
+          .find({ clientId: clientObjId, caUserId: caObjId })
+          .sort({ createdAt: -1 }),
+        this.paymentModel.find({ clientId: clientObjId, caUserId: caObjId }).sort({ dueDate: -1 }),
+        this.documentModel
+          .find({ clientId: clientObjId, caUserId: caObjId })
+          .sort({ createdAt: -1 }),
+        this.taskModel
+          .find({ clientId: clientObjId, caUserId: caObjId, status: { $ne: 'completed' } })
+          .sort({ priority: 1, dueDate: 1 }),
+      ],
+    );
+
+    const services = servicesResult.status === 'fulfilled' ? servicesResult.value : [];
+    const payments = paymentsResult.status === 'fulfilled' ? paymentsResult.value : [];
+    const documents = documentsResult.status === 'fulfilled' ? documentsResult.value : [];
+    const tasks = tasksResult.status === 'fulfilled' ? tasksResult.value : [];
+
+    if (servicesResult.status === 'rejected') warnings.push('services_unavailable');
+    if (paymentsResult.status === 'rejected') warnings.push('payments_unavailable');
+    if (documentsResult.status === 'rejected') warnings.push('documents_unavailable');
+    if (tasksResult.status === 'rejected') warnings.push('tasks_unavailable');
 
     const totalFees = payments.reduce((sum, p) => sum + p.amount, 0);
-    const paidAmount = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+    const paidAmount = payments
+      .filter((p) => p.status === 'paid')
+      .reduce((sum, p) => sum + p.amount, 0);
     const pendingAmount = totalFees - paidAmount;
 
     const requiredDocTypes = ['pan', 'gst_certificate', 'aadhaar', 'bank_details'];
-    const uploadedDocTypes = documents.map(d => d.documentType);
-    const missingDocs = requiredDocTypes.filter(t => !uploadedDocTypes.includes(t));
+    const uploadedDocTypes = documents.map((d) => d.documentType);
+    const missingDocs = requiredDocTypes.filter((t) => !uploadedDocTypes.includes(t));
 
-    const activeServices = services.filter(s => s.status === 'active');
-    const activeTasks = tasks.filter(t => t.status !== 'cancelled');
+    const activeServices = services.filter((s) => s.status === 'active');
+    const activeTasks = tasks.filter((t) => t.status !== 'cancelled');
 
     return {
       client,
@@ -128,23 +184,29 @@ export class CaClientsService {
         totalFees,
         paidAmount,
         pendingAmount,
-        overdueCount: payments.filter(p => p.status === 'overdue').length,
+        overdueCount: payments.filter((p) => p.status === 'overdue').length,
       },
       documents: {
         items: documents,
         uploadedCount: documents.length,
         missingDocuments: missingDocs,
-        completeness: Math.round(((requiredDocTypes.length - missingDocs.length) / requiredDocTypes.length) * 100),
+        completeness: Math.round(
+          ((requiredDocTypes.length - missingDocs.length) / requiredDocTypes.length) * 100,
+        ),
       },
       tasks: {
         items: activeTasks,
-        highPriorityCount: activeTasks.filter(t => t.priority === 'high').length,
-        totalPending: activeTasks.filter(t => t.status === 'pending').length,
+        highPriorityCount: activeTasks.filter((t) => t.priority === 'high').length,
+        totalPending: activeTasks.filter((t) => t.status === 'pending').length,
       },
+      warnings,
     };
   }
 
-  async calculateHealthScore(caUserId: string, clientId: string): Promise<{ score: number; factors: any[] }> {
+  async calculateHealthScore(
+    caUserId: string,
+    clientId: string,
+  ): Promise<{ score: number; factors: any[] }> {
     const clientObjId = new Types.ObjectId(clientId);
     const caObjId = new Types.ObjectId(caUserId);
     let score = 100;
@@ -153,16 +215,24 @@ export class CaClientsService {
     // Document completeness
     const requiredDocTypes = ['pan', 'gst_certificate', 'aadhaar', 'bank_details'];
     const documents = await this.documentModel.find({ clientId: clientObjId, caUserId: caObjId });
-    const uploadedTypes = documents.map(d => d.documentType);
-    const missingDocs = requiredDocTypes.filter(t => !uploadedTypes.includes(t));
+    const uploadedTypes = documents.map((d) => d.documentType);
+    const missingDocs = requiredDocTypes.filter((t) => !uploadedTypes.includes(t));
     if (missingDocs.length > 0) {
       const deduction = missingDocs.length * 5;
       score -= deduction;
-      factors.push({ reason: `${missingDocs.length} missing documents`, deduction, details: missingDocs });
+      factors.push({
+        reason: `${missingDocs.length} missing documents`,
+        deduction,
+        details: missingDocs,
+      });
     }
 
     // Overdue payments
-    const overduePayments = await this.paymentModel.countDocuments({ clientId: clientObjId, caUserId: caObjId, status: 'overdue' });
+    const overduePayments = await this.paymentModel.countDocuments({
+      clientId: clientObjId,
+      caUserId: caObjId,
+      status: 'overdue',
+    });
     if (overduePayments > 0) {
       const deduction = Math.min(20, overduePayments * 5);
       score -= deduction;
@@ -170,7 +240,12 @@ export class CaClientsService {
     }
 
     // Pending tasks
-    const pendingHighTasks = await this.taskModel.countDocuments({ clientId: clientObjId, caUserId: caObjId, status: 'pending', priority: 'high' });
+    const pendingHighTasks = await this.taskModel.countDocuments({
+      clientId: clientObjId,
+      caUserId: caObjId,
+      status: 'pending',
+      priority: 'high',
+    });
     if (pendingHighTasks > 0) {
       const deduction = Math.min(15, pendingHighTasks * 5);
       score -= deduction;
@@ -202,16 +277,17 @@ export class CaClientsService {
   async getStats(caUserId: string): Promise<any> {
     const caObjId = new Types.ObjectId(caUserId);
 
-    const [totalClients, activeClients, totalPendingPayments, highPriorityTasks, allPayments] = await Promise.all([
-      this.clientModel.countDocuments({ caUserId: caObjId }),
-      this.clientModel.countDocuments({ caUserId: caObjId, status: 'active' }),
-      this.paymentModel.aggregate([
-        { $match: { caUserId: caObjId, status: { $in: ['pending', 'overdue'] } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]),
-      this.taskModel.countDocuments({ caUserId: caObjId, status: 'pending', priority: 'high' }),
-      this.paymentModel.find({ caUserId: caObjId, status: { $in: ['pending', 'overdue'] } }),
-    ]);
+    const [totalClients, activeClients, totalPendingPayments, highPriorityTasks, allPayments] =
+      await Promise.all([
+        this.clientModel.countDocuments({ caUserId: caObjId }),
+        this.clientModel.countDocuments({ caUserId: caObjId, status: 'active' }),
+        this.paymentModel.aggregate([
+          { $match: { caUserId: caObjId, status: { $in: ['pending', 'overdue'] } } },
+          { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+        this.taskModel.countDocuments({ caUserId: caObjId, status: 'pending', priority: 'high' }),
+        this.paymentModel.find({ caUserId: caObjId, status: { $in: ['pending', 'overdue'] } }),
+      ]);
 
     const pendingAmount = totalPendingPayments.length > 0 ? totalPendingPayments[0].total : 0;
 
@@ -231,9 +307,13 @@ export class CaClientsService {
       ninetyPlus: { label: '90+ days', count: 0, amount: 0 },
     };
 
-    allPayments.forEach(p => {
+    const payments = Array.isArray(allPayments) ? allPayments : [];
+
+    payments.forEach((p) => {
       if (p.dueDate) {
-        const daysOverdue = Math.ceil((now.getTime() - p.dueDate.getTime()) / (1000 * 60 * 60 * 24));
+        const daysOverdue = Math.ceil(
+          (now.getTime() - p.dueDate.getTime()) / (1000 * 60 * 60 * 24),
+        );
         const days = Math.abs(daysOverdue);
 
         if (days <= 30) {

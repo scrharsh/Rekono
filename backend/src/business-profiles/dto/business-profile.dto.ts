@@ -1,4 +1,12 @@
-import { IsArray, IsEmail, IsEnum, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 import { BusinessMode } from '../../schemas/business-profile.schema';
 
 export class UpsertBusinessProfileDto {

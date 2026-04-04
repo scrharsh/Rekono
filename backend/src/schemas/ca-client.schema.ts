@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
 export type CaClientDocument = HydratedDocument<CaClient>;
+export type CaClientStatus = 'active' | 'inactive' | 'onboarding';
 
 export enum ClientBusinessType {
   PROPRIETOR = 'proprietor',
@@ -58,7 +59,7 @@ export class CaClient {
   healthScore: number;
 
   @Prop({ default: 'active', enum: ['active', 'inactive', 'onboarding'] })
-  status: string;
+  status: CaClientStatus;
 
   @Prop()
   notes?: string;

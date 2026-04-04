@@ -202,11 +202,7 @@ export class PaymentsController {
     userId: string,
   ) {
     try {
-      const payment = await this.paymentsService.create(
-        showroomId,
-        createPaymentDto,
-        userId,
-      );
+      const payment = await this.paymentsService.create(showroomId, createPaymentDto, userId);
 
       // Trigger matching engine after payment creation (Requirement 4.1)
       await this.matchingService.autoMatch(payment);

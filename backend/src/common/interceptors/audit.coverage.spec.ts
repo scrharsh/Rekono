@@ -4,7 +4,8 @@ import { AuditInterceptor } from './audit.interceptor';
 describe('AuditInterceptor route coverage', () => {
   const interceptor = new AuditInterceptor({ log: jest.fn() } as unknown as AuditService);
   const inferEntityType = (route: string) => (interceptor as any).inferEntityType(route);
-  const inferAction = (method: string, route: string) => (interceptor as any).inferAction(method, route);
+  const inferAction = (method: string, route: string) =>
+    (interceptor as any).inferAction(method, route);
 
   it('maps all mutating domain routes to a supported audit entity type', () => {
     const routes = [

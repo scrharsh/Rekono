@@ -10,11 +10,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { createHmac, timingSafeEqual } from 'crypto';
 import * as bcrypt from 'bcrypt';
-import {
-  SubscriptionPlan,
-  SubscriptionStatus,
-  User,
-} from '../schemas/user.schema';
+import { SubscriptionPlan, SubscriptionStatus, User } from '../schemas/user.schema';
 import { RegisterDto, SelfRegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -285,9 +281,14 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const subscription = this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+    const subscription = this.getSubscriptionSnapshot(
+      user as unknown as Pick<User, 'role' | 'subscription'>,
+    );
 
-    if (user.subscription?.status === SubscriptionStatus.ACTIVE && subscription.status !== SubscriptionStatus.ACTIVE) {
+    if (
+      user.subscription?.status === SubscriptionStatus.ACTIVE &&
+      subscription.status !== SubscriptionStatus.ACTIVE
+    ) {
       user.subscription.status = subscription.status as any;
       await user.save();
     }
@@ -306,9 +307,14 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const subscription = this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>);
+    const subscription = this.getSubscriptionSnapshot(
+      user as unknown as Pick<User, 'role' | 'subscription'>,
+    );
 
-    if (user.subscription?.status === SubscriptionStatus.ACTIVE && subscription.status !== SubscriptionStatus.ACTIVE) {
+    if (
+      user.subscription?.status === SubscriptionStatus.ACTIVE &&
+      subscription.status !== SubscriptionStatus.ACTIVE
+    ) {
       user.subscription.status = subscription.status as any;
       await user.save();
     }
@@ -338,7 +344,9 @@ export class AuthService {
     }
 
     const activatedAt = new Date();
-    const expiresAt = new Date(activatedAt.getTime() + Math.max(1, durationDays) * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      activatedAt.getTime() + Math.max(1, durationDays) * 24 * 60 * 60 * 1000,
+    );
 
     user.subscription = {
       plan,
@@ -366,7 +374,9 @@ export class AuthService {
       return {
         free: true,
         message: 'CA workspace is free for now.',
-        subscription: this.getSubscriptionSnapshot(user as unknown as Pick<User, 'role' | 'subscription'>),
+        subscription: this.getSubscriptionSnapshot(
+          user as unknown as Pick<User, 'role' | 'subscription'>,
+        ),
       };
     }
 
@@ -374,7 +384,10 @@ export class AuthService {
       user as unknown as Pick<User, 'role' | 'subscription'>,
     );
 
-    if (user.subscription?.status === SubscriptionStatus.ACTIVE && existingSubscription.status !== SubscriptionStatus.ACTIVE) {
+    if (
+      user.subscription?.status === SubscriptionStatus.ACTIVE &&
+      existingSubscription.status !== SubscriptionStatus.ACTIVE
+    ) {
       user.subscription.status = existingSubscription.status as any;
       await user.save();
     }
@@ -473,7 +486,9 @@ export class AuthService {
     }
 
     const notes =
-      payload?.payload?.payment_link?.entity?.notes || payload?.payload?.payment?.entity?.notes || {};
+      payload?.payload?.payment_link?.entity?.notes ||
+      payload?.payload?.payment?.entity?.notes ||
+      {};
     const userId = String(notes.userId || '');
     if (!userId) {
       return { received: true, ignored: true, reason: 'Missing userId note' };

@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CaTasksService } from './ca-tasks.service';
@@ -13,6 +24,11 @@ import { UpdateCaTaskStatusDto } from './dto/update-ca-task-status.dto';
 export class CaTasksController {
   constructor(private readonly caTasksService: CaTasksService) {}
 
+  private parseNumber(value: string | undefined, fallback: number): number {
+    const parsed = Number.parseInt(value ?? '', 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a task' })
   async create(@Request() req: any, @Body() dto: CreateCaTaskDto) {
@@ -21,14 +37,31 @@ export class CaTasksController {
 
   @Get()
   @ApiOperation({ summary: 'List all tasks' })
-  async findAll(@Request() req: any, @Query('clientId') clientId?: string, @Query('status') status?: string, @Query('priority') priority?: string) {
-    return this.caTasksService.findAll(req.user.userId, { clientId, status, priority });
+  async findAll(
+    @Request() req: any,
+    @Query('clientId') clientId?: string,
+    @Query('status') status?: string,
+    @Query('priority') priority?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.caTasksService.findAll(req.user.userId, {
+      clientId,
+      status,
+      priority,
+      limit: this.parseNumber(limit, 200),
+      offset: this.parseNumber(offset, 0),
+    });
   }
 
   @Get('assigned-to-me')
   @ApiOperation({ summary: 'Get tasks assigned to current user' })
-  async getAssignedToMe(@Request() req: any) {
-    return this.caTasksService.getAssignedTasks(req.user.userId, req.user.userId);
+  async getAssignedToMe(@Request() req: any, @Query('limit') limit?: string) {
+    return this.caTasksService.getAssignedTasks(
+      req.user.userId,
+      req.user.userId,
+      this.parseNumber(limit, 100),
+    );
   }
 
   @Get('command-center')

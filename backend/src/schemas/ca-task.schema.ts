@@ -46,7 +46,11 @@ export class CaTask {
   @Prop()
   description?: string;
 
-  @Prop({ required: true, enum: ['pending', 'in_progress', 'completed', 'cancelled'], default: 'pending' })
+  @Prop({
+    required: true,
+    enum: ['pending', 'in_progress', 'completed', 'cancelled'],
+    default: 'pending',
+  })
   status: string;
 
   @Prop()

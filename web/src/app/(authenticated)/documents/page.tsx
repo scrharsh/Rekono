@@ -5,11 +5,28 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import MotionEmptyState from '@/components/MotionEmptyState';
 import LottieLoader from '@/components/LottieLoader';
 import Icon from '@/components/Icon';
+import { API_URL } from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   return { Authorization: `Bearer ${token}` };
+}
+
+interface ClientRecord {
+  _id: string;
+  name: string;
+  gstin?: string;
+}
+
+interface DocumentStatusItem {
+  type: string;
+  uploaded: boolean;
+}
+
+interface ClientDocumentsSummary {
+  client: ClientRecord;
+  documents: DocumentStatusItem[];
+  percentage: number;
 }
 
 const DOC_TYPES = [
@@ -30,27 +47,31 @@ export default function DocumentsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filter, setFilter] = useState('all');
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<ClientRecord[]>({
     queryKey: ['ca-clients-list'],
-    queryFn: async () => {
+    queryFn: async (): Promise<ClientRecord[]> => {
       const res = await fetch(`${API_URL}/v1/ca/clients`, { headers: authHeaders() });
       if (!res.ok) return [];
-      return res.json();
+      return (await res.json()) as ClientRecord[];
     },
   });
 
   // Fetch documents per client (aggregated)
-  const { data: allDocs = [], isLoading } = useQuery({
+  const { data: allDocs = [], isLoading } = useQuery<ClientDocumentsSummary[]>({
     queryKey: ['ca-documents-all'],
-    queryFn: async () => {
+    queryFn: async (): Promise<ClientDocumentsSummary[]> => {
       // Fetch completeness for each client
       const results = await Promise.all(
-        clients.map(async (c: any) => {
+        clients.map(async (c) => {
           try {
             const res = await fetch(`${API_URL}/v1/ca/documents/completeness/${c._id}`, { headers: authHeaders() });
             if (!res.ok) return { client: c, documents: [], percentage: 0 };
-            const data = await res.json();
-            return { client: c, ...data };
+            const data = (await res.json()) as { documents?: DocumentStatusItem[]; percentage?: number };
+            return {
+              client: c,
+              documents: data.documents ?? [],
+              percentage: data.percentage ?? 0,
+            };
           } catch {
             return { client: c, documents: [], percentage: 0 };
           }
@@ -86,8 +107,8 @@ export default function DocumentsPage() {
   const filteredDocs = filter === 'all'
     ? allDocs
     : filter === 'complete'
-      ? allDocs.filter((d: any) => d.percentage >= 100)
-      : allDocs.filter((d: any) => d.percentage < 100);
+      ? allDocs.filter((d) => d.percentage >= 100)
+      : allDocs.filter((d) => d.percentage < 100);
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -134,7 +155,7 @@ export default function DocumentsPage() {
                 <select className="input" value={uploadForm.clientId} required
                   onChange={e => setUploadForm(p => ({ ...p, clientId: e.target.value }))}>
                   <option value="">Select client...</option>
-                  {clients.map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                  {clients.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
@@ -191,7 +212,7 @@ export default function DocumentsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-children">
-          {filteredDocs.map((item: any) => (
+          {filteredDocs.map((item) => (
             <div key={item.client?._id} className="card p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -214,7 +235,7 @@ export default function DocumentsPage() {
               </div>
               <div className="grid grid-cols-2 gap-1.5">
                 {DOC_TYPES.slice(0, 6).map(dt => {
-                  const found = item.documents?.find((d: any) => d.type === dt.value);
+                  const found = item.documents?.find((d) => d.type === dt.value);
                   return (
                     <div key={dt.value} className="flex items-center gap-1.5 py-1">
                       {found?.uploaded ? (

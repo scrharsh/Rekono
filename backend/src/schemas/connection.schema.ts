@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
 export type ConnectionDocument = HydratedDocument<Connection>;
+export type ConnectionStatus = 'pending' | 'active' | 'rejected' | 'disconnected';
 
 /**
  * A Connection links a Showroom to a CA on the platform.
@@ -18,7 +19,7 @@ export class Connection {
   caUserId: Types.ObjectId;
 
   @Prop({ default: 'pending', enum: ['pending', 'active', 'rejected', 'disconnected'] })
-  status: string;
+  status: ConnectionStatus;
 
   @Prop()
   message?: string; // optional message from showroom when requesting

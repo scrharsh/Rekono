@@ -57,7 +57,9 @@ export class CaosService {
       activeAlerts.push(alert);
     }
 
-    const staleAlerts = existingAlerts.filter((alert) => alert.active && !generatedIds.has(alert.alertId));
+    const staleAlerts = existingAlerts.filter(
+      (alert) => alert.active && !generatedIds.has(alert.alertId),
+    );
     if (staleAlerts.length > 0) {
       await Promise.all(
         staleAlerts.map((alert) =>

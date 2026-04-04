@@ -22,13 +22,13 @@ interface NavSection {
 }
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, logout, businessShowroomId } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const isBusinessUser = user?.role === 'staff';
   const homeHref = isBusinessUser ? '/dashboard' : '/command-center';
-  const primaryShowroomId = user?.showroomIds?.[0];
+  const primaryShowroomId = businessShowroomId ?? user?.showroomIds?.[0];
 
   const navSections: NavSection[] = isBusinessUser
     ? [
@@ -39,11 +39,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               label: 'Dashboard',
               href: '/dashboard',
               icon: 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
-            },
-            {
-              label: 'Connect CA',
-              href: '/connect',
-              icon: 'M17 20h5v-2a3 3 0 00-4-2.83M9 20H4v-2a3 3 0 014-2.83m10-4.34a3 3 0 11-6 0 3 3 0 016 0zm-10 0a3 3 0 11-6 0 3 3 0 016 0z',
             },
             {
               label: 'Reports',
@@ -61,8 +56,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           title: 'Operations',
           items: [
             ...(primaryShowroomId
-              ? [{ label: 'Showroom', href: `/showrooms/${primaryShowroomId}`, icon: 'M3 21h18M4.5 21V5.25L12 3l7.5 2.25V21M9 21v-8.25h6V21', badge: user?.showroomIds?.length }]
+              ? [{ label: 'Business', href: `/showrooms/${primaryShowroomId}`, icon: 'M3 21h18M4.5 21V5.25L12 3l7.5 2.25V21M9 21v-8.25h6V21', badge: user?.showroomIds?.length }]
               : []),
+            { label: 'Items', href: '/items', icon: 'M4 6h16M4 12h16M4 18h16' },
             { label: 'Queues', href: '/queues', icon: 'M4 6h16M4 10h16M4 14h16M4 18h16' },
             { label: 'Transactions', href: primaryShowroomId ? `/showrooms/${primaryShowroomId}/transactions` : '/dashboard', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
           ],
@@ -140,6 +136,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     if (href === '/dashboard') {
       return pathname === '/dashboard' || pathname === '/business-dashboard';
     }
+    if (href === '/items') {
+      return pathname === '/items';
+    }
     if (href === '/command-center') {
       return pathname === '/command-center';
     }
@@ -158,9 +157,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-1.5 px-4 h-16 shrink-0"
           style={{ borderBottom: '1px solid rgba(214,228,255,0.95)' }}>
           {collapsed ? (
-            <Link href={homeHref} aria-label="Go to home" className="inline-flex items-center">
+            <button
+              type="button"
+              onClick={() => setCollapsed(false)}
+              aria-label="Open sidebar"
+              className="inline-flex items-center"
+            >
               <BrandMark className="w-10 h-10 shrink-0" />
-            </Link>
+            </button>
           ) : (
             <BrandLogoLink logoClassName="h-10 w-auto" href={homeHref} />
           )}

@@ -112,6 +112,8 @@ describe('CaosController', () => {
 
     const req = { user: { userId: '507f1f77bcf86cd799439011' } };
 
-    await expect(controller.completeTask(req, 'missing-task', {})).rejects.toBeInstanceOf(NotFoundException);
+    await expect(controller.completeTask(req, 'missing-task', {})).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });

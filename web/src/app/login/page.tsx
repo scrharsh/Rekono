@@ -18,12 +18,21 @@ export default function LoginPage() {
   const labelClass = 'block text-xs font-medium mb-1.5 text-[#5a7dae]';
   const primaryButtonClass = 'inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0b57d0] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0846ab] disabled:cursor-not-allowed disabled:opacity-50';
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+    const formData = new FormData(e.currentTarget);
+    const submittedUsername = (username || String(formData.get('username') || '')).trim();
+    const submittedPassword = password || String(formData.get('password') || '');
+
+    if (!submittedUsername || !submittedPassword) {
+      setError('Please enter your username and password');
+      return;
+    }
+
     setLoading(true);
     try {
-      const loggedInUser = await login(username, password);
+      const loggedInUser = await login(submittedUsername, submittedPassword);
       const requiresSubscription = Boolean(loggedInUser.subscription?.required);
       const hasActiveSubscription = loggedInUser.subscription?.status === 'active';
       const isBusinessUser = loggedInUser.role === 'staff';
@@ -156,6 +165,7 @@ export default function LoginPage() {
                 </div>
                 <input
                   id="login-username"
+                  name="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -178,6 +188,7 @@ export default function LoginPage() {
                 </div>
                 <input
                   id="login-password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -216,7 +227,7 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading || !username || !password}
+              disabled={loading}
               className={primaryButtonClass}
             >
               {loading ? (

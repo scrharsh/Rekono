@@ -39,7 +39,9 @@ describe('BusinessProfilesService', () => {
   it('throws when profile not found', async () => {
     mockProfileModel.findOne.mockResolvedValue(null);
 
-    await expect(service.getMyProfile('507f1f77bcf86cd799439011')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.getMyProfile('507f1f77bcf86cd799439011')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('creates profile when none exists', async () => {

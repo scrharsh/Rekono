@@ -10,10 +10,9 @@ import {
 } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import colors from '../constants/colors';
+import { API_URL } from '../constants/api';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = 'http://10.0.2.2:3000/v1';
 interface MatchCandidate {
   saleEntry: {
     _id: string;

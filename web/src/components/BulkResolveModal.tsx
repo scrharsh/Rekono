@@ -3,8 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
+import { API_V1_URL as API_URL } from '@/lib/api';
 
 type MatchCandidate = {
   saleEntry: {

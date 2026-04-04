@@ -5,9 +5,7 @@ import { CaServicesService } from './ca-services.service';
 import { CaService, CaServiceSchema } from '../schemas/ca-service.schema';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: CaService.name, schema: CaServiceSchema }]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: CaService.name, schema: CaServiceSchema }])],
   controllers: [CaServicesController],
   providers: [CaServicesService],
   exports: [CaServicesService],

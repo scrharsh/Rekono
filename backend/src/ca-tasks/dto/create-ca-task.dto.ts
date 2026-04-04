@@ -5,7 +5,7 @@ import { TaskPriority, TaskType } from '../../schemas/ca-task.schema';
 export class CreateCaTaskDto {
   @ApiProperty({ enum: Object.values(TaskType) })
   @IsEnum(TaskType)
-  type: TaskType;
+  type!: TaskType;
 
   @ApiPropertyOptional({ enum: Object.values(TaskPriority), default: TaskPriority.MEDIUM })
   @IsOptional()
@@ -15,7 +15,7 @@ export class CreateCaTaskDto {
   @ApiProperty({ maxLength: 160 })
   @IsString()
   @MaxLength(160)
-  title: string;
+  title!: string;
 
   @ApiPropertyOptional({ maxLength: 500 })
   @IsOptional()

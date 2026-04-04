@@ -7,6 +7,9 @@ import { SaleEntry, SaleEntryDocument } from '../schemas/sale-entry.schema';
 import { PaymentRecord, PaymentRecordDocument } from '../schemas/payment-record.schema';
 import { Match, MatchDocument } from '../schemas/match.schema';
 
+const DEFAULT_LIST_LIMIT = 100;
+const MAX_LIST_LIMIT = 500;
+
 /**
  * CA Dashboard — shows the CA's own workspace:
  * - Connected showrooms (via Connection model)
@@ -26,12 +29,25 @@ export class DashboardService {
     @InjectModel(Match.name) private matchingModel: Model<MatchDocument>,
   ) {}
 
+  private normalizeLimit(value: number | undefined, fallback: number): number {
+    if (!Number.isFinite(value ?? NaN)) {
+      return fallback;
+    }
+
+    return Math.min(Math.max(Math.trunc(value as number), 1), MAX_LIST_LIMIT);
+  }
+
   /** Get all showrooms connected to this CA */
-  async getConnectedShowrooms(caUserId: string): Promise<any[]> {
+  async getConnectedShowrooms(caUserId: string, limit?: number, offset?: number): Promise<any[]> {
+    const safeLimit = this.normalizeLimit(limit, DEFAULT_LIST_LIMIT);
+    const safeOffset = Math.max(Math.trunc(offset ?? 0), 0);
+
     const connections = await this.connectionModel
       .find({ caUserId, status: 'active' })
       .populate('showroomId', 'name gstin address phone')
-      .sort({ connectedAt: -1 });
+      .sort({ connectedAt: -1 })
+      .skip(safeOffset)
+      .limit(safeLimit);
 
     return connections.map((c: any) => ({
       connectionId: c._id,
@@ -41,11 +57,16 @@ export class DashboardService {
   }
 
   /** Get pending connection requests for this CA */
-  async getPendingRequests(caUserId: string): Promise<any[]> {
+  async getPendingRequests(caUserId: string, limit?: number, offset?: number): Promise<any[]> {
+    const safeLimit = this.normalizeLimit(limit, DEFAULT_LIST_LIMIT);
+    const safeOffset = Math.max(Math.trunc(offset ?? 0), 0);
+
     const pending = await this.connectionModel
       .find({ caUserId, status: 'pending' })
       .populate('showroomId', 'name gstin phone')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(safeOffset)
+      .limit(safeLimit);
 
     return pending.map((c: any) => ({
       connectionId: c._id,
@@ -56,12 +77,16 @@ export class DashboardService {
   }
 
   /** Get reports received by this CA */
-  async getReceivedReports(caUserId: string): Promise<any[]> {
+  async getReceivedReports(caUserId: string, limit?: number, offset?: number): Promise<any[]> {
+    const safeLimit = this.normalizeLimit(limit, 50);
+    const safeOffset = Math.max(Math.trunc(offset ?? 0), 0);
+
     return this.reportModel
       .find({ caUserId })
       .populate('showroomId', 'name gstin')
       .sort({ createdAt: -1 })
-      .limit(50);
+      .skip(safeOffset)
+      .limit(safeLimit);
   }
 
   /** Get unread report count */
@@ -95,13 +120,36 @@ export class DashboardService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [totalSales, matchedSalesCount, unmatchedSalesCount, totalPayments, matchedPaymentsCount, unknownPaymentsCount] = await Promise.all([
+    const [
+      totalSales,
+      matchedSalesCount,
+      unmatchedSalesCount,
+      totalPayments,
+      matchedPaymentsCount,
+      unknownPaymentsCount,
+    ] = await Promise.all([
       this.saleModel.countDocuments({ showroomId, dateCreated: { $gte: today } }),
-      this.matchingModel.countDocuments({ showroomId, saleId: { $ne: null }, dateCreated: { $gte: today } }),
-      this.saleModel.countDocuments({ showroomId, dateCreated: { $gte: today }, matchedPaymentId: { $exists: false } }),
+      this.matchingModel.countDocuments({
+        showroomId,
+        saleId: { $ne: null },
+        dateCreated: { $gte: today },
+      }),
+      this.saleModel.countDocuments({
+        showroomId,
+        dateCreated: { $gte: today },
+        matchedPaymentId: { $exists: false },
+      }),
       this.paymentModel.countDocuments({ showroomId, dateCreated: { $gte: today } }),
-      this.matchingModel.countDocuments({ showroomId, paymentId: { $ne: null }, dateCreated: { $gte: today } }),
-      this.paymentModel.countDocuments({ showroomId, dateCreated: { $gte: today }, linkedSaleId: { $exists: false } }),
+      this.matchingModel.countDocuments({
+        showroomId,
+        paymentId: { $ne: null },
+        dateCreated: { $gte: today },
+      }),
+      this.paymentModel.countDocuments({
+        showroomId,
+        dateCreated: { $gte: today },
+        linkedSaleId: { $exists: false },
+      }),
     ]);
 
     // Calculate health score based on reconciliation percentage
@@ -123,11 +171,13 @@ export class DashboardService {
   /** Get queue summaries for a showroom */
   async getShowroomQueues(showroomId: string): Promise<any> {
     const [unmatchedSales, unknownPayments] = await Promise.all([
-      this.saleModel.find({ showroomId, matchedPaymentId: { $exists: false } })
+      this.saleModel
+        .find({ showroomId, matchedPaymentId: { $exists: false } })
         .sort({ dateCreated: -1 })
         .limit(10)
         .select('id amount description dateCreated'),
-      this.paymentModel.find({ showroomId, linkedSaleId: { $exists: false } })
+      this.paymentModel
+        .find({ showroomId, linkedSaleId: { $exists: false } })
         .sort({ dateCreated: -1 })
         .limit(10)
         .select('id amount paymentMethod dateCreated'),

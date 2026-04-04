@@ -24,9 +24,9 @@ describe('SmsWebhookController', () => {
       return undefined;
     });
 
-    await expect(controller.handleRazorpayWebhook('showroom-1', {}, undefined)).rejects.toBeInstanceOf(
-      ServiceUnavailableException,
-    );
+    await expect(
+      controller.handleRazorpayWebhook('showroom-1', {}, undefined),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
   });
 
   it('rejects webhook with invalid secret', async () => {
@@ -35,9 +35,9 @@ describe('SmsWebhookController', () => {
       return undefined;
     });
 
-    await expect(controller.handlePhonepeWebhook('showroom-1', {}, 'wrong-secret')).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    await expect(
+      controller.handlePhonepeWebhook('showroom-1', {}, 'wrong-secret'),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('accepts webhook with valid secret and processes payment', async () => {

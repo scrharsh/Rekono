@@ -25,12 +25,13 @@ import { Model } from 'mongoose';
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ShowroomAccessGuard } from '../auth/guards/showroom-access.guard';
 import { Showroom, ShowroomDocument } from '../schemas/showroom.schema';
 
 @ApiTags('sales')
 @ApiBearerAuth()
 @Controller('showrooms')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ShowroomAccessGuard)
 export class SalesController {
   constructor(
     private readonly salesService: SalesService,
@@ -72,7 +73,15 @@ export class SalesController {
     @Request() req: any,
   ) {
     try {
-      const sale = await this.salesService.create(showroomId, createSaleDto, req.user.userId);
+      const userId = req?.user?.userId;
+      if (!userId) {
+        throw new HttpException(
+          { error: { code: 'UNAUTHORIZED', message: 'Authenticated user is required' } },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const sale = await this.salesService.create(showroomId, createSaleDto, userId);
       return { sale };
     } catch (error: any) {
       throw new HttpException(

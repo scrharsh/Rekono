@@ -34,7 +34,12 @@ async function bootstrap() {
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-  const allowedOrigins = (configService.get<string>('ALLOWED_ORIGINS') || 'http://localhost:3001')
+  const configuredOrigins = configService.get<string>('ALLOWED_ORIGINS');
+  if (isProduction && !configuredOrigins) {
+    throw new Error('ALLOWED_ORIGINS is required in production');
+  }
+
+  const allowedOrigins = (configuredOrigins || 'http://localhost:3001')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
@@ -58,7 +63,9 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
       transform: true,
+      disableErrorMessages: isProduction,
       transformOptions: {
         enableImplicitConversion: true,
       },

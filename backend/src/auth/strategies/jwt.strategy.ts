@@ -4,6 +4,14 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
 
+interface JwtPayload {
+  sub: string;
+  username?: string;
+  role?: string;
+  showroomIds?: string[];
+  subscription?: unknown;
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -17,7 +25,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: JwtPayload) {
+    if (!payload?.sub || typeof payload.sub !== 'string') {
+      throw new UnauthorizedException('Invalid token payload');
+    }
+
     const user = await this.authService.validateUser(payload.sub);
 
     if (!user) {
@@ -25,11 +37,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     return {
-      userId: payload.sub,
-      username: payload.username,
-      role: payload.role,
-      showroomIds: payload.showroomIds,
-      subscription: user.subscription || payload.subscription,
+      userId: user._id.toString(),
+      username: user.username,
+      role: user.role,
+      showroomIds: (user.showroomIds ?? []).map((id) => id.toString()),
+      subscription: user.subscription,
     };
   }
 }

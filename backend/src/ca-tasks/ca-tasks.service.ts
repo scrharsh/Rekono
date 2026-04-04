@@ -4,12 +4,24 @@ import { Model, Types } from 'mongoose';
 import { CaTask, CaTaskDocument, TaskPriority } from '../schemas/ca-task.schema';
 import { AuditService } from '../audit/audit.service';
 
+const MAX_TASK_LIST_LIMIT = 500;
+const MAX_ASSIGNED_TASK_LIMIT = 300;
+const MAX_TEAM_OVERVIEW_LIMIT = 500;
+
 @Injectable()
 export class CaTasksService {
   constructor(
     @InjectModel(CaTask.name) private taskModel: Model<CaTaskDocument>,
     private readonly auditService: AuditService,
   ) {}
+
+  private normalizeLimit(value: number | undefined, fallback: number, max: number): number {
+    if (!Number.isFinite(value ?? NaN)) {
+      return fallback;
+    }
+
+    return Math.min(Math.max(Math.trunc(value as number), 1), max);
+  }
 
   async create(caUserId: string, dto: any): Promise<CaTaskDocument> {
     const task = await this.taskModel.create({
@@ -58,17 +70,36 @@ export class CaTasksService {
     });
   }
 
-  async findAll(caUserId: string, filters?: { clientId?: string; status?: string; priority?: string }): Promise<CaTaskDocument[]> {
+  async findAll(
+    caUserId: string,
+    filters?: {
+      clientId?: string;
+      status?: string;
+      priority?: string;
+      limit?: number;
+      offset?: number;
+    },
+  ): Promise<CaTaskDocument[]> {
     const query: Record<string, any> = { caUserId: new Types.ObjectId(caUserId) };
     if (filters?.clientId) query.clientId = new Types.ObjectId(filters.clientId);
     if (filters?.status) query.status = filters.status;
     if (filters?.priority) query.priority = filters.priority;
 
-    const priorityOrder = { [TaskPriority.HIGH]: 0, [TaskPriority.MEDIUM]: 1, [TaskPriority.LOW]: 2 };
+    const limit = this.normalizeLimit(filters?.limit, 200, MAX_TASK_LIST_LIMIT);
+    const offset = Math.max(Math.trunc(filters?.offset ?? 0), 0);
 
-    const tasks = await this.taskModel.find(query)
+    const priorityOrder = {
+      [TaskPriority.HIGH]: 0,
+      [TaskPriority.MEDIUM]: 1,
+      [TaskPriority.LOW]: 2,
+    };
+
+    const tasks = await this.taskModel
+      .find(query)
       .populate('clientId', 'name phone healthScore')
-      .sort({ status: 1, dueDate: 1 });
+      .sort({ status: 1, dueDate: 1 })
+      .skip(offset)
+      .limit(limit);
 
     return tasks.sort((a, b) => {
       const pa = priorityOrder[a.priority as TaskPriority] ?? 3;
@@ -77,7 +108,12 @@ export class CaTasksService {
     });
   }
 
-  async updateStatus(caUserId: string, taskId: string, status: string, notes?: string): Promise<CaTaskDocument> {
+  async updateStatus(
+    caUserId: string,
+    taskId: string,
+    status: string,
+    notes?: string,
+  ): Promise<CaTaskDocument> {
     const update: any = { status };
     if (status === 'completed') update.completedAt = new Date();
     if (notes) update.notes = notes;
@@ -179,7 +215,13 @@ export class CaTasksService {
   ): Promise<CaTaskDocument[]> {
     const results: CaTaskDocument[] = [];
     for (const taskId of taskIds) {
-      const task = await this.assignTask(caUserId, taskId, assignedToUserId, assignedToName, dueDate);
+      const task = await this.assignTask(
+        caUserId,
+        taskId,
+        assignedToUserId,
+        assignedToName,
+        dueDate,
+      );
       results.push(task);
     }
 
@@ -208,7 +250,8 @@ export class CaTasksService {
         status: { $in: ['pending', 'in_progress'] },
       })
       .populate('clientId', 'name phone')
-      .sort({ assignedToName: 1, dueDate: 1, priority: 1 });
+      .sort({ assignedToName: 1, dueDate: 1, priority: 1 })
+      .limit(MAX_TEAM_OVERVIEW_LIMIT);
 
     const byAssignee = new Map<string, any>();
     const unassigned: any[] = [];
@@ -244,8 +287,10 @@ export class CaTasksService {
     }
 
     return {
-      assignees: Array.from(byAssignee.values()).sort((a, b) => b.overdue - a.overdue || b.pending - a.pending),
-      unassigned: unassigned.map(task => ({
+      assignees: Array.from(byAssignee.values()).sort(
+        (a, b) => b.overdue - a.overdue || b.pending - a.pending,
+      ),
+      unassigned: unassigned.map((task) => ({
         ...task,
         slaStatus: this.calculateSLAStatus(task.dueDate),
       })),
@@ -260,8 +305,13 @@ export class CaTasksService {
   /**
    * Get tasks assigned to a specific user
    */
-  async getAssignedTasks(caUserId: string, assignedToUserId: string): Promise<any[]> {
+  async getAssignedTasks(
+    caUserId: string,
+    assignedToUserId: string,
+    limit?: number,
+  ): Promise<any[]> {
     const now = new Date();
+    const taskLimit = this.normalizeLimit(limit, 100, MAX_ASSIGNED_TASK_LIMIT);
     const tasks = await this.taskModel
       .find({
         caUserId: new Types.ObjectId(caUserId),
@@ -269,13 +319,16 @@ export class CaTasksService {
         status: { $in: ['pending', 'in_progress'] },
       })
       .populate('clientId', 'name phone')
-      .sort({ dueDate: 1, priority: 1 });
+      .sort({ dueDate: 1, priority: 1 })
+      .limit(taskLimit);
 
     // Add SLA status to each task
-    return tasks.map(t => ({
+    return tasks.map((t) => ({
       ...t.toObject(),
       slaStatus: this.calculateSLAStatus(t.dueDate),
-      daysUntilDue: t.dueDate ? Math.ceil((t.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null,
+      daysUntilDue: t.dueDate
+        ? Math.ceil((t.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        : null,
     }));
   }
 
@@ -284,10 +337,10 @@ export class CaTasksService {
    */
   private calculateSLAStatus(dueDate?: Date): 'overdue' | 'at_risk' | 'on_track' {
     if (!dueDate) return 'on_track';
-    
+
     const now = new Date();
     const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
+
     if (hoursUntilDue < 0) return 'overdue';
     if (hoursUntilDue < 24) return 'at_risk';
     return 'on_track';
@@ -300,57 +353,61 @@ export class CaTasksService {
     const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
     // Get all critical work items from different domains
-    const [tasks, upcomingWindowTasks, allTasks, pendingCount, stats] = await Promise.all([
+    const [tasks, upcomingWindowTasks, pendingCount, stats] = await Promise.all([
       // Urgent high-priority tasks (within 3 days OR high priority)
-      this.taskModel.find({
-        caUserId: caObjId,
-        status: { $in: ['pending', 'in_progress'] },
-        $or: [
-          { priority: 'high' },
-          { dueDate: { $lte: threeDaysFromNow, $gte: now } }
-        ]
-      }).populate('clientId', 'name phone healthScore').sort({ dueDate: 1 }).limit(10),
+      this.taskModel
+        .find({
+          caUserId: caObjId,
+          status: { $in: ['pending', 'in_progress'] },
+          $or: [{ priority: 'high' }, { dueDate: { $lte: threeDaysFromNow, $gte: now } }],
+        })
+        .populate('clientId', 'name phone healthScore')
+        .sort({ dueDate: 1 })
+        .limit(10),
 
       // Approaching deadline tasks (3-7 days out)
-      this.taskModel.find({
-        caUserId: caObjId,
-        status: { $in: ['pending'] },
-        dueDate: { $lte: sevenDaysFromNow, $gt: threeDaysFromNow }
-      }).populate('clientId', 'name phone healthScore').sort({ dueDate: 1 }).limit(5),
-
-      // All tasks for processing
-      this.taskModel.find({
-        caUserId: caObjId,
-        status: { $in: ['pending', 'in_progress'] }
-      }).populate('clientId', 'name phone healthScore').sort({ dueDate: 1 }),
+      this.taskModel
+        .find({
+          caUserId: caObjId,
+          status: { $in: ['pending'] },
+          dueDate: { $lte: sevenDaysFromNow, $gt: threeDaysFromNow },
+        })
+        .populate('clientId', 'name phone healthScore')
+        .sort({ dueDate: 1 })
+        .limit(5),
 
       // Count pending
       this.taskModel.countDocuments({
         caUserId: caObjId,
-        status: 'pending'
+        status: 'pending',
       }),
 
       // Stats
       this.taskModel.aggregate([
         { $match: { caUserId: caObjId, status: { $in: ['pending', 'in_progress'] } } },
-        { $group: {
-          _id: null,
-          pendingTasks: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
-          highPriority: { $sum: { $cond: [{ $eq: ['$priority', 'high'] }, 1, 0] } }
-        }}
-      ])
+        {
+          $group: {
+            _id: null,
+            pendingTasks: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
+            highPriority: { $sum: { $cond: [{ $eq: ['$priority', 'high'] }, 1, 0] } },
+          },
+        },
+      ]),
     ]);
 
     // Deduplication: remove overlaps between urgent and upcoming
     const upcomingDeadlines = upcomingWindowTasks.filter(
-      t => !tasks.some(ut => ut._id.toString() === t._id.toString())
+      (t) => !tasks.some((ut) => ut._id.toString() === t._id.toString()),
     );
 
     // Recent completed tasks
-    const recent = await this.taskModel.find({
-      caUserId: caObjId,
-      status: 'completed',
-    }).sort({ completedAt: -1 }).limit(5);
+    const recent = await this.taskModel
+      .find({
+        caUserId: caObjId,
+        status: 'completed',
+      })
+      .sort({ completedAt: -1 })
+      .limit(5);
 
     return {
       stats: {
@@ -358,43 +415,47 @@ export class CaTasksService {
         highPriorityCount: stats[0]?.highPriority ?? 0,
         totalPending: pendingCount,
       },
-      urgentTasks: tasks.slice(0, 5).map(t => {
+      urgentTasks: tasks.slice(0, 5).map((t) => {
         const client = t.clientId as any;
-        return ({
-        _id: t._id,
-        type: t.type,
-        title: t.title,
-        description: t.description,
-        clientId: t.clientId,
-        clientName: client?.name,
-        priority: t.priority,
-        dueDate: t.dueDate,
-        status: t.status,
-        daysUntilDue: t.dueDate ? Math.ceil((t.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null,
-      });
+        return {
+          _id: t._id,
+          type: t.type,
+          title: t.title,
+          description: t.description,
+          clientId: t.clientId,
+          clientName: client?.name,
+          priority: t.priority,
+          dueDate: t.dueDate,
+          status: t.status,
+          daysUntilDue: t.dueDate
+            ? Math.ceil((t.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            : null,
+        };
       }),
-      upcomingTasks: upcomingDeadlines.slice(0, 4).map(t => {
+      upcomingTasks: upcomingDeadlines.slice(0, 4).map((t) => {
         const client = t.clientId as any;
-        return ({
-        _id: t._id,
-        type: t.type,
-        title: t.title,
-        clientName: client?.name,
-        dueDate: t.dueDate,
-        daysUntilDue: t.dueDate ? Math.ceil((t.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null,
-      });
+        return {
+          _id: t._id,
+          type: t.type,
+          title: t.title,
+          clientName: client?.name,
+          dueDate: t.dueDate,
+          daysUntilDue: t.dueDate
+            ? Math.ceil((t.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            : null,
+        };
       }),
-      recentTasks: recent.slice(0, 3).map(t => {
+      recentTasks: recent.slice(0, 3).map((t) => {
         const client = t.clientId as any;
-        return ({
-        _id: t._id,
-        title: t.title,
-        clientName: client?.name,
-        completedAt: t.completedAt,
-      });
+        return {
+          _id: t._id,
+          title: t.title,
+          clientName: client?.name,
+          completedAt: t.completedAt,
+        };
       }),
       focusItems: tasks.slice(0, 3),
-      suggestedActions: tasks.slice(0, 5).map(task => ({
+      suggestedActions: tasks.slice(0, 5).map((task) => ({
         taskId: task._id,
         title: task.title,
         description: task.description,
@@ -406,7 +467,10 @@ export class CaTasksService {
     };
   }
 
-  async findSystemOperationalTasks(caUserId: string, showroomId?: string): Promise<CaTaskDocument[]> {
+  async findSystemOperationalTasks(
+    caUserId: string,
+    showroomId?: string,
+  ): Promise<CaTaskDocument[]> {
     const query: Record<string, any> = {
       caUserId: new Types.ObjectId(caUserId),
       createdBy: 'system',
@@ -417,7 +481,11 @@ export class CaTasksService {
       query['actionData.showroomId'] = String(showroomId);
     }
 
-    const priorityOrder = { [TaskPriority.HIGH]: 0, [TaskPriority.MEDIUM]: 1, [TaskPriority.LOW]: 2 };
+    const priorityOrder = {
+      [TaskPriority.HIGH]: 0,
+      [TaskPriority.MEDIUM]: 1,
+      [TaskPriority.LOW]: 2,
+    };
 
     const tasks = await this.taskModel
       .find(query)
@@ -431,7 +499,11 @@ export class CaTasksService {
     });
   }
 
-  async reconcileSystemTasks(caUserId: string, showroomId: string, activeTypes: string[]): Promise<void> {
+  async reconcileSystemTasks(
+    caUserId: string,
+    showroomId: string,
+    activeTypes: string[],
+  ): Promise<void> {
     await this.taskModel.updateMany(
       {
         caUserId: new Types.ObjectId(caUserId),

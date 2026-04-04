@@ -41,18 +41,16 @@ describe('CaClientsService visibility stats', () => {
   });
 
   it('returns command-center stats and at-risk clients for CA visibility', async () => {
-    clientModel.countDocuments
-      .mockResolvedValueOnce(18)
-      .mockResolvedValueOnce(15);
+    clientModel.countDocuments.mockResolvedValueOnce(18).mockResolvedValueOnce(15);
 
     paymentModel.aggregate.mockResolvedValue([{ total: 125000 }]);
     taskModel.countDocuments.mockResolvedValue(6);
     clientModel.find.mockReturnValue({
       sort: jest.fn().mockReturnValue({
         limit: jest.fn().mockReturnValue({
-          select: jest.fn().mockResolvedValue([
-            { name: 'Alpha Traders', healthScore: 58, phone: '9876543210' },
-          ]),
+          select: jest
+            .fn()
+            .mockResolvedValue([{ name: 'Alpha Traders', healthScore: 58, phone: '9876543210' }]),
         }),
       }),
     });

@@ -6,11 +6,64 @@ import { useRouter, useParams } from 'next/navigation';
 import MotionEmptyState from '@/components/MotionEmptyState';
 import LottieLoader from '@/components/LottieLoader';
 import Icon from '@/components/Icon';
+import { API_URL } from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 function authHeaders() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   return { Authorization: `Bearer ${token}` };
+}
+
+type TaskStatus = 'pending' | 'in_progress' | 'completed' | string;
+type TaskPriority = 'low' | 'medium' | 'high' | string;
+type PaymentStatus = 'pending' | 'overdue' | 'paid' | string;
+
+interface WorkspaceClient {
+  _id: string;
+  name: string;
+  gstin?: string;
+  businessType?: string;
+  status?: string;
+  healthScore?: number;
+}
+
+interface WorkspaceService {
+  _id: string;
+  serviceName?: string;
+  fees?: number;
+  frequency?: string;
+  status?: string;
+}
+
+interface WorkspacePayment {
+  _id: string;
+  amount?: number;
+  description?: string;
+  status?: PaymentStatus;
+}
+
+interface WorkspaceTask {
+  _id: string;
+  title?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  dueDate?: string;
+}
+
+interface DocumentCompletenessItem {
+  type: string;
+  uploaded: boolean;
+}
+
+interface DocumentCompleteness {
+  percentage?: number;
+  documents?: DocumentCompletenessItem[];
+}
+
+interface ClientWorkspace {
+  client: WorkspaceClient;
+  services: WorkspaceService[];
+  payments: WorkspacePayment[];
+  tasks: WorkspaceTask[];
 }
 
 export default function ClientWorkspacePage() {
@@ -19,22 +72,22 @@ export default function ClientWorkspacePage() {
   const clientId = (params?.id as string) ?? '';
   const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'payments' | 'documents' | 'tasks'>('overview');
 
-  const { data: workspace, isLoading } = useQuery({
+  const { data: workspace, isLoading } = useQuery<ClientWorkspace | null>({
     queryKey: ['client-workspace', clientId],
-    queryFn: async () => {
+    queryFn: async (): Promise<ClientWorkspace | null> => {
       const res = await fetch(`${API_URL}/v1/ca/clients/${clientId}/workspace`, { headers: authHeaders() });
       if (!res.ok) return null;
-      return res.json();
+      return (await res.json()) as ClientWorkspace;
     },
     enabled: !!clientId,
   });
 
-  const { data: completeness } = useQuery({
+  const { data: completeness } = useQuery<DocumentCompleteness | null>({
     queryKey: ['doc-completeness', clientId],
-    queryFn: async () => {
+    queryFn: async (): Promise<DocumentCompleteness | null> => {
       const res = await fetch(`${API_URL}/v1/ca/documents/completeness/${clientId}`, { headers: authHeaders() });
       if (!res.ok) return null;
-      return res.json();
+      return (await res.json()) as DocumentCompleteness;
     },
     enabled: !!clientId,
   });
@@ -54,11 +107,11 @@ export default function ClientWorkspacePage() {
 
   const healthScore = client?.healthScore ?? 0;
   const healthColor = healthScore >= 80 ? 'var(--success)' : healthScore >= 60 ? 'var(--warning)' : 'var(--error)';
-  const pendingTasks = tasks.filter((task: any) => task.status !== 'completed');
+  const pendingTasks = tasks.filter((task) => task.status !== 'completed');
   const pendingAmount = payments
-    .filter((payment: any) => payment.status === 'pending' || payment.status === 'overdue')
-    .reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
-  const missingDocuments = (completeness?.documents ?? []).filter((document: any) => !document.uploaded);
+    .filter((payment) => payment.status === 'pending' || payment.status === 'overdue')
+    .reduce((sum, payment) => sum + (payment.amount || 0), 0);
+  const missingDocuments = (completeness?.documents ?? []).filter((document) => !document.uploaded);
 
   const sections = [
     { label: 'Services', value: services.length, color: '#4f46e5', icon: 'M11.42 15.17l-5.67-5.67a2 2 0 010-2.83l.94-.94a2 2 0 012.83 0L15.17 11.42a2 2 0 010 2.83l-.94.94a2 2 0 01-2.83 0z' },
@@ -128,13 +181,13 @@ export default function ClientWorkspacePage() {
             />
           ) : (
             <>
-              {pendingTasks.slice(0, 3).map((task: any) => (
+              {pendingTasks.slice(0, 3).map((task) => (
                 <div key={task._id} className="focus-card focus-card-warning">
                   <p className="font-medium text-sm" style={{ color: 'var(--on-surface)' }}>{task.title}</p>
                   <p className="text-xs mt-1" style={{ color: 'var(--on-surface-variant)' }}>Task due {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-IN') : 'soon'}</p>
                 </div>
               ))}
-              {missingDocuments.slice(0, 3).map((document: any) => (
+              {missingDocuments.slice(0, 3).map((document) => (
                 <div key={document.type} className="focus-card focus-card-normal">
                   <p className="font-medium text-sm" style={{ color: 'var(--on-surface)' }}>{document.type?.replace('_', ' ')}</p>
                   <p className="text-xs mt-1" style={{ color: 'var(--on-surface-variant)' }}>Document missing</p>
@@ -159,7 +212,7 @@ export default function ClientWorkspacePage() {
             title="No services assigned"
             description="Attach services to enable lifecycle and billing workflows."
           />
-        ) : services.map((service: any) => (
+        ) : services.map((service) => (
           <div key={service._id} className="focus-card focus-card-normal">
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -188,7 +241,7 @@ export default function ClientWorkspacePage() {
             title="No payment records"
             description="Payment history will populate as collections are tracked."
           />
-        ) : payments.map((payment: any) => (
+        ) : payments.map((payment) => (
           <div key={payment._id} className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'var(--surface-high)' }}>
             <div>
               <p className="text-sm font-semibold tabular-nums" style={{ color: 'var(--on-surface)' }}>
@@ -216,7 +269,7 @@ export default function ClientWorkspacePage() {
           <div className="progress-bar-fill" style={{ width: `${completeness?.percentage ?? 0}%` }} />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-          {(completeness?.documents ?? []).map((document: any) => (
+          {(completeness?.documents ?? []).map((document) => (
             <div key={document.type} className="flex items-center justify-between py-1.5 px-3 rounded-xl" style={{ background: 'var(--surface-low)' }}>
               <span className="text-xs capitalize" style={{ color: 'var(--on-surface-variant)' }}>
                 {document.type?.replace('_', ' ')}
@@ -233,7 +286,7 @@ export default function ClientWorkspacePage() {
           <div className="rounded-2xl p-4" style={{ background: 'var(--surface-high)' }}>
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--on-surface-variant)' }}>Still missing</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {missingDocuments.map((document: any) => (
+              {missingDocuments.map((document) => (
                 <span key={document.type} className="badge-gray">{document.type?.replace('_', ' ')}</span>
               ))}
             </div>
@@ -261,7 +314,7 @@ export default function ClientWorkspacePage() {
             title="No pending tasks"
             description="Task queue is clear for this client."
           />
-        ) : pendingTasks.map((task: any) => (
+        ) : pendingTasks.map((task) => (
           <div key={task._id} className={`focus-card ${task.priority === 'high' ? 'focus-card-urgent' : task.priority === 'medium' ? 'focus-card-warning' : 'focus-card-normal'}`}>
             <p className="font-medium text-sm" style={{ color: 'var(--on-surface)' }}>{task.title}</p>
             {task.dueDate && (

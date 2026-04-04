@@ -4,8 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import MotionEmptyState from '@/components/MotionEmptyState';
 import LottieLoader from '@/components/LottieLoader';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL } from '@/lib/api';
 
 const REPORT_TYPE_LABEL: Record<string, string> = {
   tally: 'Tally Export',
@@ -48,7 +47,7 @@ export default function ReportsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Reports</h1>
-          <p className="page-subtitle">Reports sent to you by connected showrooms</p>
+          <p className="page-subtitle">Reports sent to you by connected businesses</p>
         </div>
         {unread > 0 && <span className="badge-blue">{unread} new</span>}
       </div>
@@ -61,13 +60,13 @@ export default function ReportsPage() {
         ) : reports.length === 0 ? (
           <MotionEmptyState
             title="No reports yet"
-            description="When a connected showroom sends a GST summary or Tally export, it will appear here."
+            description="When a connected business sends a GST summary or export, it will appear here."
           />
         ) : (
           <table className="table">
             <thead>
               <tr>
-                <th>Showroom</th>
+                <th>Business</th>
                 <th>Type</th>
                 <th>Period</th>
                 <th>File</th>
