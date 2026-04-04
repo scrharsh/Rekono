@@ -89,4 +89,10 @@ export const SaleEntrySchema = SchemaFactory.createForClass(SaleEntry);
 // Indexes
 SaleEntrySchema.index({ showroomId: 1, timestamp: -1 });
 SaleEntrySchema.index({ showroomId: 1, status: 1 });
-SaleEntrySchema.index({ invoiceNumber: 1 }, { unique: true, sparse: true });
+SaleEntrySchema.index(
+  { invoiceNumber: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { invoiceNumber: { $type: 'string' } },
+  },
+);

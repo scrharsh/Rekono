@@ -9,6 +9,7 @@ import { saveSale, LocalSaleEntry } from '../services/database.service';
 import uuid from 'react-native-uuid';
 import { CatalogItem, fetchCatalogItems } from '../services/businessProfile.service';
 import colors from '../constants/colors';
+import { forceSyncNow } from '../services/sync.service';
 
 type SaleMode = 'quick' | 'detailed' | 'session';
 type ValidGst = 0 | 5 | 12 | 18 | 28;
@@ -90,6 +91,7 @@ export default function SaleEntryScreen() {
         status: 'unmatched', syncStatus: 'pending',
       };
       await saveSale(sale);
+      await forceSyncNow();
       Alert.alert('✓ Sale Created', `₹${amt.toLocaleString('en-IN')}`);
       setQuickAmount('');
     } finally { setLoading(false); }
@@ -126,6 +128,7 @@ export default function SaleEntryScreen() {
         status: 'unmatched', syncStatus: 'pending',
       };
       await saveSale(sale);
+      await forceSyncNow();
       Alert.alert('✓ Sale Created', `₹${total.toFixed(2)}`);
       setItems([]); setCustomerName(''); setCustomerPhone('');
     } finally { setLoading(false); }
@@ -154,6 +157,7 @@ export default function SaleEntryScreen() {
         };
         await saveSale(sale);
       }
+      await forceSyncNow();
       Alert.alert('✓ Session Saved', `${sessionSales.length} sales created`);
       setSessionSales([]);
     } finally { setLoading(false); }

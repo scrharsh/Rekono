@@ -15,6 +15,7 @@ import {
 } from '../services/database.service';
 import uuid from 'react-native-uuid';
 import colors from '../constants/colors';
+import { selectClosestByAmountAndTime } from '../services/reconciliation.util';
 
 function ageLabel(ts: string) {
   const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
@@ -41,21 +42,6 @@ export default function UnmatchedQueueScreen() {
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
-  const getBestPaymentCandidate = (sale: LocalSaleEntry, payments: LocalPaymentRecord[]) => {
-    const scored = payments.map((payment) => {
-      const amountDiff = Math.abs(payment.amount - sale.totalAmount);
-      const timeDiffMins = Math.abs(
-        new Date(payment.timestamp).getTime() - new Date(sale.timestamp).getTime(),
-      ) / 60000;
-
-      const score = Math.max(0, 100 - amountDiff * 40 - timeDiffMins * 1.2);
-      return { payment, score, amountDiff, timeDiffMins };
-    });
-
-    scored.sort((a, b) => b.score - a.score);
-    return scored[0];
-  };
-
   const resolveSale = async (sale: LocalSaleEntry) => {
     setResolvingId(sale.id);
     try {
@@ -68,30 +54,41 @@ export default function UnmatchedQueueScreen() {
         return;
       }
 
-      const best = getBestPaymentCandidate(sale, unmatchedPayments);
-      if (!best || best.score < 50) {
-        Alert.alert('Low confidence', 'No confident payment candidate found for this sale.');
+      const matchedPayment = selectClosestByAmountAndTime(
+        unmatchedPayments,
+        (payment) => payment.amount,
+        (payment) => payment.timestamp,
+        sale.totalAmount,
+        sale.timestamp,
+        1,
+        180,
+      );
+
+      if (!matchedPayment) {
+        Alert.alert('No exact candidate', 'No unmatched payment found with near-exact amount.');
         return;
       }
+
+      const amountDiff = Math.abs(matchedPayment.amount - sale.totalAmount);
 
       await saveMatch({
         id: String(uuid.v4()),
         showroomId,
         saleId: sale.id,
-        paymentId: best.payment.id,
-        confidence: Math.round(best.score),
+        paymentId: matchedPayment.id,
+        confidence: 95,
         matchType: 'manual',
         verifiedBy: 'owner',
         verifiedAt: new Date().toISOString(),
-        notes: `Auto-linked from unmatched queue (amount diff ${best.amountDiff.toFixed(2)})`,
+        notes: `Auto-linked from unmatched queue (amount diff ${amountDiff.toFixed(2)})`,
         syncStatus: 'pending',
       });
 
       await updateSale(sale.id, { status: 'verified', syncStatus: 'pending' });
-      await updatePayment(best.payment.id, { status: 'verified', syncStatus: 'pending' });
+      await updatePayment(matchedPayment.id, { status: 'verified', syncStatus: 'pending' });
       await load();
 
-      Alert.alert('Resolved', `Linked with payment ₹${best.payment.amount.toLocaleString('en-IN')}`);
+      Alert.alert('Resolved', `Linked with payment ₹${matchedPayment.amount.toLocaleString('en-IN')}`);
     } catch {
       Alert.alert('Resolution failed', 'Unable to resolve this sale right now.');
     } finally {

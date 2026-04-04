@@ -17,6 +17,25 @@ const MAX_RETRY = 5;
 type RemoteSale = { _id: string; totalAmount: number; timestamp: string };
 type RemotePayment = { _id: string; amount: number; timestamp: string };
 
+function mapPaymentMethodForApi(method: LocalPaymentRecord['paymentMethod']): 'phonepe' | 'googlepay' | 'paytm' | 'bhim' | 'bank' | 'cash' {
+  switch (method) {
+    case 'PhonePe':
+      return 'phonepe';
+    case 'Google Pay':
+      return 'googlepay';
+    case 'Paytm':
+      return 'paytm';
+    case 'BHIM':
+      return 'bhim';
+    case 'bank_transfer':
+      return 'bank';
+    case 'cash':
+      return 'cash';
+    default:
+      return 'bank';
+  }
+}
+
 export const startSyncService = () => {
   if (syncInterval) return; // already running
   syncWithServer();
@@ -40,20 +59,33 @@ export const syncWithServer = async (): Promise<void> => {
     // Upload sales
     for (const sale of pending.sales) {
       try {
+        const saleItems = (sale.items || []).map((item) => ({
+          name: item.name,
+          hsnCode: item.hsnCode,
+          quantity: item.quantity,
+          rate: item.price,
+          amount: Number((item.price * item.quantity).toFixed(2)),
+          gstRate: item.gstRate,
+        }));
+
         const res = await fetch(`${API_URL}/showrooms/${sale.showroomId}/sales`, {
           method: 'POST', headers,
           body: JSON.stringify({
             totalAmount: sale.totalAmount,
             taxableAmount: sale.taxableAmount,
             cgst: sale.cgst, sgst: sale.sgst, igst: sale.igst,
-            items: sale.items,
+            items: saleItems,
             customerName: sale.customerName,
             customerPhone: sale.customerPhone,
-            invoiceNumber: sale.invoiceNumber,
             timestamp: sale.timestamp,
+            ...(sale.invoiceNumber ? { invoiceNumber: sale.invoiceNumber } : {}),
           }),
         });
         if (res.ok) await markAsSynced('sales', sale.id);
+        else {
+          const errorBody = await res.text();
+          console.warn('Sale sync failed:', res.status, errorBody);
+        }
       } catch { /* retry next cycle */ }
     }
 
@@ -64,15 +96,18 @@ export const syncWithServer = async (): Promise<void> => {
           method: 'POST', headers,
           body: JSON.stringify({
             amount: payment.amount,
-            paymentMethod: payment.paymentMethod,
+            method: mapPaymentMethodForApi(payment.paymentMethod),
             transactionId: payment.transactionId,
-            sender: payment.sender,
+            senderName: payment.sender,
             rawSMS: payment.rawSMS,
-            source: payment.source,
             timestamp: payment.timestamp,
           }),
         });
         if (res.ok) await markAsSynced('payments', payment.id);
+        else {
+          const errorBody = await res.text();
+          console.warn('Payment sync failed:', res.status, errorBody);
+        }
       } catch { /* retry next cycle */ }
     }
 

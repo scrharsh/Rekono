@@ -2,6 +2,7 @@ import { NativeModules, NativeEventEmitter, PermissionsAndroid, Platform } from 
 import { smsParserService, KNOWN_UPI_SENDERS, PaymentMethod } from './smsParser.service';
 import { databaseService, LocalPaymentRecord } from './database.service';
 import { smsAutoMatchService } from './smsAutoMatch.service';
+import { emitReconciliationChange } from './reconciliationEvents.service';
 
 const { SMSReceiverModule } = NativeModules;
 
@@ -24,6 +25,8 @@ interface SMSMessage {
 class SMSReceiverService {
   private eventEmitter: NativeEventEmitter | null = null;
   private listener: { remove: () => void } | null = null;
+  private recentlyProcessedSMS = new Map<string, number>();
+  private readonly dedupeWindowMs = 2 * 60 * 1000;
 
   async requestSMSPermission(): Promise<boolean> {
     if (Platform.OS !== 'android') {
@@ -57,6 +60,12 @@ class SMSReceiverService {
 
     // Initialize native module event emitter
     if (SMSReceiverModule) {
+      // Ensure we don't accumulate multiple JS listeners across app resume/hot reload cycles.
+      if (this.listener) {
+        this.listener.remove();
+        this.listener = null;
+      }
+
       this.eventEmitter = new NativeEventEmitter(SMSReceiverModule);
       
       // Listen for SMS received events
@@ -83,13 +92,49 @@ class SMSReceiverService {
     }
   }
 
+  private cleanupOldFingerprints(now: number): void {
+    for (const [key, seenAt] of this.recentlyProcessedSMS.entries()) {
+      if (now - seenAt > this.dedupeWindowMs) {
+        this.recentlyProcessedSMS.delete(key);
+      }
+    }
+  }
+
+  private buildSMSFingerprint(sms: SMSMessage): string {
+    const sender = (sms.sender || 'UNKNOWN').trim().toUpperCase();
+    const normalizedBody = (sms.body || '').replace(/\s+/g, ' ').trim();
+    return `${sender}|${sms.timestamp}|${normalizedBody}`;
+  }
+
+  private isRecentlyProcessed(sms: SMSMessage): boolean {
+    const now = Date.now();
+    this.cleanupOldFingerprints(now);
+
+    const fingerprint = this.buildSMSFingerprint(sms);
+    const lastSeen = this.recentlyProcessedSMS.get(fingerprint);
+    if (lastSeen && now - lastSeen < this.dedupeWindowMs) {
+      return true;
+    }
+
+    this.recentlyProcessedSMS.set(fingerprint, now);
+    return false;
+  }
+
   private async handleIncomingSMS(sms: SMSMessage, showroomId: string): Promise<void> {
     try {
+      if (this.isRecentlyProcessed(sms)) {
+        return;
+      }
+
       // Filter: only process SMS from known UPI providers (Requirement 2.1, 2.6)
       const isKnownSender = smsParserService.isKnownUPISender(sms.sender) ||
         KNOWN_UPI_SENDERS.some(s => sms.body.toUpperCase().includes(s));
 
-      if (!isKnownSender) {
+      // Allow controlled testing (e.g. Twilio sender IDs) when message strongly looks like UPI payment text.
+      const isLikelyPaymentMessage =
+        /(UPI|UTR|REF|TRANSACTION|CREDITED|RECEIVED|PAID|INR|RS\.?)/i.test(sms.body) && /\d/.test(sms.body);
+
+      if (!isKnownSender && !isLikelyPaymentMessage) {
         return; // Ignore non-UPI messages
       }
 
@@ -128,6 +173,8 @@ class SMSReceiverService {
             });
           }
         }
+
+        emitReconciliationChange();
       } else {
         // Parsing failed — log to review queue for manual inspection (Requirement 2.7)
         console.warn('Failed to parse UPI SMS:', {
@@ -142,6 +189,8 @@ class SMSReceiverService {
           timestamp: new Date(sms.timestamp),
           reason: 'parse_failure',
         });
+
+        emitReconciliationChange();
       }
     } catch (error) {
       console.error('Error handling incoming SMS:', error);

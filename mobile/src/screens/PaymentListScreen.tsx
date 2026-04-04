@@ -3,9 +3,11 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, StatusBar,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPaymentsByShowroom, LocalPaymentRecord } from '../services/database.service';
 import colors from '../constants/colors';
+import { subscribeToReconciliationChanges } from '../services/reconciliationEvents.service';
 
 const METHOD_ICON: Record<string, string> = {
   PhonePe: 'PP',
@@ -36,6 +38,20 @@ export default function PaymentListScreen() {
   }, [filter]);
 
   useEffect(() => { load(); }, [load]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
+
+  useEffect(() => {
+    const unsubscribe = subscribeToReconciliationChanges(() => {
+      void load();
+    });
+
+    return unsubscribe;
+  }, [load]);
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 

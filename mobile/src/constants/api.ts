@@ -4,7 +4,7 @@ const configuredOrigin =
   process.env.REKONO_API_URL?.trim().replace(/\/+$/, '') ||
   process.env.EXPO_PUBLIC_REKONO_API_URL?.trim().replace(/\/+$/, '');
 
-const productionFallbackOrigin = 'https://rekono-backend.onrender.com';
+const productionFallbackOrigin = 'https://rekono.onrender.com';
 
 // React Native runtime env injection is not guaranteed in debug builds.
 // Keep production backend as the safe default and use env vars to force local API.

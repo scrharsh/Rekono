@@ -3,12 +3,13 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   RefreshControl, StatusBar,
 } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPaymentsByShowroom, getTodaySummary, initDatabase } from '../services/database.service';
 import { startSyncService } from '../services/sync.service';
 import colors from '../constants/colors';
 import { getUnreadNotificationCount } from '../services/notification.service';
+import { subscribeToReconciliationChanges } from '../services/reconciliationEvents.service';
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();
@@ -19,9 +20,8 @@ export default function HomeScreen() {
   const [showroomName, setShowroomName] = useState('');
   const [isOnline] = useState(true);
 
-  const init = useCallback(async () => {
+  const refreshData = useCallback(async () => {
     try {
-      await initDatabase();
       const showroomId = await AsyncStorage.getItem('showroomId');
       const name = await AsyncStorage.getItem('showroomName');
       if (name) setShowroomName(name);
@@ -30,18 +30,43 @@ export default function HomeScreen() {
         setSummary(data);
         const unmatchedPayments = await getPaymentsByShowroom(showroomId, { status: 'unmatched' });
         setUnknownCount(unmatchedPayments.length);
-        const unreadNotifications = await getUnreadNotificationCount(30);
-        setNotificationCount(unreadNotifications);
       }
-      startSyncService();
+      const unreadNotifications = await getUnreadNotificationCount(30);
+      setNotificationCount(unreadNotifications);
     } catch (e) { console.error(e); }
   }, []);
 
-  useEffect(() => { init(); }, [init]);
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initDatabase();
+        startSyncService();
+        await refreshData();
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    init();
+  }, [refreshData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshData();
+    }, [refreshData]),
+  );
+
+  useEffect(() => {
+    const unsubscribe = subscribeToReconciliationChanges(() => {
+      void refreshData();
+    });
+
+    return unsubscribe;
+  }, [refreshData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await init();
+    await refreshData();
     setRefreshing(false);
   };
 

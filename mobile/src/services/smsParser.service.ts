@@ -37,6 +37,8 @@ export const KNOWN_UPI_SENDERS = [
   'BHIM',
   'GOOGLEPAY',
   'GOOGLE PAY',
+  'TWILIO',
+  'TEST',
   // Common bank SMS senders that relay UPI notifications
   'HDFCBK',
   'ICICIB',
@@ -76,9 +78,9 @@ const PATTERNS: Record<PaymentMethod, SMSPattern> = {
     timestamp: /on\s+(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})/,
   },
   [PaymentMethod.BANK]: {
-    sender: /HDFCBK|ICICIB|SBIINB|AXISBK|KOTAKB|YESBNK|PNBSMS|BOIIND|CANBNK|UNIONB/i,
+    sender: /HDFCBK|ICICIB|SBIINB|AXISBK|KOTAKB|YESBNK|PNBSMS|BOIIND|CANBNK|UNIONB|UPI|UTR|TRANSACTION|CREDITED|RECEIVED|TWILIO|TEST/i,
     amount: /(?:Rs|INR)\.?\s*(\d+(?:,\d+)*(?:\.\d{2})?)/,
-    transactionId: /(?:Ref|Txn)\s*(?:No|ID)\s*:?\s*(\w+)/i,
+    transactionId: /(?:Ref|Txn|UTR|UPI)\s*(?:No|ID|Ref)?\s*[:#-]?\s*([A-Za-z0-9]+)/i,
   },
   [PaymentMethod.CASH]: {
     sender: /CASH/i,
@@ -107,6 +109,15 @@ class SmsParserService {
         return provider as PaymentMethod;
       }
     }
+
+    // Fallback for generic sender IDs (e.g. Twilio test messages) that still contain UPI/payment signals.
+    const looksLikePayment =
+      /(UPI|UTR|REF|TRANSACTION|CREDITED|RECEIVED|PAID)/i.test(smsBody) &&
+      /(?:Rs|INR)\.?\s*\d+/i.test(smsBody);
+    if (looksLikePayment) {
+      return PaymentMethod.BANK;
+    }
+
     return null;
   }
 

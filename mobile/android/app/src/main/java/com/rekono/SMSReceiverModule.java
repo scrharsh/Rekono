@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SMSReceiverModule extends ReactContextBaseJavaModule {
   private static final AtomicBoolean listening = new AtomicBoolean(false);
+  private int listenerCount = 0;
   private static ReactApplicationContext reactContext;
 
   public SMSReceiverModule(ReactApplicationContext context) {
@@ -34,6 +35,21 @@ public class SMSReceiverModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void stopListening() {
     listening.set(false);
+  }
+
+  // Required by NativeEventEmitter in newer React Native versions.
+  @ReactMethod
+  public void addListener(String eventName) {
+    listenerCount += 1;
+  }
+
+  // Required by NativeEventEmitter in newer React Native versions.
+  @ReactMethod
+  public void removeListeners(double count) {
+    listenerCount -= (int) count;
+    if (listenerCount < 0) {
+      listenerCount = 0;
+    }
   }
 
   public static boolean isListening() {

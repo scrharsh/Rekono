@@ -18,42 +18,51 @@ import {
   createCatalogItem,
   deleteCatalogItem,
   fetchCatalogItems,
+  hydrateBusinessContextFromServer,
   toggleCatalogFavorite,
 } from '../services/businessProfile.service';
 import colors from '../constants/colors';
 
-const MOCK_CATALOG = [
-  { _id: 'c1', name: 'General Consultation', category: 'Services', type: 'Service', sellingPrice: 500 },
-  { _id: 'c2', name: 'Premium Service Package', category: 'Services', type: 'Package', sellingPrice: 2000 },
-  { _id: 'c3', name: 'Standard Product', category: 'Products', type: 'Product', sellingPrice: 1500 },
-  { _id: 'c4', name: 'Diagnostic Check', category: 'Services', type: 'Service', sellingPrice: 300 },
-];
-
 export default function CatalogScreen() {
-  const [items, setItems] = useState<CatalogItem[]>(MOCK_CATALOG);
+  const [items, setItems] = useState<CatalogItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [query, setQuery] = useState('');
-  const [businessId, setBusinessId] = useState('');
+  const [catalogScopeId, setCatalogScopeId] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newItem, setNewItem] = useState({ name: '', category: '', type: '', price: '' });
 
   const loadCatalog = useCallback(async (showSpinner = false) => {
     try {
       if (showSpinner) setLoading(true);
-      const activeBusinessId = await AsyncStorage.getItem('businessProfileId');
-      if (!activeBusinessId) {
-        setBusinessId('');
-        setItems(MOCK_CATALOG);
+      const context = await hydrateBusinessContextFromServer();
+      const showroomId = context?.showroomId || await AsyncStorage.getItem('showroomId');
+      const businessProfileId = context?.businessProfileId || await AsyncStorage.getItem('businessProfileId');
+      const primaryScopeId = showroomId || businessProfileId;
+
+      if (!primaryScopeId) {
+        setCatalogScopeId('');
+        setItems([]);
         return;
       }
 
-      setBusinessId(activeBusinessId);
-      const apiItems = await fetchCatalogItems(activeBusinessId);
-      setItems(apiItems.length > 0 ? apiItems : MOCK_CATALOG);
+      const primaryItems = await fetchCatalogItems(primaryScopeId);
+
+      // Some legacy records may still be under businessProfileId; try fallback when primary returns empty.
+      if (primaryItems.length === 0 && showroomId && businessProfileId && showroomId !== businessProfileId) {
+        const fallbackItems = await fetchCatalogItems(businessProfileId);
+        if (fallbackItems.length > 0) {
+          setCatalogScopeId(businessProfileId);
+          setItems(fallbackItems);
+          return;
+        }
+      }
+
+      setCatalogScopeId(primaryScopeId);
+      setItems(primaryItems);
     } catch {
-      setItems(MOCK_CATALOG);
+      setItems([]);
     } finally {
       if (showSpinner) setLoading(false);
     }
@@ -86,7 +95,7 @@ export default function CatalogScreen() {
 
   const handleAddItem = async () => {
     const price = Number(newItem.price);
-    if (!businessId) {
+    if (!catalogScopeId) {
       Alert.alert('Business context missing', 'Complete onboarding first, then add catalog items.');
       return;
     }
@@ -96,7 +105,7 @@ export default function CatalogScreen() {
     }
 
     try {
-      await createCatalogItem(businessId, {
+      await createCatalogItem(catalogScopeId, {
         name: newItem.name.trim(),
         category: newItem.category.trim(),
         type: newItem.type.trim() || undefined,
@@ -111,10 +120,10 @@ export default function CatalogScreen() {
   };
 
   const handleToggleFavorite = async (item: CatalogItem) => {
-    if (!businessId || !item._id) return;
+    if (!catalogScopeId || !item._id) return;
 
     try {
-      await toggleCatalogFavorite(businessId, item._id);
+      await toggleCatalogFavorite(catalogScopeId, item._id);
       await loadCatalog();
     } catch {
       Alert.alert('Failed', 'Unable to update favorite status.');
@@ -122,7 +131,7 @@ export default function CatalogScreen() {
   };
 
   const handleDeleteItem = (item: CatalogItem) => {
-    if (!businessId || !item._id) return;
+    if (!catalogScopeId || !item._id) return;
 
     Alert.alert('Delete item', `Remove ${item.name || item.category} from catalog?`, [
       { text: 'Cancel', style: 'cancel' },
@@ -131,7 +140,7 @@ export default function CatalogScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await deleteCatalogItem(businessId, item._id);
+            await deleteCatalogItem(catalogScopeId, item._id);
             await loadCatalog();
           } catch {
             Alert.alert('Failed', 'Unable to delete this item.');

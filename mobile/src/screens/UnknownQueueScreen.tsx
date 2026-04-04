@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, Alert, StatusBar
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getPaymentsByShowroom,
@@ -16,6 +17,9 @@ import {
 } from '../services/database.service';
 import uuid from 'react-native-uuid';
 import colors from '../constants/colors';
+import { subscribeToReconciliationChanges } from '../services/reconciliationEvents.service';
+import { selectClosestByAmountAndTime } from '../services/reconciliation.util';
+import { fetchCatalogItems, hydrateBusinessContextFromServer, CatalogItem } from '../services/businessProfile.service';
 
 function ageLabel(ts: string) {
   const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
@@ -49,20 +53,43 @@ export default function UnknownQueueScreen() {
 
   useEffect(() => { load(); }, [load]);
 
-  const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
 
-  const getBestSaleCandidate = (payment: LocalPaymentRecord, sales: LocalSaleEntry[]) => {
-    const scored = sales.map((sale) => {
-      const amountDiff = Math.abs(payment.amount - sale.totalAmount);
-      const timeDiffMins = Math.abs(
-        new Date(payment.timestamp).getTime() - new Date(sale.timestamp).getTime(),
-      ) / 60000;
-      const score = Math.max(0, 100 - amountDiff * 40 - timeDiffMins * 1.2);
-      return { sale, score, amountDiff };
+  useEffect(() => {
+    const unsubscribe = subscribeToReconciliationChanges(() => {
+      void load();
     });
 
-    scored.sort((a, b) => b.score - a.score);
-    return scored[0];
+    return unsubscribe;
+  }, [load]);
+
+  const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+
+  const findExactCatalogItem = async (amount: number): Promise<CatalogItem | null> => {
+    const context = await hydrateBusinessContextFromServer();
+    const showroomId = context?.showroomId || await AsyncStorage.getItem('showroomId');
+    const businessProfileId = context?.businessProfileId || await AsyncStorage.getItem('businessProfileId');
+    const primaryScopeId = showroomId || businessProfileId;
+
+    if (!primaryScopeId) {
+      return null;
+    }
+
+    const withinTolerance = (item: CatalogItem) => Math.abs((item.sellingPrice || 0) - amount) <= 1;
+
+    const primaryItems = await fetchCatalogItems(primaryScopeId);
+    let match = primaryItems.find(withinTolerance) || null;
+
+    if (!match && showroomId && businessProfileId && showroomId !== businessProfileId) {
+      const fallbackItems = await fetchCatalogItems(businessProfileId);
+      match = fallbackItems.find(withinTolerance) || null;
+    }
+
+    return match;
   };
 
   const createSaleAndLink = async (payment: LocalPaymentRecord) => {
@@ -71,21 +98,30 @@ export default function UnknownQueueScreen() {
       const showroomId = await AsyncStorage.getItem('showroomId');
       if (!showroomId) return;
 
+      const exactCatalogItem = await findExactCatalogItem(payment.amount);
+      const rawGstRate = exactCatalogItem?.gstRate;
+      const gstRate = rawGstRate === 0 || rawGstRate === 5 || rawGstRate === 12 || rawGstRate === 18 || rawGstRate === 28
+        ? rawGstRate
+        : 0;
+
+      const taxableAmount = gstRate > 0 ? payment.amount / (1 + gstRate / 100) : payment.amount;
+      const gstAmount = payment.amount - taxableAmount;
+
       const saleId = String(uuid.v4());
       await saveSale({
         id: saleId,
         showroomId,
         totalAmount: payment.amount,
-        taxableAmount: payment.amount,
-        cgst: 0,
-        sgst: 0,
+        taxableAmount: Math.round(taxableAmount * 100) / 100,
+        cgst: Math.round((gstAmount / 2) * 100) / 100,
+        sgst: Math.round((gstAmount / 2) * 100) / 100,
         igst: 0,
         items: [
           {
-            name: payment.sender ? `Payment from ${payment.sender}` : 'Captured from unknown payment',
+            name: exactCatalogItem?.name || exactCatalogItem?.category || (payment.sender ? `Payment from ${payment.sender}` : 'Captured from unknown payment'),
             quantity: 1,
             price: payment.amount,
-            gstRate: 0,
+            gstRate,
           },
         ],
         customerName: payment.sender || undefined,
@@ -103,7 +139,9 @@ export default function UnknownQueueScreen() {
         matchType: 'manual',
         verifiedBy: 'owner',
         verifiedAt: new Date().toISOString(),
-        notes: 'Created sale directly from unknown payment',
+        notes: exactCatalogItem
+          ? `Created sale from catalog item: ${exactCatalogItem.name || exactCatalogItem.category}`
+          : 'Created sale directly from unknown payment',
         syncStatus: 'pending',
       });
 
@@ -125,33 +163,49 @@ export default function UnknownQueueScreen() {
 
       const unmatchedSales = await getSalesByShowroom(showroomId, { status: 'unmatched' });
       if (unmatchedSales.length === 0) {
-        Alert.alert('No sale found', 'There are no unmatched sales available for linking.');
+        const exactCatalogItem = await findExactCatalogItem(payment.amount);
+        if (exactCatalogItem) {
+          await createSaleAndLink(payment);
+        } else {
+          Alert.alert('No sale found', 'No unmatched sale found. Use Create Sale to generate one from this payment.');
+        }
         return;
       }
 
-      const best = getBestSaleCandidate(payment, unmatchedSales);
-      if (!best || best.score < 50) {
-        Alert.alert('Low confidence', 'No confident sale candidate found for this payment.');
+      const matchedSale = selectClosestByAmountAndTime(
+        unmatchedSales,
+        (sale) => sale.totalAmount,
+        (sale) => sale.timestamp,
+        payment.amount,
+        payment.timestamp,
+        1,
+        180,
+      );
+
+      if (!matchedSale) {
+        Alert.alert('No exact candidate', 'No unmatched sale found with near-exact amount.');
         return;
       }
+
+      const amountDiff = Math.abs(matchedSale.totalAmount - payment.amount);
 
       await saveMatch({
         id: String(uuid.v4()),
         showroomId,
-        saleId: best.sale.id,
+        saleId: matchedSale.id,
         paymentId: payment.id,
-        confidence: Math.round(best.score),
+        confidence: 95,
         matchType: 'manual',
         verifiedBy: 'owner',
         verifiedAt: new Date().toISOString(),
-        notes: `Matched from unknown queue (amount diff ${best.amountDiff.toFixed(2)})`,
+        notes: `Matched from unknown queue (amount diff ${amountDiff.toFixed(2)})`,
         syncStatus: 'pending',
       });
 
-      await updateSale(best.sale.id, { status: 'verified', syncStatus: 'pending' });
+      await updateSale(matchedSale.id, { status: 'verified', syncStatus: 'pending' });
       await updatePayment(payment.id, { status: 'verified', syncStatus: 'pending' });
       await load();
-      Alert.alert('Matched', `Linked with sale ₹${best.sale.totalAmount.toLocaleString('en-IN')}`);
+      Alert.alert('Matched', `Linked with sale ₹${matchedSale.totalAmount.toLocaleString('en-IN')}`);
     } catch {
       Alert.alert('Match failed', 'Unable to match this payment right now.');
     } finally {

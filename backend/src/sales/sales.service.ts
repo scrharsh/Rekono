@@ -16,8 +16,13 @@ export class SalesService {
     createSaleDto: CreateSaleDto,
     userId: string,
   ): Promise<SaleEntryDocument> {
+    const saleData = { ...createSaleDto } as Record<string, unknown>;
+    if (saleData.invoiceNumber == null || saleData.invoiceNumber === '') {
+      delete saleData.invoiceNumber;
+    }
+
     const sale = new this.saleEntryModel({
-      ...createSaleDto,
+      ...saleData,
       showroomId,
       createdBy: userId,
       status: 'unmatched',
@@ -66,7 +71,12 @@ export class SalesService {
     saleId: string,
     updateData: Partial<CreateSaleDto>,
   ): Promise<SaleEntryDocument | null> {
-    return this.saleEntryModel.findByIdAndUpdate(saleId, updateData, { new: true }).exec();
+    const safeUpdateData = { ...updateData } as Record<string, unknown>;
+    if (safeUpdateData.invoiceNumber == null || safeUpdateData.invoiceNumber === '') {
+      delete safeUpdateData.invoiceNumber;
+    }
+
+    return this.saleEntryModel.findByIdAndUpdate(saleId, safeUpdateData, { new: true }).exec();
   }
 
   async delete(saleId: string): Promise<void> {

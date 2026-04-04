@@ -9,6 +9,7 @@ export type CatalogItem = {
   category: string;
   type?: string;
   sellingPrice: number;
+  gstRate?: number;
   isFavorite?: boolean;
   usageCount?: number;
 };
@@ -121,7 +122,21 @@ export async function fetchCatalogItems(businessId: string): Promise<CatalogItem
     throw new Error('Failed to fetch catalog');
   }
 
-  return res.json();
+  const payload = await res.json();
+
+  if (Array.isArray(payload)) {
+    return payload as CatalogItem[];
+  }
+
+  if (Array.isArray(payload?.items)) {
+    return payload.items as CatalogItem[];
+  }
+
+  if (Array.isArray(payload?.data)) {
+    return payload.data as CatalogItem[];
+  }
+
+  return [];
 }
 
 export async function createCatalogItem(

@@ -20,12 +20,30 @@ export const initDatabase = async () => {
     await createSchemaVersionTable();
     const currentVersion = await getSchemaVersion();
     await runMigrations(currentVersion);
+    await deduplicatePaymentRows();
 
     console.log('Database initialized successfully (version', DB_VERSION, ')');
   } catch (error) {
     console.error('Database initialization error:', error);
     throw error;
   }
+};
+
+const deduplicatePaymentRows = async () => {
+  await db.executeSql(`
+    DELETE FROM payments
+    WHERE rowid NOT IN (
+      SELECT MIN(rowid)
+      FROM payments
+      GROUP BY
+        showroomId,
+        amount,
+        IFNULL(transactionId, ''),
+        IFNULL(sender, ''),
+        timestamp,
+        IFNULL(rawSMS, '')
+    )
+  `);
 };
 
 const createSchemaVersionTable = async () => {

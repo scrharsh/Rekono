@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList,
   RefreshControl, Alert, StatusBar
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getPaymentsByShowroom,
@@ -10,6 +11,7 @@ import {
 } from '../services/database.service';
 import colors from '../constants/colors';
 import { QuickResolvePaymentButton } from '../components/QuickResolvePaymentButton';
+import { subscribeToReconciliationChanges } from '../services/reconciliationEvents.service';
 
 function ageLabel(ts: string) {
   const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
@@ -32,6 +34,20 @@ export default function UnknownPaymentsScreen() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
+
+  useEffect(() => {
+    const unsubscribe = subscribeToReconciliationChanges(() => {
+      void load();
+    });
+
+    return unsubscribe;
+  }, [load]);
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 

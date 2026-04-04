@@ -7,8 +7,11 @@
 import {
   getSalesByShowroom,
   getPaymentById,
+  getPaymentsByShowroom,
   saveMatch,
   LocalMatch,
+  updatePayment,
+  updateSale,
 } from './database.service';
 import { selectClosestByAmountAndTime } from './reconciliation.util';
 
@@ -73,6 +76,8 @@ class SMSAutoMatchService {
       };
 
       await saveMatch(match);
+      await updateSale((matchedSale as any).id, { status: 'verified', syncStatus: 'pending' });
+      await updatePayment(paymentId, { status: 'verified', syncStatus: 'pending' });
 
       console.log('✓ Auto-matched SMS payment:', {
         saleAmount: (matchedSale as any).totalAmount,
@@ -105,6 +110,7 @@ class SMSAutoMatchService {
 
       const allSales = await getSalesByShowroom(showroomId);
       const unmatchedSales = allSales.filter(s => s.status === 'unmatched');
+      const usedSaleIds = new Set<string>();
 
       if (unmatchedPayments.length === 0 || unmatchedSales.length === 0) {
         return { matched: 0, failed: 0 };
@@ -116,8 +122,10 @@ class SMSAutoMatchService {
       for (const payment of unmatchedPayments) {
         const paymentTimestamp = payment.timestamp || new Date().toISOString();
 
+        const availableSales = unmatchedSales.filter((sale) => !usedSaleIds.has((sale as any).id));
+
         const matchedSale = selectClosestByAmountAndTime(
-          unmatchedSales as unknown as Array<{ totalAmount: number; timestamp: string }>,
+          availableSales as unknown as Array<{ totalAmount: number; timestamp: string }>,
           (sale: any) => sale.totalAmount,
           (sale: any) => sale.timestamp,
           payment.amount,
@@ -141,6 +149,9 @@ class SMSAutoMatchService {
             };
 
             await saveMatch(match);
+            await updateSale((matchedSale as any).id, { status: 'verified', syncStatus: 'pending' });
+            await updatePayment(payment.id, { status: 'verified', syncStatus: 'pending' });
+            usedSaleIds.add((matchedSale as any).id);
             matched++;
           } catch {
             failed++;

@@ -25,6 +25,10 @@ public class SMSReceiver extends BroadcastReceiver {
       return;
     }
 
+    StringBuilder bodyBuilder = new StringBuilder();
+    String sender = null;
+    long timestamp = 0L;
+
     for (Object pdu : pdus) {
       SmsMessage message;
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -37,15 +41,28 @@ public class SMSReceiver extends BroadcastReceiver {
         continue;
       }
 
-      String body = message.getMessageBody();
-      String sender = message.getOriginatingAddress();
-      long timestamp = message.getTimestampMillis();
+      String partBody = message.getMessageBody();
+      if (partBody != null) {
+        bodyBuilder.append(partBody);
+      }
 
-      SMSReceiverModule.emitSMSReceived(
-        body == null ? "" : body,
-        sender == null ? "UNKNOWN" : sender,
-        timestamp
-      );
+      if (sender == null || sender.isEmpty()) {
+        sender = message.getOriginatingAddress();
+      }
+
+      if (timestamp == 0L) {
+        timestamp = message.getTimestampMillis();
+      }
     }
+
+    if (bodyBuilder.length() == 0) {
+      return;
+    }
+
+    SMSReceiverModule.emitSMSReceived(
+      bodyBuilder.toString(),
+      sender == null ? "UNKNOWN" : sender,
+      timestamp
+    );
   }
 }
