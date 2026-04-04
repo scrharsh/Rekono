@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'Rekono — Intelligent CA Workspace & Business Reconciliation OS',
   description: 'Rekono is an intelligent operating system for Chartered Accountants — manage clients, services, payments, documents, and deadlines with smart prioritization and actionable guidance.',
   keywords: 'CA OS, chartered accountant, client management, GST, reconciliation, business intelligence',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
